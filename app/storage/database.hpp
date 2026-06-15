@@ -71,6 +71,6 @@ CREATE INDEX idx_version_branch
 ON version(branch_id);
 
 CREATE INDEX idx_version_blob_hash
-ON version_blob(blob_hash);
+ON version(blob_hash);
 )sql";
 
