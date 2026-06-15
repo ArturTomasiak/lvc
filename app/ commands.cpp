@@ -11,10 +11,13 @@ void help(int argc, char* argv[]) {
 void initialize(int argc, char* argv[]) {
     if (!state.lvc_directory.empty())
         throw std::runtime_error("LVC was already initialized.");
+    state.remove_lvc_on_failure = true;
     create_folder(".lvc/objects");
     state.lvc_directory = ".lvc";
+    state.config_path = "lvc.config";
     create_file("lvc.config", default_settings);
-    db.initialize();
+    db.initialize_new();
+    state.remove_lvc_on_failure = false;
 }
 
 void tree(int argc, char* argv[]) {

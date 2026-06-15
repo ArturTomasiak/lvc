@@ -37,6 +37,8 @@ static void (*command(std::string input))(int argc, char* argv[]) {
 
 int main(int argc, char* argv[]) {
     try {
+        state.initialize();
+        db.initialize_existing();
         if (argc < 2) 
             throw std::runtime_error("No argument provided.");
         command((argv[1]))(argc, argv);

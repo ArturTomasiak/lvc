@@ -7,7 +7,7 @@ struct State {
     int file_limit     = 0;
     int oldest_version = 0;
     bool remove_lvc_on_failure = 0;
-    State(); // defined in file.cpp
+    void initialize(); // defined in file.cpp
 };
 
 extern State state;

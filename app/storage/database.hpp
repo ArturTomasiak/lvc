@@ -6,14 +6,14 @@ class DataBase {
     void open_database();
     void exec(const char* query);
 public:
-    DataBase();
+    void initialize_existing();
+    void initialize_new();
     ~DataBase();
-    void initialize();
 };
 
 extern DataBase db;
 
-inline constexpr const char* initialization_schema = R"(
+inline constexpr const char* initialization_schema = R"sql(
 PRAGMA foreign_keys = ON;
 
 CREATE TABLE branch (
@@ -72,5 +72,5 @@ ON version(branch_id);
 
 CREATE INDEX idx_version_blob_hash
 ON version_blob(blob_hash);
-)";
+)sql";
 

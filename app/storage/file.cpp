@@ -7,10 +7,12 @@
 
 void create_folder(const char* path) {
     std::error_code error;
-    if (!std::filesystem::create_directories(path) || error) {
-        std::string errmsg = std::string("failed to create directory ") + path + "\n";
+    if (!std::filesystem::create_directories(path, error) || error) {
+        std::string errmsg = std::string("Failed to create directory ") + path + "\n";
         if (error)
             errmsg += error.message() + "\n";
+        else
+            errmsg += "Directory already existed.\n";
         throw std::runtime_error(errmsg);
     }
 }
@@ -47,11 +49,12 @@ std::string lvc_path() {
     }
 }
 
-State::State() {
+void State::initialize() {
     lvc_directory = lvc_path();
     if (lvc_directory.empty())
         return;
-    config_path = lvc_directory + "../lvc.config";
+    std::filesystem::path lvc = lvc_directory;
+    config_path = (lvc.parent_path() / "lvc.config").string();
     std::ifstream file(config_path);
     if (!file) {
         create_file(config_path.c_str(), default_settings);

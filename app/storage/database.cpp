@@ -18,13 +18,13 @@ void DataBase::exec(const char* query) {
     }
 }
 
-DataBase::DataBase() {
+void DataBase::initialize_existing() {
     if (state.lvc_directory.empty())
         return;
     open_database();
 }
 
-void DataBase::initialize() {
+void DataBase::initialize_new() {
     open_database();
     exec("BEGIN;");
     exec(initialization_schema);
