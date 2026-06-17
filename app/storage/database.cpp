@@ -1,6 +1,7 @@
 #include <database.hpp>
 #include <state.hpp>
 #include <iostream>
+#include <stdexcept>
 
 void DataBase::open_database() {
     std::string directory = state.lvc_directory + "/lvc.db";

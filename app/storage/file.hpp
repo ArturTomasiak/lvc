@@ -7,3 +7,4 @@ void delete_folder(const char* path);
 void delete_file(const char* path);
 std::string read_file();
 std::string lvc_path();
+std::string config_path();

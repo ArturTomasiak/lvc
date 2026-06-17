@@ -14,6 +14,20 @@ file(GLOB_RECURSE SOURCES
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
 add_executable(lvc ${SOURCES})
+# aggressive optimizatoins seem to destroy sqlite; add with caution
+if (MSVC)
+    target_compile_options(lvc PRIVATE
+        /WX
+    )
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_compile_options(lvc PRIVATE
+        -Werror
+    )
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_compile_options(lvc PRIVATE
+        -Werror
+    )
+endif()
 
 find_package(ZLIB REQUIRED)
 target_link_libraries(lvc PRIVATE ZLIB::ZLIB)

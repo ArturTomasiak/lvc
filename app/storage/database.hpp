@@ -18,7 +18,7 @@ PRAGMA foreign_keys = ON;
 
 CREATE TABLE branch (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL UNIQUE,
+    description TEXT NOT NULL,
     parent_branch_id INTEGER,
     parent_version_id INTEGER,
     is_merged INTEGER NOT NULL DEFAULT 0,

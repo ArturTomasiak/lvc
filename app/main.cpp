@@ -3,6 +3,7 @@
 #include <iostream>
 #include <state.hpp>
 #include <database.hpp>
+#include <stdexcept>
 
 State state;
 DataBase db;
@@ -37,7 +38,7 @@ static void (*command(std::string input))(int argc, char* argv[]) {
 
 int main(int argc, char* argv[]) {
     try {
-        state.initialize();
+        state.find_lvc();
         db.initialize_existing();
         if (argc < 2) 
             throw std::runtime_error("No argument provided.");
@@ -45,7 +46,7 @@ int main(int argc, char* argv[]) {
     }
     catch(const std::exception& e) {
         std::cout <<  e.what() << " For a list of commands lvc help.\n";
-        if (state.remove_lvc_on_failure)
+        if (state.flags & FLAGS_REMOVE_LVC_ON_FAILURE)
             remove_internal();
         return EXIT_FAILURE;
     }

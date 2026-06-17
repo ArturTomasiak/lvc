@@ -3,6 +3,7 @@
 #include <fstream>
 #include <cstring>
 #include <iostream>
+#include <stdexcept>
 #include <state.hpp>
 
 void create_folder(const char* path) {
@@ -49,12 +50,16 @@ std::string lvc_path() {
     }
 }
 
-void State::initialize() {
+void State::find_lvc() {
     lvc_directory = lvc_path();
     if (lvc_directory.empty())
         return;
+    flags |= FLAGS_LVC_INITIALIZED;
     std::filesystem::path lvc = lvc_directory;
     config_path = (lvc.parent_path() / "lvc.config").string();
+}
+
+void State::read_config() {
     std::ifstream file(config_path);
     if (!file) {
         create_file(config_path.c_str(), default_settings);
@@ -70,9 +75,7 @@ void State::initialize() {
             continue;
         std::string name = line.substr(0, pos);
         std::string value = line.substr(pos + 1);
-        if (name == "file_limit")
-            file_limit = std::stoull(value);
-        else if (name == "oldest_version")
-            oldest_version = std::stoull(value);
+        match_string_settings(name, value);
+        match_int_settings(name, value);
     }
 }

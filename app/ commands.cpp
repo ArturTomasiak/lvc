@@ -9,15 +9,15 @@ void help(int argc, char* argv[]) {
 }
 
 void initialize(int argc, char* argv[]) {
-    if (!state.lvc_directory.empty())
+    if (state.flags & FLAGS_LVC_INITIALIZED)
         throw std::runtime_error("LVC was already initialized.");
-    state.remove_lvc_on_failure = true;
+    state.flags |= FLAGS_REMOVE_LVC_ON_FAILURE;
     create_folder(".lvc/objects");
     state.lvc_directory = ".lvc";
     state.config_path = "lvc.config";
     create_file("lvc.config", default_settings);
     db.initialize_new();
-    state.remove_lvc_on_failure = false;
+    state.flags &= ~FLAGS_REMOVE_LVC_ON_FAILURE;
 }
 
 void tree(int argc, char* argv[]) {
@@ -62,7 +62,7 @@ void remove_internal() {
 }
 
 void remove(int argc, char* argv[]) {
-    if (state.lvc_directory.empty())
+    if (!(state.flags & FLAGS_LVC_INITIALIZED))
         throw std::runtime_error("Could not find lvc.");
     remove_internal();
     std::cout << "Removed lvc from project." << "\n";
