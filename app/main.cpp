@@ -13,22 +13,23 @@ struct Command {
     void (*function)(int argc, char* argv[]);
 };
 
+#define COMMANDS_ARRAY { \
+    {"help", help}, \
+    {"initialize", initialize}, \
+    {"tree", tree}, \
+    {"history", history}, \
+    {"create", create}, \
+    {"merge", merge}, \
+    {"goto", go_to}, \
+    {"status", status}, \
+    {"version", version}, \
+    {"upload", upload}, \
+    {"goback", go_back}, \
+    {"remove", remove} \
+}
+
 static void (*command(std::string input))(int argc, char* argv[]) {
-    Command commands[] = {
-        {"help", help},
-        {"initialize", initialize},
-        {"tree", tree},
-        {"history", history},
-        {"create", create},
-        {"merge", merge},
-        {"goto", go_to},
-        {"status", status},
-        {"version", version},
-        {"upload", upload},
-        {"goback", go_back},
-        {"remove", remove}
-    };
-    
+    Command commands[] = COMMANDS_ARRAY;
     for (const Command& cmd : commands)
         if (input == cmd.name)
             return cmd.function;
@@ -38,13 +39,13 @@ static void (*command(std::string input))(int argc, char* argv[]) {
 
 int main(int argc, char* argv[]) {
     try {
-        state.find_lvc();
-        db.initialize_existing();
         if (argc < 2) 
             throw std::runtime_error("No argument provided.");
+        state.find_lvc();
+        if (state.flags & FLAGS_LVC_INITIALIZED)
+            db.open();
         command((argv[1]))(argc, argv);
-    }
-    catch(const std::exception& e) {
+    } catch(const std::exception& e) {
         std::cout <<  e.what() << " For a list of commands lvc help.\n";
         if (state.flags & FLAGS_REMOVE_LVC_ON_FAILURE)
             remove_internal();

@@ -3,11 +3,10 @@
 
 class DataBase {
     sqlite3* sql = nullptr;
-    void open_database();
     void exec(const char* query);
 public:
-    void initialize_existing();
-    void initialize_new();
+    void open();
+    void create_new();
     ~DataBase();
 };
 
@@ -70,7 +69,7 @@ CREATE TABLE state (
 CREATE INDEX idx_version_branch
 ON version(branch_id);
 
-CREATE INDEX idx_version_blob_hash
-ON version(blob_hash);
+CREATE INDEX idx_blob_hash
+ON blob(hash);
 )sql";
 

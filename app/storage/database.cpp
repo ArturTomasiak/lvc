@@ -3,7 +3,7 @@
 #include <iostream>
 #include <stdexcept>
 
-void DataBase::open_database() {
+void DataBase::open() {
     std::string directory = state.lvc_directory + "/lvc.db";
     if (sqlite3_open_v2(directory.c_str(), &sql, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, nullptr))
         throw std::runtime_error(sqlite3_errmsg(sql));
@@ -19,14 +19,8 @@ void DataBase::exec(const char* query) {
     }
 }
 
-void DataBase::initialize_existing() {
-    if (state.lvc_directory.empty())
-        return;
-    open_database();
-}
-
-void DataBase::initialize_new() {
-    open_database();
+void DataBase::create_new() {
+    open();
     exec("BEGIN;");
     exec(initialization_schema);
     exec("COMMIT;");

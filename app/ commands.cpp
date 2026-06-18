@@ -16,7 +16,7 @@ void initialize(int argc, char* argv[]) {
     state.lvc_directory = ".lvc";
     state.config_path = "lvc.config";
     create_file("lvc.config", default_settings);
-    db.initialize_new();
+    db.create_new();
     state.flags &= ~FLAGS_REMOVE_LVC_ON_FAILURE;
 }
 

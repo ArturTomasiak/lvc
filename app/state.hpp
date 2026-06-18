@@ -10,11 +10,12 @@
 
 struct State {
     int limit_text     = 0;
-    int limit_non_text  = 0;
+    int limit_non_text = 0;
     int flags = 0;
     std::string lvc_directory = "";
     std::string config_path   = "";
     std::string server        = "";
+    std::string server_key    = "";
 // defined in file.cpp
     void find_lvc();
     void read_config();
@@ -43,6 +44,8 @@ private:
     void match_string_settings(std::string name, std::string string) {
         if (name == "sever")
             server = string;
+        else if (name == "server_key")
+            server_key = string;
     }
     void match_int_settings(std::string name, std::string string) {
         std::unordered_map<std::string, void (State::*)(int)>::iterator iterator = int_settings_map.find(name);
@@ -60,11 +63,14 @@ private:
 extern State state;
 
 inline constexpr const char* default_settings = 
-R"(# leave default if not using a centralized server
-
-# the size from which a .lvc file is not stored locally, 0 means no limit
-file_limit=0
-
-# version from which .lvc files are stored locally, 0 means all versions are stored locally
-oldest_version=0
+R"(#NA = local, <path> = use centralized
+server=NA
+server_key=NA
+#storage settings regarding .lvc blobs
+#0 = local, 1 = server
+store_text=0
+store_non_text=0
+#0 = no limit, <num> = size in mb that will make a file stored on server if exceeds
+limit_text=0
+limit_non_text=0
 )";
