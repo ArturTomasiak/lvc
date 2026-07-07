@@ -1,5 +1,5 @@
 # LVC - Literally Control Version
-Work in progress, this isn't even a complete minimal viable product.
+Work in progress; documentation not accessible until finished
 
 ```bash
 cmake -S . -B build -DCMAKE_CXX_COMPILER=clang++

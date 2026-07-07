@@ -1,4 +1,5 @@
 build
 bin
 .lvc
-lvc.config
+lvc.storage
+LVCAPI
