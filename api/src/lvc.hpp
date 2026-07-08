@@ -17,9 +17,29 @@
     #define LVC_API
 #endif
 
+#define LVC_RETURN_IF_ERROR(function)    \
+do {                                     \
+    LvcError err = (function);           \
+    if (err)                             \
+        return err;                      \
+} while (0)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+    typedef enum LvcError {
+        SUCCESS,
+        LVC_FOLDER_CREATE, 
+        WORKSPACE_FOLDER_CREATE,
+        OBJECT_FOLDER_CREATE,
+        CATEGORY_FOLDER_CREATE,
+        WORKSPACE_FILE_CREATE,
+        CATEGORY_EXISTS,
+        CATEGORY_NOT_EXISTS,
+        WORKSPACE_EXISTS
+    } ErrorCode;
+
     typedef enum StorageBehaviour {
         DISTRIBUTED,
         HYBRID,
@@ -30,7 +50,7 @@ extern "C" {
         LvcBool local;
         LvcBool clone;
         StorageBehaviour storage_behaviour;
-        char* server_link;
+        char* location;
         char* category_name;
         char* workspace_name;
         char* clone_repository;
@@ -52,21 +72,26 @@ extern "C" {
         LvcConflict* conflict;
     } LvcConflictArray;
 
-    LVC_API LvcBool lvc_create(const char* lvc, LvcCreateInput input);
-    LVC_API LvcBool lvc_workspace(const char* lvc, const char* category_name, const char* workspace_name);
-    LVC_API LvcBool lvc_category(const char* lvc, const char* category_name);
-    LVC_API LvcBool lvc_goto(const char* lvc, const char* workspace_name);
-    LVC_API LvcBool lvc_diff(const char* lvc, char*** files);
-    LVC_API LvcBool lvc_status(const char* lvc, char*** files);
-    LVC_API LvcBool lvc_prepare(const char* lvc, int argc, char* argv[]);
-    LVC_API LvcBool lvc_version(const char* lvc, const char* message);
-    LVC_API LvcBool lvc_conflict_manual(const char* lvc, LvcConflictArray* conflicts);
-    LVC_API LvcBool lvc_conflict_manual_verify(const char* lvc, LvcConflictArray* conflicts);
-    LVC_API LvcBool lvc_conflict_manual_sync(const char* lvc, LvcConflictArray* conflicts);
-    LVC_API LvcBool lvc_sync(const char* lvc, const char* tmp_lvc, LvcConflictArray* conflicts);
-    LVC_API LvcBool lvc_unite(const char* lvc, const char* workspace_name, LvcConflictArray* conflicts);
-    LVC_API LvcBool lvc_insert(const char* lvc, const char* workspace_name, LvcConflictArray* conflicts);
-    LVC_API LvcBool lvc_revert(const char* lvc, uint32_t version_id, uint32_t file_count, char** files);
+    LVC_API LvcError lvc_create(LvcCreateInput input);
+    LVC_API LvcError lvc_workspace(const char* lvc, const char* category_name, const char* workspace_name);
+    LVC_API LvcError lvc_category(const char* lvc, const char* category_name);
+    LVC_API LvcError lvc_goto(const char* lvc, const char* workspace_name);
+    LVC_API LvcError lvc_diff(const char* lvc, char*** files);
+    LVC_API LvcError lvc_status(const char* lvc, char*** files);
+    LVC_API LvcError lvc_prepare(const char* lvc, int argc, char* argv[]);
+    LVC_API LvcError lvc_version(const char* lvc, const char* message);
+    LVC_API LvcError lvc_conflict_manual(const char* lvc, LvcConflictArray* conflicts);
+    LVC_API LvcError lvc_conflict_manual_verify(const char* lvc, LvcConflictArray* conflicts);
+    LVC_API LvcError lvc_conflict_manual_sync(const char* lvc, LvcConflictArray* conflicts);
+    LVC_API LvcError lvc_sync(const char* lvc, const char* tmp_lvc, LvcConflictArray* conflicts);
+    LVC_API LvcError lvc_unite(const char* lvc, const char* workspace_name, LvcConflictArray* conflicts);
+    LVC_API LvcError lvc_insert(const char* lvc, const char* workspace_name, LvcConflictArray* conflicts);
+    LVC_API LvcError lvc_revert(const char* lvc, uint32_t version_id, uint32_t file_count, char** files);
+    LVC_API LvcError lvc_push_local(const char* lvc, const char* tmp_lvc);
+    LVC_API LvcError lvc_push_server(const char* lvc);
+    LVC_API const char* lvc_error_string(int16_t error_code);
+    LVC_API LvcBool lvc_category_exists(const char* lvc_path, const char* name);
+    LVC_API LvcBool lvc_workspace_exists(const char* lvc_path, const char* name);
 #ifdef __cplusplus
 }
 #endif
