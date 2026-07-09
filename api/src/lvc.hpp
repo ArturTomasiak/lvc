@@ -6,7 +6,7 @@
 #if defined(LVC_STATIC)
     #define LVC_API
 #elif defined(_WIN32)
-    #if defined(LVC_BUILD_DLL)
+    #if defined(LVC_MAKE_DLL)
         #define LVC_API __declspec(dllexport)
     #else
         #define LVC_API __declspec(dllimport)
@@ -41,7 +41,7 @@ extern "C" {
         CATEGORY_NOT_EXISTS,
         WORKSPACE_EXISTS,
         WORKSPACE_NOT_EXISTS
-    } ErrorCode;
+    } LvcError;
 
     typedef enum StorageBehaviour {
         DISTRIBUTED,
@@ -92,7 +92,7 @@ extern "C" {
     LVC_API LvcError lvc_revert(const char* lvc, uint32_t version_id, uint32_t file_count, char** files);
     LVC_API LvcError lvc_push_local(const char* lvc, const char* tmp_lvc);
     LVC_API LvcError lvc_push_server(const char* lvc);
-    LVC_API const char* lvc_error_string(int16_t error_code);
+    LVC_API const char* lvc_error_string(LvcError error_code);
     LVC_API LvcBool lvc_category_exists(const char* lvc, const char* name);
     LVC_API LvcBool lvc_workspace_exists(const char* lvc, const char* name);
 #ifdef __cplusplus

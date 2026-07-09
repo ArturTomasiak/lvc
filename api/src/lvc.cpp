@@ -8,6 +8,8 @@ LVC_API LvcError lvc_create (LvcCreateInput input) {
     RETURN_ERR(create::lvc(lvc));
     RETURN_ERR(create::category(lvc, input.category_name));
     RETURN_ERR(create::workspace(lvc, input.category_name, input.workspace_name));
+    RETURN_ERR(write::workspace_current(lvc, input.workspace_name));
+    RETURN_ERR(write::workspace_default(lvc, input.workspace_name));
     return SUCCESS;
 }
 
