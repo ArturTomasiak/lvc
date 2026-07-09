@@ -53,21 +53,31 @@ StorageBehaviour ask_storage() {
 }
 
 bool create(int argc, char* argv[]) {
-    LvcCreateInput input;
-    input.location = std::filesystem::current_path().c_str();
+    LvcCreateInput input{};
+    std::string location = std::filesystem::current_path();
+    std::string server_link;
+    std::string repository_name;
+    std::string category_name;
+    std::string workspace_name;
+    std::string clone;
+    
     input.local = ask_local();
     if (!input.local) {
-        input.server_link = ask_line("Server link: ", 0).c_str();
+        server_link = ask_line("Server link: ", 0).c_str();
         input.storage_behaviour = ask_storage();
     }
-    input.repository_name = ask_line("Repository name ", 0).c_str();
-    input.category_name = ask_line("Create default workspace’s category name ", 0).c_str();
-    input.workspace_name = ask_line("Create default workspace name ", 0).c_str();
-    std::string clone = ask_line("Clone repository link (leave empty to start from scratch) ", 1);
-    if (clone.empty())
-        input.clone_repository = 0;
-    else
-        input.clone_repository = clone.c_str();
+    repository_name = ask_line("Repository name ", 0);
+    category_name = ask_line("Create default workspace’s category name ", 0);
+    workspace_name = ask_line("Create default workspace name ", 0);
+    clone = ask_line("Clone repository link (leave empty to start from scratch) ", 1);
+
+    input.location         = location.c_str();
+    input.repository_name  = repository_name.c_str();
+    input.server_link      = server_link.c_str();
+    input.category_name    = category_name.c_str();
+    input.workspace_name   = workspace_name.c_str();
+    input.clone_repository = clone.empty() ? 0 : clone.c_str();
+
     LvcError err = lvc_create(input);
     if (err) {
         error_message = lvc_error_string(err);

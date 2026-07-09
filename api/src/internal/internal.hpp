@@ -6,6 +6,10 @@
 
 #define RETURN_ERR LVC_RETURN_IF_ERROR
 
+#ifdef TEST_PRINTS
+#include <iostream>
+#endif
+
 namespace create {
     LvcError lvc(std::filesystem::path lvc);
     LvcError category(std::filesystem::path lvc, std::string name);

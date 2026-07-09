@@ -17,6 +17,8 @@
     #define LVC_API
 #endif
 
+#define TEST_PRINTS
+
 #define LVC_RETURN_IF_ERROR(function)    \
 do {                                     \
     LvcError err = (function);           \

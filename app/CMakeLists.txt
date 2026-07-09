@@ -139,3 +139,11 @@ elseif(UNIX)
         COMMENT "Copying lvc shared library to app bin folder"
     )
 endif()
+
+install(TARGETS lvc
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        PERMISSIONS
+            OWNER_READ OWNER_WRITE OWNER_EXECUTE
+            GROUP_READ GROUP_EXECUTE
+            WORLD_READ WORLD_EXECUTE
+)
