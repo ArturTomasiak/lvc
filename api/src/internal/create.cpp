@@ -19,6 +19,7 @@ LvcError create::lvc(std::filesystem::path lvc) {
         return WORKSPACE_FOLDER_CREATE;
     if (!create_dir(lvc / "object"))
         return OBJECT_FOLDER_CREATE;
+    RETURN_ERR(create::category(lvc, "inactive"));
     return SUCCESS;
 }
 
