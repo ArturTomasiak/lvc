@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.20)
 
 project(lvc
     VERSION 1.0.0
-    DESCRIPTION "LVC API"
-    LANGUAGES CXX
+    DESCRIPTION "LVC C API implemented in C++"
+    LANGUAGES C CXX
 )
 
 set(CMAKE_CXX_STANDARD 17)
@@ -21,6 +21,10 @@ file(GLOB_RECURSE LVC_HEADERS CONFIGURE_DEPENDS
 add_library(lvc SHARED
     ${LVC_SOURCES}
     ${LVC_HEADERS}
+)
+
+set_target_properties(lvc PROPERTIES
+    LINKER_LANGUAGE CXX
 )
 
 target_include_directories(lvc

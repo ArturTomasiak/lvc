@@ -17,6 +17,7 @@ namespace write {
     bool file(std::filesystem::path path, std::ios_base::openmode flags, const char* content);
     LvcError workspace_current(std::filesystem::path lvc, const char* workspace_name);
     LvcError workspace_default(std::filesystem::path lvc, const char* workspace_name);
+    LvcError repository_name(std::filesystem::path lvc, const char* name);
 }
 
 namespace exists {

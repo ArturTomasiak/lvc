@@ -13,7 +13,7 @@ bool write::file(std::filesystem::path path, std::ios_base::openmode flags, cons
 LvcError write::workspace_current(std::filesystem::path lvc, const char* workspace_name) {
     if (!exists::workspace(lvc, workspace_name, 0))
         return WORKSPACE_NOT_EXISTS;
-    if (! write::file(lvc / "current", std::ios::binary, workspace_name));
+    if (!write::file(lvc / "current", std::ios::binary, workspace_name))
         return CURRENT;
     return SUCCESS;
 }
@@ -21,7 +21,13 @@ LvcError write::workspace_current(std::filesystem::path lvc, const char* workspa
 LvcError write::workspace_default(std::filesystem::path lvc, const char* workspace_name) {
     if (!exists::workspace(lvc, workspace_name, 0))
         return WORKSPACE_NOT_EXISTS;
-    if (! write::file(lvc / "default", std::ios::binary, workspace_name));
+    if (!write::file(lvc / "default", std::ios::binary, workspace_name))
         return DEFAULT;
+    return SUCCESS;
+}
+
+LvcError write::repository_name(std::filesystem::path lvc, const char* name) {
+    if (!write::file(lvc / "name", std::ios::binary, name))
+        return NAME;
     return SUCCESS;
 }
