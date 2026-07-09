@@ -3,19 +3,21 @@
 #include <unordered_map>
 
 LVC_API LvcError lvc_create (LvcCreateInput input) {
-    std::filesystem::path lvc_path = input.location;
-    lvc_path /= ".lvc";
-    RETURN_ERR(create::lvc(lvc_path));
-    RETURN_ERR(create::category(lvc_path, input.category_name));
-    RETURN_ERR(create::workspace(lvc_path, input.workspace_name));
+    std::filesystem::path lvc = input.location;
+    lvc /= ".lvc";
+    RETURN_ERR(create::lvc(lvc));
+    RETURN_ERR(create::category(lvc, input.category_name));
+    RETURN_ERR(create::workspace(lvc, input.category_name, input.workspace_name));
     return SUCCESS;
 }
 
 LVC_API LvcError lvc_workspace(const char* lvc, const char* category_name, const char* workspace_name) {
+    RETURN_ERR(create::workspace(lvc, category_name, workspace_name));
     return SUCCESS;
 }
 
 LVC_API LvcError lvc_category(const char* lvc, const char* category_name) {
+    RETURN_ERR(create::category(lvc, category_name));
     return SUCCESS;
 }
 
@@ -75,12 +77,12 @@ LVC_API LvcError lvc_push_server(const char* lvc) {
     return SUCCESS;
 }
 
-LVC_API LvcBool lvc_category_exists(const char* lvc_path, const char* name) {
-    return exists::category(lvc_path, name);
+LVC_API LvcBool lvc_category_exists(const char* lvc, const char* name) {
+    return exists::category(lvc, name);
 }
 
-LVC_API LvcBool lvc_workspace_exists(const char* lvc_path, const char* name) {
-    return exists::workspace(lvc_path, name);
+LVC_API LvcBool lvc_workspace_exists(const char* lvc, const char* name) {
+    return exists::workspace(lvc, name, 0);
 }
 
 static const std::unordered_map<LvcError, const char*> error_strings = {
@@ -90,9 +92,12 @@ static const std::unordered_map<LvcError, const char*> error_strings = {
     { OBJECT_FOLDER_CREATE,        "Could not create .lvc/object folder" },
     { CATEGORY_FOLDER_CREATE,      "Could not create .lvc/workspace/<category_name> folder" },
     { WORKSPACE_FILE_CREATE,       "Could not create .lvc/workspace/<category_name>/<workspace_name> file" },
+    { CURRENT,                     "Could not modify .lvc/current file" },
+    { DEFAULT,                     "Could not modify .lvc/default file" },
     { CATEGORY_EXISTS,             "Category already exists" },
     { CATEGORY_NOT_EXISTS,         "Category doesn't exists" },
-    { WORKSPACE_EXISTS,            "Workspace already exists" }
+    { WORKSPACE_EXISTS,            "Workspace already exists" },
+    { WORKSPACE_NOT_EXISTS,        "Workspace doesn't exists" }
 };
 
 LVC_API const char* lvc_error_string(LvcError error_code) {

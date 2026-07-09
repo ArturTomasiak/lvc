@@ -35,9 +35,12 @@ extern "C" {
         OBJECT_FOLDER_CREATE,
         CATEGORY_FOLDER_CREATE,
         WORKSPACE_FILE_CREATE,
+        CURRENT,
+        DEFAULT,
         CATEGORY_EXISTS,
         CATEGORY_NOT_EXISTS,
-        WORKSPACE_EXISTS
+        WORKSPACE_EXISTS,
+        WORKSPACE_NOT_EXISTS
     } ErrorCode;
 
     typedef enum StorageBehaviour {
@@ -90,8 +93,8 @@ extern "C" {
     LVC_API LvcError lvc_push_local(const char* lvc, const char* tmp_lvc);
     LVC_API LvcError lvc_push_server(const char* lvc);
     LVC_API const char* lvc_error_string(int16_t error_code);
-    LVC_API LvcBool lvc_category_exists(const char* lvc_path, const char* name);
-    LVC_API LvcBool lvc_workspace_exists(const char* lvc_path, const char* name);
+    LVC_API LvcBool lvc_category_exists(const char* lvc, const char* name);
+    LVC_API LvcBool lvc_workspace_exists(const char* lvc, const char* name);
 #ifdef __cplusplus
 }
 #endif
