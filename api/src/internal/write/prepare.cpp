@@ -4,7 +4,7 @@ LvcError write::prepare(std::filesystem::path lvc, std::vector<std::string> inpu
     std::vector<std::string> paths   = get::path_from_input(lvc.parent_path(), input);
     if (paths.empty())
         return PREPARE_NO_INPUT;
-    std::vector<std::string> current = get::file_lines(lvc / "prepare");
+    std::vector<std::string> current = get::file_content_lines(lvc / "prepare");
     std::unordered_set<std::string> existing;
     existing.reserve(current.size() + paths.size());
 

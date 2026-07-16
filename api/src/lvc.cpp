@@ -9,8 +9,8 @@ extern "C" LVC_API LvcError lvc_create (LvcCreateInput input) noexcept {
     RETURN_ERR(write::repository_name(lvc, input.repository_name));
     RETURN_ERR(create::category(lvc, input.category_name));
     RETURN_ERR(create::workspace(lvc, input.category_name, input.workspace_name));
-    RETURN_ERR(write::workspace_current(lvc, input.workspace_name));
-    RETURN_ERR(write::workspace_default(lvc, input.workspace_name));
+    RETURN_ERR(write::workspace_current(lvc, input.category_name, input.workspace_name));
+    RETURN_ERR(write::workspace_default(lvc, input.category_name, input.workspace_name));
     return SUCCESS;
 }
 
@@ -24,8 +24,12 @@ extern "C" LVC_API LvcError lvc_category(const char* lvc, const char* category_n
     return SUCCESS;
 }
 
-extern "C" LVC_API LvcError lvc_goto(const char* lvc, const char* workspace_name) noexcept {
-    return write::workspace_current(lvc, workspace_name);
+extern "C" LVC_API LvcError lvc_goto(const char* lvc, const char* category_name, const char* workspace_name) noexcept {
+    return write::workspace_current(lvc, category_name, workspace_name);
+}
+
+extern "C" LVC_API LvcError lvc_default(const char* lvc, const char* category_name, const char* workspace_name) noexcept {
+    return write::workspace_default(lvc, category_name, workspace_name);
 }
 
 extern "C" LVC_API char** lvc_diff(const char* lvc) noexcept {

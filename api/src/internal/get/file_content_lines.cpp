@@ -1,6 +1,6 @@
 #include <internal.hpp>
 
-std::vector<std::string> get::file_lines(std::filesystem::path file_path) {
+std::vector<std::string> get::file_content_lines(std::filesystem::path file_path) {
     std::vector<std::string> result;
     result.reserve(PREALLOCATE_SMALL);
 

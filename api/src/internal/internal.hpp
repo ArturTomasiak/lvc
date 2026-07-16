@@ -26,8 +26,8 @@ namespace write {
     bool file(std::filesystem::path path, std::ios_base::openmode flags);
     bool file(std::filesystem::path path, std::ios_base::openmode flags, const char* content);
 
-    LvcError workspace_current(std::filesystem::path lvc, const char* workspace_name);
-    LvcError workspace_default(std::filesystem::path lvc, const char* workspace_name);
+    LvcError workspace_current(std::filesystem::path lvc, const char* category_name, const char* workspace_name);
+    LvcError workspace_default(std::filesystem::path lvc, const char* category_name, const char* workspace_name);
     LvcError repository_name(std::filesystem::path lvc, const char* name);
     LvcError version(std::filesystem::path lvc, const char* message);
     LvcError prepare(std::filesystem::path lvc, std::vector<std::string> input);
@@ -44,8 +44,10 @@ namespace get {
     std::vector<std::string> diff(std::filesystem::path lvc);
     std::vector<std::string> status(std::filesystem::path lvc);
     std::vector<std::string> status_all(std::filesystem::path lvc);
-    std::vector<std::string> file_lines(std::filesystem::path file_path);
+    std::string file_content(std::filesystem::path file_path);
+    std::vector<std::string> file_content_lines(std::filesystem::path file_path);
     std::vector<std::string> path_from_input(std::filesystem::path repository_root, const std::vector<std::string>& inputs);
+    const bool sha256(const char* in, char out[65]);
 }
 
 inline void free_charpp(char** arr) {
@@ -58,20 +60,20 @@ inline void free_charpp(char** arr) {
 
 inline char** strvector_to_charpp(const std::vector<std::string>& vector) {
     char** result = (char**)calloc((vector.size() + 1), sizeof(char*));
-    if (!result)
-        return 0;
-    char** copy = result;
-    for (const std::string& str : vector) {
-        *copy = (char*)malloc(str.size() + 1);
-        if (!copy) {
-            free_charpp(result);
-            return 0;
+    if (result) {
+        char** copy = result;
+        for (const std::string& str : vector) {
+            *copy = (char*)malloc(str.size() + 1);
+            if (!copy) {
+                free_charpp(result);
+                return 0;
+            }
+            memcpy(*copy, str.data(), str.size());
+            (*copy)[str.size()] = '\0';
+            copy++;
         }
-        memcpy(*copy, str.data(), str.size());
-        (*copy)[str.size()] = '\0';
-        copy++;
+        *copy = 0;
     }
-    *copy = 0;
     return result;
 }
 
@@ -97,6 +99,26 @@ inline char* strvector_to_charp(std::vector<std::string> vector) {
             result[pos++] = '\n';
     }
     result[pos] = '\0';
+    return result;
+}
+
+inline uint64_t charplen(const char* str) {
+    uint64_t len = 0;
+    while (*str++)
+        len++;
+    return len;
+}
+
+inline char* charpcombslash(const char* str1, const char* str2) {
+    uint64_t str1len = charplen(str1);
+    uint64_t str2len = charplen(str2);
+    char* result = (char*)malloc(str1len + str2len + 2);
+    if (result) {
+        memcpy(result, str1, str1len);
+        result[str1len] = '/';
+        memcpy(result + str1len + 1, str2, str2len);
+        result[str2len + 1] = '\0';
+    }
     return result;
 }
 

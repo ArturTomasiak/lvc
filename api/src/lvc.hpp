@@ -91,7 +91,8 @@ extern "C" {
     LVC_API LvcError lvc_create(LvcCreateInput input) noexcept;
     LVC_API LvcError lvc_workspace(const char* lvc, const char* category_name, const char* workspace_name) noexcept;
     LVC_API LvcError lvc_category(const char* lvc, const char* category_name) noexcept;
-    LVC_API LvcError lvc_goto(const char* lvc, const char* workspace_name) noexcept;
+    LVC_API LvcError lvc_goto(const char* lvc, const char* category_name, const char* workspace_name) noexcept;
+    LVC_API LvcError lvc_default(const char* lvc, const char* category_name, const char* workspace_name) noexcept;
     LVC_API char**   lvc_diff(const char* lvc) noexcept;
     LVC_API char**   lvc_status(const char* lvc) noexcept;
     LVC_API char**   lvc_status_all(const char* lvc) noexcept;
