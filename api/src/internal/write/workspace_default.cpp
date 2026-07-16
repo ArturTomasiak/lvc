@@ -6,7 +6,7 @@ LvcError write::workspace_default(std::filesystem::path lvc, const char* categor
     char* category_slash_workspace = charpcombslash(category_name, workspace_name);
     if (!category_slash_workspace)
         return MEMORY_ALLOCATION_FAILED;
-    if (!write::file(lvc / "default", std::ios::binary, category_slash_workspace))
+    if (!write::file(lvc / "default", std::ios::binary, category_slash_workspace, charplen(category_slash_workspace)))
         return DEFAULT;
     free(category_slash_workspace);
     return SUCCESS;

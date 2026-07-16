@@ -18,7 +18,7 @@ LvcError write::prepare(std::filesystem::path lvc, std::vector<std::string> inpu
     char* result = strvector_to_charp(current);
     if (!result)
         return MEMORY_ALLOCATION_FAILED;
-    write::file(lvc / "prepare", std::ios::binary, result);
+    write::file(lvc / "prepare", std::ios::binary, result, charplen(result));
     free(result);
     return SUCCESS;
 }

@@ -13,23 +13,81 @@ static constexpr uint32_t k[64] = {
     0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
 };
 
-const bool get::sha256(const char* in, char out[65]) {
+static void process_chunk(const uint8_t* chunk, uint32_t& h0, uint32_t& h1, uint32_t& h2, uint32_t& h3, uint32_t& h4, uint32_t& h5, uint32_t& h6, uint32_t& h7) {
+    uint32_t w[64];
+    for (uint8_t i = 0; i < 16; i++) {
+        uint8_t offset = i * 4;
+        w[i] =
+            ((uint32_t)chunk[offset]     << 24) |
+            ((uint32_t)chunk[offset + 1] << 16) |
+            ((uint32_t)chunk[offset + 2] << 8)  |
+            ((uint32_t)chunk[offset + 3]);
+    }
+    for (uint8_t i = 16; i < 64; i++) {
+        uint32_t s0 =
+            RIGHT_ROTATE(w[i - 15], 7) ^
+            RIGHT_ROTATE(w[i - 15], 18) ^
+            (w[i - 15] >> 3);
+
+        uint32_t s1 =
+            RIGHT_ROTATE(w[i - 2], 17) ^
+            RIGHT_ROTATE(w[i - 2], 19) ^
+            (w[i - 2] >> 10);
+
+        w[i] = w[i - 16] + s0 + w[i - 7] + s1;
+    }
+
+    uint32_t a = h0;
+    uint32_t b = h1;
+    uint32_t c = h2;
+    uint32_t d = h3;
+    uint32_t e = h4;
+    uint32_t f = h5;
+    uint32_t g = h6;
+    uint32_t h = h7;
+
+    for (uint8_t i = 0; i < 64; i++) {
+        const uint32_t S1    = RIGHT_ROTATE(e, 6) ^ RIGHT_ROTATE(e, 11) ^ RIGHT_ROTATE(e, 25);
+        const uint32_t ch    = g ^ (e & (f ^ g));
+        const uint32_t temp1 = h + S1 + ch + k[i] + w[i];
+        const uint32_t S0    = RIGHT_ROTATE(a, 2) ^ RIGHT_ROTATE(a, 13) ^ RIGHT_ROTATE(a, 22);
+        const uint32_t maj   = (a & b) ^ (c & (a ^ b));
+        const uint32_t temp2 = S0 + maj;
+        h = g;
+        g = f;
+        f = e;
+        e = d + temp1;
+        d = c;
+        c = b;
+        b = a;
+        a = temp1 + temp2;
+    }
+
+    h0 += a;
+    h1 += b;
+    h2 += c;
+    h3 += d;
+    h4 += e;
+    h5 += f;
+    h6 += g;
+    h7 += h;
+}
+
+bool get::sha256(const char* in, uint64_t in_len, char out[65]) {
     if (!in || !out)
         return false;
 
-    uint64_t len       = charplen(in);
-    uint64_t bit_len   = len << 3;
-    uint64_t remaining = 64 - ((len + 8) % 64);
-    uint64_t full_len  = len + remaining + 8;
-    uint8_t* padded = (uint8_t*)calloc(full_len, 1);
-    if (!padded)
-        return false;
-
-    memcpy(padded, in, len);
-    padded[len] = (char)0x80;
+    uint64_t bit_len   = in_len << 3;
+    uint64_t remainder = in_len % 64;
+    uint8_t padding[128] = {0};
+    memcpy((void*)padding, in + in_len - remainder, remainder);
+    padding[remainder] = 0x80;
     
+    uint64_t in_chunks      = in_len >> 6;
+    uint64_t padding_chunks = remainder >= 56 ? 2 : 1;
+
     for (int i = 0; i < 8; ++i)
-        padded[len + remaining + i] = bit_len >> (56 - i * 8);
+        padding[((64 * padding_chunks) - 8) + i] = bit_len >> (56 - i * 8);
 
     uint32_t h0 = 0x6a09e667;
     uint32_t h1 = 0xbb67ae85;
@@ -39,70 +97,11 @@ const bool get::sha256(const char* in, char out[65]) {
     uint32_t h5 = 0x9b05688c;
     uint32_t h6 = 0x1f83d9ab;
     uint32_t h7 = 0x5be0cd19;
-
-    for (uint64_t chunk_index = 0; chunk_index < full_len; chunk_index += 64) {
-        const uint8_t* chunk = padded + chunk_index;
-
-        uint32_t w[64];
-        for (uint8_t i = 0; i < 16; i++) {
-            uint8_t offset = i * 4;
-            w[i] =
-                ((uint32_t)chunk[offset]     << 24) |
-                ((uint32_t)chunk[offset + 1] << 16) |
-                ((uint32_t)chunk[offset + 2] << 8)  |
-                ((uint32_t)chunk[offset + 3]);
-        }
-        for (uint8_t i = 16; i < 64; i++) {
-            uint32_t s0 =
-                RIGHT_ROTATE(w[i - 15], 7) ^
-                RIGHT_ROTATE(w[i - 15], 18) ^
-                (w[i - 15] >> 3);
-
-            uint32_t s1 =
-                RIGHT_ROTATE(w[i - 2], 17) ^
-                RIGHT_ROTATE(w[i - 2], 19) ^
-                (w[i - 2] >> 10);
-
-            w[i] = w[i - 16] + s0 + w[i - 7] + s1;
-        }
-
-        uint32_t a = h0;
-        uint32_t b = h1;
-        uint32_t c = h2;
-        uint32_t d = h3;
-        uint32_t e = h4;
-        uint32_t f = h5;
-        uint32_t g = h6;
-        uint32_t h = h7;
-
-        for (uint8_t i = 0; i < 64; i++) {
-            uint32_t S1    = RIGHT_ROTATE(e, 6) ^ RIGHT_ROTATE(e, 11) ^ RIGHT_ROTATE(e, 25);
-            uint32_t ch    = (e & f) ^ ((~e) & g);
-            uint32_t temp1 = h + S1 + ch + k[i] + w[i];
-            uint32_t S0    = RIGHT_ROTATE(a, 2) ^ RIGHT_ROTATE(a, 13) ^ RIGHT_ROTATE(a, 22);
-            uint32_t maj   = (a & b) ^ (a & c) ^ (b & c);
-            uint32_t temp2 = S0 + maj;
-            h = g;
-            g = f;
-            f = e;
-            e = d + temp1;
-            d = c;
-            c = b;
-            b = a;
-            a = temp1 + temp2;
-        }
-
-        h0 += a;
-        h1 += b;
-        h2 += c;
-        h3 += d;
-        h4 += e;
-        h5 += f;
-        h6 += g;
-        h7 += h;
-    }
-
-    free(padded);
+        
+    for (uint64_t i = 0; i < in_chunks; i++)
+        process_chunk((const uint8_t*)in + (i * 64), h0, h1, h2, h3, h4, h5, h6, h7);
+    for (uint64_t i = 0; i < padding_chunks; i++)
+        process_chunk(padding + (i * 64), h0, h1, h2, h3, h4, h5, h6, h7);
 
     static constexpr char hex[] = "0123456789abcdef";
     const uint32_t state[8] = {h0, h1, h2, h3, h4, h5, h6, h7};

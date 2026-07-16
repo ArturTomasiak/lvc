@@ -8,11 +8,11 @@ bool write::file(std::filesystem::path path, std::ios_base::openmode flags) {
     return 1;
 }
 
-bool write::file(std::filesystem::path path, std::ios_base::openmode flags, const char* content) {
+bool write::file(std::filesystem::path path, std::ios_base::openmode flags, const char* content, uint64_t length) {
     std::ofstream file(path, flags);
     if (!file)
         return 0;
-    file.write(content, std::strlen(content));
+    file.write(content, length);
     file.close();
     return 1;
 }

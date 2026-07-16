@@ -24,7 +24,7 @@ namespace create {
 
 namespace write {
     bool file(std::filesystem::path path, std::ios_base::openmode flags);
-    bool file(std::filesystem::path path, std::ios_base::openmode flags, const char* content);
+    bool file(std::filesystem::path path, std::ios_base::openmode flags, const char* content, uint64_t length);
 
     LvcError workspace_current(std::filesystem::path lvc, const char* category_name, const char* workspace_name);
     LvcError workspace_default(std::filesystem::path lvc, const char* category_name, const char* workspace_name);
@@ -47,7 +47,7 @@ namespace get {
     std::string file_content(std::filesystem::path file_path);
     std::vector<std::string> file_content_lines(std::filesystem::path file_path);
     std::vector<std::string> path_from_input(std::filesystem::path repository_root, const std::vector<std::string>& inputs);
-    const bool sha256(const char* in, char out[65]);
+    bool sha256(const char* in, uint64_t in_len, char out[65]);
 }
 
 inline void free_charpp(char** arr) {
@@ -187,3 +187,5 @@ inline constexpr char DEFAULT_HYBRID_STORAGE[] = R"LVC(# Format: <size in MB> <e
 25 ply
 25 ifc
 )LVC";
+
+inline constexpr uint64_t DEFAULT_HYBRID_STORAGE_LENGTH = sizeof(DEFAULT_HYBRID_STORAGE) - 1;
