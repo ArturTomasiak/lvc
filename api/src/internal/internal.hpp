@@ -13,12 +13,25 @@
 #include <iostream>
 #endif
 
+// defines for which line of deflated version has what content
+#define VERSION_TYPE      0
+#define VERSION_ROOT_TREE 1
+#define VERSION_AUTHOR    2
+#define VERSION_WORKSPACE 3 // OPTIONAL
+
+// file/folder name defines 
+#define NAME_WORKSPACE "workspace"
+#define NAME_OBJECT "object"
+#define NAME_STATUS "status"
+#define NAME_DEFAULT "default"
+#define NAME_CURRENT "current"
+
 namespace create {
     bool dir(std::filesystem::path lvc);
 
     LvcError lvc(std::filesystem::path lvc);
-    LvcError category(std::filesystem::path lvc, std::string name);
-    LvcError workspace(std::filesystem::path lvc, std::string category_name, std::string workspace_name);
+    LvcError category(std::filesystem::path workspace_dir, std::string name);
+    LvcError workspace(std::filesystem::path workspace_dir, std::string category_name, std::string workspace_name);
     LvcError storage(std::filesystem::path lvc, StorageBehaviour option);
 }
 
@@ -35,18 +48,25 @@ namespace write {
 }
 
 namespace exists {
-    bool category(std::filesystem::path lvc, std::string name);
-    bool workspace(std::filesystem::path lvc, std::string name);
-    bool workspace(std::filesystem::path lvc, std::string name, std::string& path);
+    bool category(std::filesystem::path workspace_dir, std::string name);
+    bool workspace(std::filesystem::path workspace_dir, std::string name);
+    bool workspace(std::filesystem::path workspace_dir, std::string name, std::string& path);
 }
 
 namespace get {
     std::vector<std::string> diff(std::filesystem::path lvc);
     std::vector<std::string> status(std::filesystem::path lvc);
     std::vector<std::string> status_all(std::filesystem::path lvc);
+
+    std::string latest_version(std::filesystem::path branch);
+    std::unordered_set<std::string> objects_in_version(std::filesystem::path lvc, std::string version);
+
     std::string file_content(std::filesystem::path file_path);
+    std::string file_content_first_line(std::filesystem::path file_path);
     std::vector<std::string> file_content_lines(std::filesystem::path file_path);
+
     std::vector<std::string> path_from_input(std::filesystem::path repository_root, const std::vector<std::string>& inputs);
+
     bool sha256(const char* in, uint64_t in_len, char out[65]);
 }
 

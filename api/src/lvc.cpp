@@ -106,11 +106,15 @@ extern "C" LVC_API LvcError lvc_push_server(const char* lvc) noexcept {
 }
 
 extern "C" LVC_API LvcBool lvc_category_exists(const char* lvc, const char* name) noexcept {
-    return exists::category(lvc, name);
+    std::filesystem::path workspace_dir = lvc;
+    workspace_dir /= NAME_WORKSPACE;
+    return exists::category(workspace_dir, name);
 }
 
 extern "C" LVC_API LvcBool lvc_workspace_exists(const char* lvc, const char* name) noexcept {
-    return exists::workspace(lvc, name);
+    std::filesystem::path workspace_dir = lvc;
+    workspace_dir /= NAME_WORKSPACE;
+    return exists::workspace(workspace_dir, name);
 }
 
 static const std::unordered_map<LvcError, const char*> error_strings = {

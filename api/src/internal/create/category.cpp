@@ -1,9 +1,9 @@
 #include <internal.hpp>
 
-LvcError create::category(std::filesystem::path lvc, std::string name) {
-    if (exists::category(lvc, name))
+LvcError create::category(std::filesystem::path workspace_dir, std::string name) {
+    if (exists::category(workspace_dir, name))
         return CATEGORY_EXISTS;
-    if (!create::dir(lvc / "workspace" / name))
+    if (!create::dir(workspace_dir / NAME_WORKSPACE / name))
         return CATEGORY_FOLDER_CREATE;
     return SUCCESS;
 }
