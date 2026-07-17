@@ -5,31 +5,31 @@
 extern "C" LVC_API LvcError lvc_create (LvcCreateInput input) noexcept {
     std::filesystem::path lvc = input.location;
     lvc /= ".lvc";
-    RETURN_ERR(create::lvc(lvc));
-    RETURN_ERR(create::repository_name(lvc, input.repository_name));
-    RETURN_ERR(create::category(lvc, input.category_name));
-    RETURN_ERR(create::workspace(lvc, input.category_name, input.workspace_name));
-    RETURN_ERR(create::workspace_current(lvc, input.category_name, input.workspace_name));
-    RETURN_ERR(create::workspace_default(lvc, input.category_name, input.workspace_name));
+    RETURN_ERR(repository::create(lvc));
+    RETURN_ERR(repository::rename(lvc, input.repository_name));
+    RETURN_ERR(category::create(lvc, input.category_name));
+    RETURN_ERR(workspace::create(lvc, input.category_name, input.workspace_name));
+    RETURN_ERR(workspace::set_current(lvc, input.category_name, input.workspace_name));
+    RETURN_ERR(workspace::set_default(lvc, input.category_name, input.workspace_name));
     return SUCCESS;
 }
 
 extern "C" LVC_API LvcError lvc_workspace(const char* lvc, const char* category_name, const char* workspace_name) noexcept {
-    RETURN_ERR(create::workspace(lvc, category_name, workspace_name));
+    RETURN_ERR(workspace::create(lvc, category_name, workspace_name));
     return SUCCESS;
 }
 
 extern "C" LVC_API LvcError lvc_category(const char* lvc, const char* category_name) noexcept {
-    RETURN_ERR(create::category(lvc, category_name));
+    RETURN_ERR(category::create(lvc, category_name));
     return SUCCESS;
 }
 
 extern "C" LVC_API LvcError lvc_goto(const char* lvc, const char* category_name, const char* workspace_name) noexcept {
-    return create::workspace_current(lvc, category_name, workspace_name);
+    return workspace::set_current(lvc, category_name, workspace_name);
 }
 
 extern "C" LVC_API LvcError lvc_default(const char* lvc, const char* category_name, const char* workspace_name) noexcept {
-    return create::workspace_default(lvc, category_name, workspace_name);
+    return workspace::set_default(lvc, category_name, workspace_name);
 }
 
 extern "C" LVC_API char** lvc_diff(const char* lvc) noexcept {
@@ -52,7 +52,7 @@ extern "C" LVC_API LvcError lvc_prepare(const char* lvc, int argc, char* argv[])
     input.reserve(argc);
     for (int i = 0; i < argc; i++)
         input.push_back(argv[i]);
-    return create::prepare(lvc, input);
+    return version::prepare(lvc, input);
 }
 
 extern "C" LVC_API LvcError lvc_version(const char* lvc, const char* message) noexcept {
@@ -107,12 +107,12 @@ extern "C" LVC_API LvcError lvc_push_server(const char* lvc) noexcept {
 
 extern "C" LVC_API LvcBool lvc_category_exists(const char* lvc, const char* name) noexcept {
     std::filesystem::path lvc_path = lvc;
-    return exists::category(lvc_path / NAME_WORKSPACE, name);
+    return category::exists(lvc_path / NAME_WORKSPACE, name);
 }
 
 extern "C" LVC_API LvcBool lvc_workspace_exists(const char* lvc, const char* name) noexcept {
     std::filesystem::path lvc_path = lvc;
-    return exists::workspace(lvc_path / NAME_WORKSPACE, name);
+    return workspace::exists(lvc_path / NAME_WORKSPACE, name);
 }
 
 static const std::unordered_map<LvcError, const char*> error_strings = {

@@ -4,7 +4,7 @@
 // the sha256 hash of pattern is the ID
 // the deflation of pattern is written file content
 
-LvcError create::object(const std::filesystem::path& object_dir, const std::string& type, std::string& content, char id[65]) {
+LvcError object::create(const std::filesystem::path& object_dir, const std::string& type, std::string& content, char id[65]) {
     uint64_t content_size = content.size();
     const std::string header = type + ' ' + std::to_string(content_size) + '\n';
     uint64_t total_len = header.size() + content_size;
@@ -15,7 +15,7 @@ LvcError create::object(const std::filesystem::path& object_dir, const std::stri
     std::memcpy(content.data(), header.data(), header.size());
 
     sha256::charp(content.c_str(), total_len, id);
-    if (exists::object(object_dir, id))
+    if (object::exists(object_dir, id))
         return SUCCESS;
 
     if (!create::file(object_dir / id, std::ios::binary, content.c_str(), total_len, 1))

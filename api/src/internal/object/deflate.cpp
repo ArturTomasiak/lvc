@@ -1,6 +1,6 @@
 #include <internal.hpp>
 
-char* get::deflate(const char* in, uint64_t in_len, uint64_t& out_len) {
+char* object::deflate(const char* in, uint64_t in_len, uint64_t& out_len) {
     if (!in || !in_len)
         return 0;
     out_len = compressBound_z(in_len);

@@ -40,27 +40,39 @@ namespace create {
     bool dir(std::filesystem::path lvc);
     bool file(std::filesystem::path path, std::ios_base::openmode flags);
     bool file(std::filesystem::path path, std::ios_base::openmode flags, const char* content, uint64_t length, bool deflate);
-
-    LvcError lvc(std::filesystem::path lvc);
-    LvcError category(std::filesystem::path workspace_dir, std::string name);
-    LvcError workspace(std::filesystem::path workspace_dir, std::string category_name, std::string workspace_name);
+    
     LvcError storage(std::filesystem::path directory_root, StorageBehaviour option);
+}
 
-    LvcError workspace_current(std::filesystem::path lvc, const char* category_name, const char* workspace_name);
-    LvcError workspace_default(std::filesystem::path lvc, const char* category_name, const char* workspace_name);
-    LvcError repository_name(std::filesystem::path lvc, const char* name);
-
-    LvcError object(const std::filesystem::path& object_dir, const std::string& type, std::string& content, char id[65]);
-    LvcError version(std::filesystem::path lvc, const char* message);
+namespace version {
+    LvcError create(std::filesystem::path lvc, const char* message);
     LvcError prepare(std::filesystem::path lvc, std::vector<std::string> input);
     LvcError revert(std::filesystem::path lvc, uint32_t version_id, std::vector<std::string> input);
 }
 
-namespace exists {
-    bool object (std::filesystem::path object_dir, char id[65]);
-    bool category(std::filesystem::path workspace_dir, std::string name);
-    bool workspace(std::filesystem::path workspace_dir, std::string name);
-    bool workspace(std::filesystem::path workspace_dir, std::string name, std::string& path);
+namespace repository {
+    LvcError create(std::filesystem::path lvc);
+    LvcError rename(std::filesystem::path lvc, const char* name);
+}
+
+namespace category {
+    LvcError create(std::filesystem::path workspace_dir, std::string name);
+    bool exists(std::filesystem::path workspace_dir, std::string name);
+}
+
+namespace workspace {
+    LvcError create(std::filesystem::path workspace_dir, std::string category_name, std::string workspace_name);
+    bool exists(std::filesystem::path workspace_dir, std::string name);
+    bool exists(std::filesystem::path workspace_dir, std::string name, std::string& path);
+    LvcError set_current(std::filesystem::path lvc, const char* category_name, const char* workspace_name);
+    LvcError set_default(std::filesystem::path lvc, const char* category_name, const char* workspace_name);
+}
+
+namespace object {
+    LvcError create(const std::filesystem::path& object_dir, const std::string& type, std::string& content, char id[65]);
+    bool     exists (std::filesystem::path object_dir, char id[65]);
+    char*    deflate(const char* in, uint64_t in_len, uint64_t& out_len);
+    char*    inflate(const char* in, uint64_t in_len, uint64_t& out_len);
 }
 
 namespace get {
@@ -76,9 +88,6 @@ namespace get {
     std::vector<std::string> file_content_lines(std::filesystem::path file_path, bool deflated);
 
     std::vector<std::string> path_from_input(std::filesystem::path repository_root, const std::vector<std::string>& inputs);
-
-    char* deflate(const char* in, uint64_t in_len, uint64_t& out_len);
-    char* inflate(const char* in, uint64_t in_len, uint64_t& out_len);
 }
 
 namespace sha256 {

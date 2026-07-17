@@ -15,7 +15,7 @@ bool create::file(std::filesystem::path path, std::ios_base::openmode flags, con
 
     if (deflate) {
         uint64_t deflated_length;
-        char* deflated = get::deflate(content, length, deflated_length);
+        char* deflated = object::deflate(content, length, deflated_length);
         if (!deflated)
             return 0;
         file.write(deflated, deflated_length);

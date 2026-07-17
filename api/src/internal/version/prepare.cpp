@@ -1,6 +1,6 @@
 #include <internal.hpp>
 
-LvcError create::prepare(std::filesystem::path lvc, std::vector<std::string> input) {
+LvcError version::prepare(std::filesystem::path lvc, std::vector<std::string> input) {
     std::vector<std::string> paths = get::path_from_input(lvc.parent_path(), input);
     if (paths.empty())
         return PREPARE_NO_INPUT;
