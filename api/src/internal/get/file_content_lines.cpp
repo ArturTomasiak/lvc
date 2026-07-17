@@ -1,10 +1,10 @@
 #include <internal.hpp>
-
-std::vector<std::string> get::file_content_lines(std::filesystem::path file_path) {
+// TODO deflated case
+std::vector<std::string> get::file_content_lines(std::filesystem::path file_path, bool deflated) {
     std::vector<std::string> result;
     result.reserve(PREALLOCATE_SMALL);
 
-    std::ifstream file(file_path);
+    std::ifstream file(file_path, std::ios::binary);
     if (!file.is_open())
         return result;
 

@@ -1,7 +1,8 @@
 #pragma once
+#include <lvc.hpp>
+#include <zlib.h>
 #include <filesystem>
 #include <fstream>
-#include <lvc.hpp>
 #include <cstring>
 #include <algorithm>
 #include <unordered_set>
@@ -13,11 +14,13 @@
 #include <iostream>
 #endif
 
+inline constexpr char EMPTY_SHA256[65] = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+
 // defines for which line of deflated version has what content
 #define VERSION_TYPE      0
 #define VERSION_ROOT_TREE 1
 #define VERSION_AUTHOR    2
-#define VERSION_WORKSPACE 3 // OPTIONAL
+#define VERSION_WORKSPACE 3
 
 // file/folder name defines 
 #define NAME_WORKSPACE "workspace"
@@ -25,29 +28,36 @@
 #define NAME_STATUS "status"
 #define NAME_DEFAULT "default"
 #define NAME_CURRENT "current"
+#define NAME_PREPARE "prepare"
+#define NAME_NAME "name"
+#define NAME_STORAGE "lvc.storage"
+
+// type string defines
+#define TYPE_TREE "tree"
+#define TYPE_BLOB "blob"
 
 namespace create {
     bool dir(std::filesystem::path lvc);
+    bool file(std::filesystem::path path, std::ios_base::openmode flags);
+    bool file(std::filesystem::path path, std::ios_base::openmode flags, const char* content, uint64_t length, bool deflate);
 
     LvcError lvc(std::filesystem::path lvc);
     LvcError category(std::filesystem::path workspace_dir, std::string name);
     LvcError workspace(std::filesystem::path workspace_dir, std::string category_name, std::string workspace_name);
-    LvcError storage(std::filesystem::path lvc, StorageBehaviour option);
-}
-
-namespace write {
-    bool file(std::filesystem::path path, std::ios_base::openmode flags);
-    bool file(std::filesystem::path path, std::ios_base::openmode flags, const char* content, uint64_t length);
+    LvcError storage(std::filesystem::path directory_root, StorageBehaviour option);
 
     LvcError workspace_current(std::filesystem::path lvc, const char* category_name, const char* workspace_name);
     LvcError workspace_default(std::filesystem::path lvc, const char* category_name, const char* workspace_name);
     LvcError repository_name(std::filesystem::path lvc, const char* name);
+
+    LvcError object(const std::filesystem::path& object_dir, const std::string& type, std::string& content, char id[65]);
     LvcError version(std::filesystem::path lvc, const char* message);
     LvcError prepare(std::filesystem::path lvc, std::vector<std::string> input);
     LvcError revert(std::filesystem::path lvc, uint32_t version_id, std::vector<std::string> input);
 }
 
 namespace exists {
+    bool object (std::filesystem::path object_dir, char id[65]);
     bool category(std::filesystem::path workspace_dir, std::string name);
     bool workspace(std::filesystem::path workspace_dir, std::string name);
     bool workspace(std::filesystem::path workspace_dir, std::string name, std::string& path);
@@ -59,15 +69,21 @@ namespace get {
     std::vector<std::string> status_all(std::filesystem::path lvc);
 
     std::string latest_version(std::filesystem::path branch);
-    std::unordered_set<std::string> objects_in_version(std::filesystem::path lvc, std::string version);
+    std::unordered_set<std::string> objects_in_version(std::filesystem::path object, std::string version);
 
-    std::string file_content(std::filesystem::path file_path);
-    std::string file_content_first_line(std::filesystem::path file_path);
-    std::vector<std::string> file_content_lines(std::filesystem::path file_path);
+    std::string file_content(std::filesystem::path file_path, bool deflated);
+    std::string file_content_first_line(std::filesystem::path file_path, bool deflated);
+    std::vector<std::string> file_content_lines(std::filesystem::path file_path, bool deflated);
 
     std::vector<std::string> path_from_input(std::filesystem::path repository_root, const std::vector<std::string>& inputs);
 
-    bool sha256(const char* in, uint64_t in_len, char out[65]);
+    char* deflate(const char* in, uint64_t in_len, uint64_t& out_len);
+    char* inflate(const char* in, uint64_t in_len, uint64_t& out_len);
+}
+
+namespace sha256 {
+    void charp(const char* in, uint64_t in_len, char out[65]);
+    std::vector<std::string> working_directory(std::filesystem::path working_dir);
 }
 
 inline void free_charpp(char** arr) {
@@ -97,31 +113,6 @@ inline char** strvector_to_charpp(const std::vector<std::string>& vector) {
     return result;
 }
 
-inline char* strvector_to_charp(std::vector<std::string> vector) {
-    std::erase_if(vector, [](const std::string& str) {
-        return str.empty();
-    });
-    if (vector.empty())
-        return 0;
-    uint64_t len  = vector.size();
-    uint64_t size = 0;
-    uint64_t pos  = 0;
-    for (const std::string& str : vector) 
-        size += str.size() + 1;
-    char* result = (char*)malloc(size);
-    if (!result)
-        return 0;
-    for (uint64_t i = 0; i < len; i++) {
-        uint64_t slen = vector[i].size();
-        memcpy(result + pos, vector[i].c_str(), slen);
-        pos += slen;
-        if (i + 1 != len)
-            result[pos++] = '\n';
-    }
-    result[pos] = '\0';
-    return result;
-}
-
 inline uint64_t charplen(const char* str) {
     uint64_t len = 0;
     while (*str++)
@@ -137,7 +128,7 @@ inline char* charpcombslash(const char* str1, const char* str2) {
         memcpy(result, str1, str1len);
         result[str1len] = '/';
         memcpy(result + str1len + 1, str2, str2len);
-        result[str2len + 1] = '\0';
+        result[str1len + str2len + 1] = '\0';
     }
     return result;
 }

@@ -10,6 +10,27 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+include(FetchContent)
+
+set(ZLIB_BUILD_SHARED OFF CACHE BOOL "" FORCE)
+set(ZLIB_BUILD_STATIC ON CACHE BOOL "" FORCE)
+set(ZLIB_BUILD_TESTING OFF CACHE BOOL "" FORCE)
+set(ZLIB_INSTALL OFF CACHE BOOL "" FORCE)
+
+FetchContent_Declare(
+    zlib
+    GIT_REPOSITORY https://github.com/madler/zlib.git
+    GIT_TAG v1.3.2
+    GIT_SHALLOW TRUE
+)
+
+FetchContent_MakeAvailable(zlib)
+
+set_target_properties(zlibstatic PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+    C_VISIBILITY_PRESET hidden
+)
+
 file(GLOB_RECURSE LVC_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
 )
@@ -21,6 +42,11 @@ file(GLOB_RECURSE LVC_HEADERS CONFIGURE_DEPENDS
 add_library(lvc SHARED
     ${LVC_SOURCES}
     ${LVC_HEADERS}
+)
+
+target_link_libraries(lvc
+    PRIVATE
+        ZLIB::ZLIBSTATIC
 )
 
 set_target_properties(lvc PROPERTIES

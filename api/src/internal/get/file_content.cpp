@@ -1,7 +1,7 @@
 #include <internal.hpp>
-
-std::string file_content(std::filesystem::path file_path) {
-    std::ifstream file(file_path);
+// TODO deflated case
+std::string get::file_content(std::filesystem::path file_path, bool deflated) {
+    std::ifstream file(file_path, std::ios::binary);
     std::string empty;
     if (!file)
         return empty;

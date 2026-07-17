@@ -1,10 +1,10 @@
 #pragma once
 
 // REMOVABLE
-#define TEST_PRINTS // this define will make the api print std and os errors
+#define TEST_PRINTS
 
 // MODIFIABLE
-#define PREALLOCATE_SMALL 5   // minimize vector allocations
+#define PREALLOCATE_SMALL 30 // minimize vector allocations
 #define PREALLOCATE       30
 
 // DO NOT TOUCH
@@ -44,6 +44,7 @@ extern "C" {
         OBJECT_FOLDER_CREATE,
         CATEGORY_FOLDER_CREATE,
         WORKSPACE_FILE_CREATE,
+        OBJECT_FILE_CREATE,
         CURRENT,
         DEFAULT,
         NAME,
