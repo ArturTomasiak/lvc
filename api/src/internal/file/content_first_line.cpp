@@ -1,6 +1,6 @@
 #include "internal.hpp"
 // TODO deflated case
-std::string get::file_content_first_line(std::filesystem::path file_path, bool deflated) {
+std::string file::content_first_line(std::filesystem::path file_path, bool deflated) {
     std::string result;
 
     std::ifstream file(file_path, std::ios::binary);

@@ -168,7 +168,7 @@ static std::vector<std::string> path_from_processed_input(std::filesystem::path 
     return result;
 }
 
-std::vector<std::string> get::path_from_input(std::filesystem::path repository_root, const std::vector<std::string>& inputs) {
+std::vector<std::string> file::path_from_input(std::filesystem::path repository_root, const std::vector<std::string>& inputs) {
     std::vector<std::string> result;
     repository_root = repository_root.lexically_normal();
     std::error_code error;

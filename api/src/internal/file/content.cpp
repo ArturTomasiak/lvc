@@ -1,6 +1,6 @@
 #include <internal.hpp>
 // TODO deflated case
-std::string get::file_content(std::filesystem::path file_path, bool deflated) {
+std::string file::content(std::filesystem::path file_path, bool deflated) {
     std::ifstream file(file_path, std::ios::binary);
     std::string empty;
     if (!file)

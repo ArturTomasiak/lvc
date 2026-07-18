@@ -1,6 +1,6 @@
 #include <internal.hpp>
 
-bool create::dir(std::filesystem::path lvc) {
+bool file::create_dir(std::filesystem::path lvc) {
     std::error_code error;
     if (!std::filesystem::create_directory(lvc, error) || error) {
         #ifdef TEST_PRINTS

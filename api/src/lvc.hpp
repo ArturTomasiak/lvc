@@ -53,7 +53,8 @@ extern "C" {
         WORKSPACE_EXISTS,
         WORKSPACE_NOT_EXISTS,
         PREPARE_NO_INPUT,
-        MEMORY_ALLOCATION_FAILED
+        MEMORY_ALLOCATION_FAILED,
+        VERSION_NO_MESSAGE
     } LvcError;
 
     typedef enum StorageBehaviour {

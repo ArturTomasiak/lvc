@@ -33,17 +33,17 @@ extern "C" LVC_API LvcError lvc_default(const char* lvc, const char* category_na
 }
 
 extern "C" LVC_API char** lvc_diff(const char* lvc) noexcept {
-    std::vector<std::string> diff = get::diff(lvc);
+    std::vector<std::string> diff = version::diff(lvc);
     return strvector_to_charpp(diff);
 }
 
 extern "C" LVC_API char** lvc_status(const char* lvc) noexcept {
-    std::vector<std::string> status = get::status(lvc);
+    std::vector<std::string> status = version::status(lvc);
     return strvector_to_charpp(status);
 }
 
 extern "C" LVC_API char** lvc_status_all(const char* lvc) noexcept {
-    std::vector<std::string> status_all = get::status_all(lvc);
+    std::vector<std::string> status_all = version::status_all(lvc);
     return strvector_to_charpp(status_all);
 }
 
@@ -131,7 +131,8 @@ static const std::unordered_map<LvcError, const char*> error_strings = {
     { WORKSPACE_EXISTS,            "Workspace already exists" },
     { WORKSPACE_NOT_EXISTS,        "Workspace doesn't exists" },
     { PREPARE_NO_INPUT,            "Input didn't match to a single file or directory" },
-    { MEMORY_ALLOCATION_FAILED,    "Memory allocation failed" }
+    { MEMORY_ALLOCATION_FAILED,    "Memory allocation failed" },
+    { VERSION_NO_MESSAGE,          "A message is required for creating a new version" }
 };
 
 extern "C" LVC_API const char* lvc_error_string(LvcError error_code) noexcept {

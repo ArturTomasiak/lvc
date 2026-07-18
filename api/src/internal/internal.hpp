@@ -36,36 +36,21 @@ inline constexpr char EMPTY_SHA256[65] = "e3b0c44298fc1c149afbf4c8996fb92427ae41
 #define TYPE_TREE "tree"
 #define TYPE_BLOB "blob"
 
-namespace create {
-    bool dir(std::filesystem::path lvc);
-    bool file(std::filesystem::path path, std::ios_base::openmode flags);
-    bool file(std::filesystem::path path, std::ios_base::openmode flags, const char* content, uint64_t length, bool deflate);
-    
-    LvcError storage(std::filesystem::path directory_root, StorageBehaviour option);
-}
-
-namespace version {
-    LvcError create(std::filesystem::path lvc, const char* message);
-    LvcError prepare(std::filesystem::path lvc, std::vector<std::string> input);
-    LvcError revert(std::filesystem::path lvc, uint32_t version_id, std::vector<std::string> input);
-}
-
-namespace repository {
-    LvcError create(std::filesystem::path lvc);
-    LvcError rename(std::filesystem::path lvc, const char* name);
-}
-
 namespace category {
     LvcError create(std::filesystem::path workspace_dir, std::string name);
     bool exists(std::filesystem::path workspace_dir, std::string name);
 }
 
-namespace workspace {
-    LvcError create(std::filesystem::path workspace_dir, std::string category_name, std::string workspace_name);
-    bool exists(std::filesystem::path workspace_dir, std::string name);
-    bool exists(std::filesystem::path workspace_dir, std::string name, std::string& path);
-    LvcError set_current(std::filesystem::path lvc, const char* category_name, const char* workspace_name);
-    LvcError set_default(std::filesystem::path lvc, const char* category_name, const char* workspace_name);
+namespace file {
+    bool create(std::filesystem::path path, std::ios_base::openmode flags);
+    bool create(std::filesystem::path path, std::ios_base::openmode flags, const char* content, uint64_t length, bool deflate);
+    bool create_dir(std::filesystem::path lvc);
+
+    std::string content(std::filesystem::path file_path, bool deflated);
+    std::string content_first_line(std::filesystem::path file_path, bool deflated);
+    std::vector<std::string> content_lines(std::filesystem::path file_path, bool deflated);
+
+    std::vector<std::string> path_from_input(std::filesystem::path repository_root, const std::vector<std::string>& inputs);
 }
 
 namespace object {
@@ -75,24 +60,36 @@ namespace object {
     char*    inflate(const char* in, uint64_t in_len, uint64_t& out_len);
 }
 
-namespace get {
-    std::vector<std::string> diff(std::filesystem::path lvc);
-    std::vector<std::string> status(std::filesystem::path lvc);
-    std::vector<std::string> status_all(std::filesystem::path lvc);
-
-    std::string latest_version(std::filesystem::path branch);
-    std::unordered_set<std::string> objects_in_version(std::filesystem::path object, std::string version);
-
-    std::string file_content(std::filesystem::path file_path, bool deflated);
-    std::string file_content_first_line(std::filesystem::path file_path, bool deflated);
-    std::vector<std::string> file_content_lines(std::filesystem::path file_path, bool deflated);
-
-    std::vector<std::string> path_from_input(std::filesystem::path repository_root, const std::vector<std::string>& inputs);
+namespace repository {
+    LvcError create(std::filesystem::path lvc);
+    LvcError rename(std::filesystem::path lvc, const char* name);
+    LvcError storage_template(std::filesystem::path directory_root, StorageBehaviour option);
 }
 
 namespace sha256 {
     void charp(const char* in, uint64_t in_len, char out[65]);
     std::vector<std::string> working_directory(std::filesystem::path working_dir);
+}
+
+namespace version {
+    LvcError create(std::filesystem::path lvc, const char* message);
+    LvcError prepare(std::filesystem::path lvc, std::vector<std::string> input);
+    LvcError revert(std::filesystem::path lvc, uint32_t version_id, std::vector<std::string> input);
+
+    std::vector<std::string> diff(std::filesystem::path lvc);
+    std::vector<std::string> status(std::filesystem::path lvc);
+    std::vector<std::string> status_all(std::filesystem::path lvc);
+    
+    std::string latest(std::filesystem::path branch);
+    std::unordered_set<std::string> objects(std::filesystem::path object, std::string version);
+}
+
+namespace workspace {
+    LvcError create(std::filesystem::path workspace_dir, std::string category_name, std::string workspace_name);
+    bool exists(std::filesystem::path workspace_dir, std::string name);
+    bool exists(std::filesystem::path workspace_dir, std::string name, std::string& path);
+    LvcError set_current(std::filesystem::path lvc, const char* category_name, const char* workspace_name);
+    LvcError set_default(std::filesystem::path lvc, const char* category_name, const char* workspace_name);
 }
 
 inline void free_charpp(char** arr) {

@@ -1,6 +1,6 @@
 #include <internal.hpp>
 // TODO deflated case
-std::vector<std::string> get::file_content_lines(std::filesystem::path file_path, bool deflated) {
+std::vector<std::string> file::content_lines(std::filesystem::path file_path, bool deflated) {
     std::vector<std::string> result;
     result.reserve(PREALLOCATE_SMALL);
 

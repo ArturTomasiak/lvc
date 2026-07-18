@@ -1,6 +1,6 @@
 #include <internal.hpp>
 // TODO deflate case
-bool create::file(std::filesystem::path path, std::ios_base::openmode flags) {
+bool file::create(std::filesystem::path path, std::ios_base::openmode flags) {
     std::ofstream file(path, flags);
     if (!file)
         return 0;
@@ -8,7 +8,7 @@ bool create::file(std::filesystem::path path, std::ios_base::openmode flags) {
     return 1;
 }
 
-bool create::file(std::filesystem::path path, std::ios_base::openmode flags, const char* content, uint64_t length, bool deflate) {
+bool file::create(std::filesystem::path path, std::ios_base::openmode flags, const char* content, uint64_t length, bool deflate) {
     std::ofstream file(path, flags);
     if (!file)
         return 0;
