@@ -58,7 +58,8 @@ target_include_directories(lvc
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>"
         "$<INSTALL_INTERFACE:include>"
     PRIVATE
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/internal"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/core"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/helper"
 )
 
 target_compile_definitions(lvc

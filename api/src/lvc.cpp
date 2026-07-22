@@ -1,5 +1,5 @@
 #include <lvc.hpp>
-#include <internal.hpp>
+#include <core.hpp>
 #include <unordered_map>
 
 extern "C" LVC_API LvcError lvc_create (LvcCreateInput input) noexcept {
@@ -9,8 +9,8 @@ extern "C" LVC_API LvcError lvc_create (LvcCreateInput input) noexcept {
     RETURN_ERR(repository::rename(lvc, input.repository_name));
     RETURN_ERR(category::create(lvc, input.category_name));
     RETURN_ERR(workspace::create(lvc, input.category_name, input.workspace_name));
-    RETURN_ERR(workspace::set_current(lvc, input.category_name, input.workspace_name));
-    RETURN_ERR(workspace::set_default(lvc, input.category_name, input.workspace_name));
+    RETURN_ERR(workspace::_goto(lvc, input.category_name, input.workspace_name));
+    RETURN_ERR(workspace::_default(lvc, input.category_name, input.workspace_name));
     return SUCCESS;
 }
 
@@ -25,11 +25,11 @@ extern "C" LVC_API LvcError lvc_category(const char* lvc, const char* category_n
 }
 
 extern "C" LVC_API LvcError lvc_goto(const char* lvc, const char* category_name, const char* workspace_name) noexcept {
-    return workspace::set_current(lvc, category_name, workspace_name);
+    return workspace::_goto(lvc, category_name, workspace_name);
 }
 
 extern "C" LVC_API LvcError lvc_default(const char* lvc, const char* category_name, const char* workspace_name) noexcept {
-    return workspace::set_default(lvc, category_name, workspace_name);
+    return workspace::_default(lvc, category_name, workspace_name);
 }
 
 extern "C" LVC_API char** lvc_diff(const char* lvc) noexcept {
@@ -56,8 +56,7 @@ extern "C" LVC_API LvcError lvc_prepare(const char* lvc, int argc, char* argv[])
 }
 
 extern "C" LVC_API LvcError lvc_version(const char* lvc, const char* message) noexcept {
-    // TODO
-    return SUCCESS;
+    return version::create(lvc, message);
 }
 
 extern "C" LVC_API LvcError lvc_conflict_manual(const char* lvc, LvcConflictArray* conflicts) noexcept {
@@ -80,12 +79,12 @@ extern "C" LVC_API LvcError lvc_sync(const char* lvc, const char* tmp_lvc, LvcCo
     return SUCCESS;
 }
 
-extern "C" LVC_API LvcError lvc_unite(const char* lvc, const char* workspace_name, LvcConflictArray* conflicts) noexcept {
+extern "C" LVC_API LvcError lvc_unite(const char* lvc, const char* src_workspace_name, const char* dest_workspace_name, LvcConflictArray* conflicts) noexcept {
     // TODO
     return SUCCESS;
 }
 
-extern "C" LVC_API LvcError lvc_insert(const char* lvc, const char* workspace_name, LvcConflictArray* conflicts) noexcept {
+extern "C" LVC_API LvcError lvc_insert(const char* lvc, const char* src_workspace_name, const char* dest_workspace_name, LvcConflictArray* conflicts) noexcept {
     // TODO
     return SUCCESS;
 }

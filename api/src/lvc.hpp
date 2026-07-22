@@ -88,6 +88,7 @@ extern "C" {
     typedef struct LvcConflictArray {
         uint32_t length;
         LvcConflict* conflict;
+        const char* absolute_path;
     } LvcConflictArray;
 
     LVC_API LvcError lvc_create(LvcCreateInput input) noexcept;
@@ -104,8 +105,8 @@ extern "C" {
     LVC_API LvcError lvc_conflict_manual_verify(const char* lvc, LvcConflictArray* conflicts) noexcept;
     LVC_API LvcError lvc_conflict_manual_sync(const char* lvc, LvcConflictArray* conflicts) noexcept;
     LVC_API LvcError lvc_sync(const char* lvc, const char* tmp_lvc, LvcConflictArray* conflicts) noexcept;
-    LVC_API LvcError lvc_unite(const char* lvc, const char* workspace_name, LvcConflictArray* conflicts) noexcept;
-    LVC_API LvcError lvc_insert(const char* lvc, const char* workspace_name, LvcConflictArray* conflicts) noexcept;
+    LVC_API LvcError lvc_unite(const char* lvc, const char* src_workspace_name, const char* dest_workspace_name, LvcConflictArray* conflicts) noexcept;
+    LVC_API LvcError lvc_insert(const char* lvc, const char* src_workspace_name, const char* dest_workspace_name, LvcConflictArray* conflicts) noexcept;
     LVC_API LvcError lvc_revert(const char* lvc, uint32_t version_id, uint32_t file_count, char** files) noexcept;
     LVC_API LvcError lvc_push_local(const char* lvc, const char* tmp_lvc) noexcept;
     LVC_API LvcError lvc_push_server(const char* lvc) noexcept;

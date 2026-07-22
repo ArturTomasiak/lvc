@@ -70,6 +70,7 @@ endforeach()
 target_include_directories(lvc
     PRIVATE
         "${LVCAPI_INCLUDE_DIR}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src"
 )
 
 target_compile_options(lvc PRIVATE
