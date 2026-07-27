@@ -37,15 +37,15 @@ namespace repository {
 }
 
 namespace version {
-    LvcError create(std::filesystem::path lvc, const char* message);
+    LvcError create(std::filesystem::path lvc, std::string message, std::string author, std::string inserted_workspace);
     LvcError prepare(std::filesystem::path lvc, std::vector<std::string> input, char*** prepared);
+    LvcError prepare_reset(std::filesystem::path lvc);
     LvcError revert(std::filesystem::path lvc, uint32_t version_id, std::vector<std::string> input);
 
     std::vector<std::string> diff(std::filesystem::path lvc);
     std::vector<std::string> status(std::filesystem::path lvc);
     std::vector<std::string> status_all(std::filesystem::path lvc);
     
-    std::string latest(std::filesystem::path branch);
     std::vector<Object> all_objects(std::filesystem::path object_dir, std::filesystem::path working_directory, std::string id);
     std::vector<Object> deleted_since(std::filesystem::path object_dir, std::filesystem::path working_directory, std::string id);
 }
@@ -62,8 +62,8 @@ namespace workspace {
     LvcError move_categories(std::filesystem::path workspace_dir, const char* workspace_name, const char* previous_category, const char* category);
     LvcError activate(std::filesystem::path workspace_dir, const char* workspace_name, const char* category_name);
     LvcError deactivate(std::filesystem::path workspace_dir, const char* workspace_name);
-    LvcError insert(const std::filesystem::path& lvc, const std::filesystem::path& src_workspace, const std::filesystem::path& dest_workspace);
-    LvcError unite(const std::filesystem::path& lvc, const std::filesystem::path& src_workspace, const std::filesystem::path& dest_workspace);
+    LvcError insert(const std::filesystem::path& lvc, const std::filesystem::path& src_workspace, const std::filesystem::path& dest_workspace, const std::string& author);
+    LvcError unite(const std::filesystem::path& lvc, const std::filesystem::path& src_workspace, const std::filesystem::path& dest_workspace, const std::string& author);
     
 
     std::vector<Object> all_objects(std::filesystem::path working_directory);

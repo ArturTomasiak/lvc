@@ -3,13 +3,14 @@
 static std::vector<Object> working_directory_to_objects(std::filesystem::path working_dir) {
     std::vector<Object> out;
     out.reserve(PREALLOCATE);
-    for (const std::filesystem::directory_entry& entry : std::filesystem::recursive_directory_iterator(working_dir)) {
+    std::filesystem::recursive_directory_iterator iterator(working_dir, std::filesystem::directory_options::skip_permission_denied);
+    for (const std::filesystem::directory_entry& entry : iterator) {
         if (!entry.is_regular_file())
             continue;
         Object object;
         object.path = entry.path().lexically_relative(working_dir);
         object.type = BLOB;
-        std::string buffer = content(entry.path(), 0);
+        std::string buffer = io::content(entry.path(), 0);
         char id[65];
         sha256(buffer.data(), buffer.size(), id);
         object.id = id;
@@ -19,10 +20,10 @@ static std::vector<Object> working_directory_to_objects(std::filesystem::path wo
 }
 
 std::vector<std::string> version::diff(std::filesystem::path lvc) {
-    std::string workspace_name        = content(lvc / NAME_CURRENT, 0);
+    std::string workspace_name        = io::content(lvc / NAME_CURRENT, 0);
     std::filesystem::path workspace   = workspace_path(lvc / NAME_WORKSPACE, workspace_name);
     std::filesystem::path working_dir = lvc.parent_path();
-    std::string version = version::latest(workspace); 
+    std::string version = io::content_first_line(workspace);
 
     std::vector<Object> objects_version     = version::all_objects(lvc / NAME_OBJECT, working_dir, version);
     std::vector<Object> objects_working_dir = working_directory_to_objects(working_dir);

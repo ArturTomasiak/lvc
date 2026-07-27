@@ -1,6 +1,6 @@
 #include <helper.hpp>
 
-bool file_create(std::filesystem::path path, std::ios_base::openmode flags) {
+bool io::file(std::filesystem::path path, std::ios_base::openmode flags) {
     std::ofstream file(path, flags);
     if (!file)
         return 0;
@@ -8,7 +8,7 @@ bool file_create(std::filesystem::path path, std::ios_base::openmode flags) {
     return 1;
 }
 
-bool file_create(std::filesystem::path path, std::ios_base::openmode flags, const char* content, uint64_t length, bool compress) {
+bool io::file(std::filesystem::path path, std::ios_base::openmode flags, const char* content, uint64_t length, bool compress) {
     std::ofstream file(path, flags);
     if (!file)
         return 0;
@@ -31,7 +31,7 @@ bool file_create(std::filesystem::path path, std::ios_base::openmode flags, cons
     return 1;
 }
 
-bool dir_create(std::filesystem::path lvc) {
+bool io::dir(std::filesystem::path lvc) {
     std::error_code error;
     if (!std::filesystem::create_directory(lvc, error) || error) {
         #ifdef TEST_PRINTS
@@ -43,7 +43,7 @@ bool dir_create(std::filesystem::path lvc) {
     return 1;
 }
 
-std::string content(std::filesystem::path file_path, bool decompress) {
+std::string io::content(std::filesystem::path file_path, bool decompress) {
     std::ifstream file(file_path, std::ios::binary);
     std::string out;
     if (!file)
@@ -75,7 +75,7 @@ static std::vector<std::string> stream_to_lines(std::istream& stream) {
     return result;
 }
 
-std::string content_first_line(std::filesystem::path file_path) {
+std::string io::content_first_line(std::filesystem::path file_path) {
     std::string result;
 
     std::ifstream file(file_path, std::ios::binary);
@@ -88,10 +88,10 @@ std::string content_first_line(std::filesystem::path file_path) {
     return result;
 }
 
-std::vector<std::string> content_lines(std::filesystem::path file_path, bool decompress) {
+std::vector<std::string> io::content_lines(std::filesystem::path file_path, bool decompress) {
     std::vector<std::string> empty;
     if (decompress) {
-        std::string decompressed = content(file_path, decompress);
+        std::string decompressed = io::content(file_path, decompress);
         if (decompressed.empty())
             return empty;
 

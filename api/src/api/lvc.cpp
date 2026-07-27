@@ -58,8 +58,12 @@ extern "C" LVC_API char** lvc_prepare(const char* lvc, int argc, char* argv[], L
     return out;
 }
 
-extern "C" LVC_API LvcError lvc_version(const char* lvc, const char* message) noexcept {
-    return version::create(lvc, message);
+extern "C" LVC_API LvcError lvc_prepare_reset(const char* lvc) noexcept {
+    return version::prepare_reset(lvc);
+}
+
+extern "C" LVC_API LvcError lvc_version(const char* lvc, const char* message, const char* author, const char* inserted_workspace) noexcept {
+    return version::create(lvc, message, author, inserted_workspace);
 }
 
 extern "C" LVC_API LvcError lvc_conflict_manual(const char* lvc, LvcConflictArray* conflicts) noexcept {
@@ -152,6 +156,7 @@ static const std::unordered_map<LvcError, const char*> error_strings = {
     { PREPARE_NO_INPUT,            "Input didn't match to a single file or directory" },
     { MEMORY_ALLOCATION_FAILED,    "Memory allocation failed" },
     { VERSION_NO_MESSAGE,          "A message is required for creating a new version" },
+    { PREPARE_RESET_ERROR,         "Could not delete .lvc/prepare" },
 
     { CREATE_WORKSPACE_INACTIVE, "Inactive category is reserved and cannot be used for workspace creation" },
     { GOTO_INACTIVE,             "Cannot goto inactive workspace" },

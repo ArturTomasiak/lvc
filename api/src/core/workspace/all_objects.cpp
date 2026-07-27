@@ -17,7 +17,7 @@ std::vector<Object> workspace::all_objects(std::filesystem::path working_directo
         if (!error && iterator->is_regular_file(error)) {
             const std::filesystem::path relative_path = iterator->path().lexically_relative(working_directory);
             Object object;
-            std::string buffer = content(relative_path, 0);
+            std::string buffer = io::content(relative_path, 0);
             char id[65]; 
             sha256(buffer.data(), buffer.size(), id);
             object.path = relative_path;

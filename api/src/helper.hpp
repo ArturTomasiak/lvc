@@ -15,10 +15,11 @@ void insert_pattern(std::string& content, const std::string& type);
 
 std::filesystem::path workspace_path(const std::filesystem::path& workspace_dir, const std::string& workspace_name);
 
-// io.cpp
-bool file_create(std::filesystem::path path, std::ios_base::openmode flags);
-bool file_create(std::filesystem::path path, std::ios_base::openmode flags, const char* content, uint64_t length, bool compress);
-bool dir_create(std::filesystem::path lvc);
-std::string content(std::filesystem::path file_path, bool decompress);
-std::string content_first_line(std::filesystem::path file_path);
-std::vector<std::string> content_lines(std::filesystem::path file_path, bool decompress);
+namespace io {
+    bool file(std::filesystem::path path, std::ios_base::openmode flags);
+    bool file(std::filesystem::path path, std::ios_base::openmode flags, const char* content, uint64_t length, bool compress);
+    bool dir(std::filesystem::path lvc);
+    std::string content(std::filesystem::path file_path, bool decompress);
+    std::string content_first_line(std::filesystem::path file_path);
+    std::vector<std::string> content_lines(std::filesystem::path file_path, bool decompress);
+}

@@ -20,7 +20,7 @@
     #define LVC_API
 #elif defined(_WIN32)
     #if defined(LVC_MAKE_DLL)
-        #define LVC_API __declspec(dllexport)
+        #define LVC_API __declspec(dllexport)lvc
     #else
         #define LVC_API __declspec(dllimport)
     #endif
@@ -62,6 +62,7 @@ extern "C" {
         PREPARE_NO_INPUT,
         MEMORY_ALLOCATION_FAILED,
         VERSION_NO_MESSAGE,
+        PREPARE_RESET_ERROR,
 
         CREATE_WORKSPACE_INACTIVE,
         GOTO_INACTIVE,
@@ -114,7 +115,8 @@ extern "C" {
     LVC_API char**   lvc_status(const char* lvc) noexcept;
     LVC_API char**   lvc_status_all(const char* lvc) noexcept;
     LVC_API char**   lvc_prepare(const char* lvc, int argc, char* argv[], LvcError* err) noexcept;
-    LVC_API LvcError lvc_version(const char* lvc, const char* message) noexcept;
+    LVC_API LvcError lvc_prepare_reset(const char* lvc) noexcept;
+    LVC_API LvcError lvc_version(const char* lvc, const char* message, const char* author, const char* inserted_workspace) noexcept;
     LVC_API LvcError lvc_conflict_manual(const char* lvc, LvcConflictArray* conflicts) noexcept;
     LVC_API LvcError lvc_conflict_manual_verify(const char* lvc, LvcConflictArray* conflicts) noexcept;
     LVC_API LvcError lvc_conflict_manual_sync(const char* lvc, LvcConflictArray* conflicts) noexcept;
@@ -135,11 +137,12 @@ extern "C" {
 }
 #endif
 
-// defines for which line of deflated version has what content
+// defines which line of deflated version has what content
 #define VERSION_TYPE      0
 #define VERSION_ROOT_TREE 1
-#define VERSION_AUTHOR    2
-#define VERSION_WORKSPACE 3
+#define VERSION_MESSAGE   2
+#define VERSION_AUTHOR    3
+#define VERSION_WORKSPACE 4 
 
 // file/folder name defines 
 #define NAME_WORKSPACE "workspace"
@@ -153,5 +156,6 @@ extern "C" {
 #define NAME_STORAGE "lvc.storage"
 
 // type string defines
+#define TYPE_VERSION "version"
 #define TYPE_TREE "tree"
 #define TYPE_BLOB "blob"
