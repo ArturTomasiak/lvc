@@ -9,6 +9,13 @@ struct Command {
 
 #define COMMANDS_ARRAY { \
     {"create", lvc::create}, \
+    {"version", lvc::version}, \
+    {"prepare", lvc::prepare}, \
+    {"diff", lvc::diff}, \
+    {"status", lvc::status}, \
+    {"default", lvc::_default}, \
+    {"goto", lvc::_goto}, \
+    {"move", lvc::move}, \
 }
 
 static bool (*command(std::string input))(int argc, char* argv[]) {

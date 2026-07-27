@@ -55,11 +55,10 @@ set_target_properties(lvc PROPERTIES
 
 target_include_directories(lvc
     PUBLIC
-        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>"
+        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/api>"
         "$<INSTALL_INTERFACE:include>"
     PRIVATE
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/core"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/helper"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src"
 )
 
 target_compile_definitions(lvc
@@ -130,7 +129,7 @@ foreach(CONFIG_TYPE ${CMAKE_CONFIGURATION_TYPES})
     )
 endforeach()
 
-set(LVC_PUBLIC_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/src/lvc.hpp")
+set(LVC_PUBLIC_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/src/api/lvc.hpp")
 
 add_custom_command(TARGET lvc POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory "${LVCAPI_OUTPUT_DIR}"

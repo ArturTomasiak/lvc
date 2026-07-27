@@ -1,0 +1,109 @@
+#include <helper.hpp>
+
+bool file_create(std::filesystem::path path, std::ios_base::openmode flags) {
+    std::ofstream file(path, flags);
+    if (!file)
+        return 0;
+    file.close();
+    return 1;
+}
+
+bool file_create(std::filesystem::path path, std::ios_base::openmode flags, const char* content, uint64_t length, bool compress) {
+    std::ofstream file(path, flags);
+    if (!file)
+        return 0;
+
+    if (compress) {
+        uint64_t deflated_length;
+        char* deflated = deflate(content, length, deflated_length);
+        if (!deflated)
+            return 0;
+        file.write(deflated, deflated_length);
+        free(deflated);
+    }
+
+    else
+        file.write(content, length);
+    
+    if (!file)
+        return 0;
+    file.close();
+    return 1;
+}
+
+bool dir_create(std::filesystem::path lvc) {
+    std::error_code error;
+    if (!std::filesystem::create_directory(lvc, error) || error) {
+        #ifdef TEST_PRINTS
+        if (error)
+            std::cout << error.message() << "\n";
+        #endif
+        return 0;
+    }
+    return 1;
+}
+
+std::string content(std::filesystem::path file_path, bool decompress) {
+    std::ifstream file(file_path, std::ios::binary);
+    std::string out;
+    if (!file)
+        return out;
+    std::ostringstream buffer;
+    buffer << file.rdbuf();
+    if (!file.eof() && file.fail())
+        return out;
+
+    out = buffer.str();
+    if (decompress) {
+        uint64_t inflated_len;
+        char*    inflated = inflate(out, inflated_len);
+        out.assign(inflated, inflated_len);
+    }
+
+    return out;
+}
+
+static std::vector<std::string> stream_to_lines(std::istream& stream) {
+    std::vector<std::string> result;
+    result.reserve(PREALLOCATE_SMALL);
+    std::string line;
+    while (std::getline(stream, line)) {
+        if (!line.empty() && line.back() == '\r')
+            line.pop_back();
+        result.push_back(line);
+    }
+    return result;
+}
+
+std::string content_first_line(std::filesystem::path file_path) {
+    std::string result;
+
+    std::ifstream file(file_path, std::ios::binary);
+    if (!file.is_open())
+        return result;
+
+    std::getline(file, result);
+    if (!result.empty() && result.back() == '\r')
+        result.pop_back();
+    return result;
+}
+
+std::vector<std::string> content_lines(std::filesystem::path file_path, bool decompress) {
+    std::vector<std::string> empty;
+    if (decompress) {
+        std::string decompressed = content(file_path, decompress);
+        if (decompressed.empty())
+            return empty;
+
+        std::istringstream stream(std::move(decompressed));
+
+        return stream_to_lines(stream);
+    }
+    else {
+        std::ifstream file(file_path, std::ios::binary);
+        if (!file.is_open())
+            return empty;
+            
+        return stream_to_lines(file);
+    }
+}

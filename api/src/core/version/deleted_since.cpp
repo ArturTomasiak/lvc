@@ -1,8 +1,15 @@
 #include <core.hpp>
 
-std::vector<std::filesystem::path> version::deleted_since(std::filesystem::path lvc, std::string id) {
-    const std::filesystem::path object = lvc / NAME_OBJECT;
-    const std::filesystem::path working_directory = lvc.parent_path();
-    std::vector<std::filesystem::path> out;
-    return out;
+std::vector<Object> version::deleted_since(std::filesystem::path object_dir, std::filesystem::path working_directory, std::string id) {
+    std::vector<Object> version = version::all_objects(object_dir, working_directory, id);
+    std::vector<Object> working = workspace::all_objects(working_directory);
+
+    std::erase_if(version, [&](const Object& version_object) {
+        return std::ranges::any_of(
+            working, [&](const Object& working_object) {
+                return version_object.id == working_object.id;
+            });
+    });
+
+    return version;
 }

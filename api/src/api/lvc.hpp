@@ -12,6 +12,10 @@
 #include <stdint.h>
 #define LvcBool int8_t
 
+#ifdef TEST_PRINTS
+#include <iostream>
+#endif
+
 #if defined(LVC_STATIC)
     #define LVC_API
 #elif defined(_WIN32)
@@ -43,7 +47,10 @@ extern "C" {
         WORKSPACE_FOLDER_CREATE,
         OBJECT_FOLDER_CREATE,
         CATEGORY_FOLDER_CREATE,
+        CATEGORY_FOLDER_RENAME,
         WORKSPACE_FILE_CREATE,
+        WORKSPACE_MOVE_CATEGORIES,
+        WORKSPACE_DEACTIVATE,
         OBJECT_FILE_CREATE,
         CURRENT,
         DEFAULT,
@@ -54,7 +61,14 @@ extern "C" {
         WORKSPACE_NOT_EXISTS,
         PREPARE_NO_INPUT,
         MEMORY_ALLOCATION_FAILED,
-        VERSION_NO_MESSAGE
+        VERSION_NO_MESSAGE,
+
+        CREATE_WORKSPACE_INACTIVE,
+        GOTO_INACTIVE,
+        DEFAULT_INACTIVE,
+        MOVE_INACTIVE,
+        UNITE_INACTIVE,
+        INSERT_INACTIVE
     } LvcError;
 
     typedef enum StorageBehaviour {
@@ -94,12 +108,12 @@ extern "C" {
     LVC_API LvcError lvc_create(LvcCreateInput input) noexcept;
     LVC_API LvcError lvc_workspace(const char* lvc, const char* category_name, const char* workspace_name) noexcept;
     LVC_API LvcError lvc_category(const char* lvc, const char* category_name) noexcept;
-    LVC_API LvcError lvc_goto(const char* lvc, const char* category_name, const char* workspace_name) noexcept;
-    LVC_API LvcError lvc_default(const char* lvc, const char* category_name, const char* workspace_name) noexcept;
+    LVC_API LvcError lvc_goto(const char* lvc, const char* workspace_name) noexcept;
+    LVC_API LvcError lvc_default(const char* lvc, const char* workspace_name) noexcept;
     LVC_API char**   lvc_diff(const char* lvc) noexcept;
     LVC_API char**   lvc_status(const char* lvc) noexcept;
     LVC_API char**   lvc_status_all(const char* lvc) noexcept;
-    LVC_API LvcError lvc_prepare(const char* lvc, int argc, char* argv[]) noexcept;
+    LVC_API char**   lvc_prepare(const char* lvc, int argc, char* argv[], LvcError* err) noexcept;
     LVC_API LvcError lvc_version(const char* lvc, const char* message) noexcept;
     LVC_API LvcError lvc_conflict_manual(const char* lvc, LvcConflictArray* conflicts) noexcept;
     LVC_API LvcError lvc_conflict_manual_verify(const char* lvc, LvcConflictArray* conflicts) noexcept;
@@ -110,10 +124,34 @@ extern "C" {
     LVC_API LvcError lvc_revert(const char* lvc, uint32_t version_id, uint32_t file_count, char** files) noexcept;
     LVC_API LvcError lvc_push_local(const char* lvc, const char* tmp_lvc) noexcept;
     LVC_API LvcError lvc_push_server(const char* lvc) noexcept;
-    LVC_API const char* lvc_error_string(LvcError error_code) noexcept;
+    LVC_API LvcError lvc_rename_category(const char* lvc, const char* category_name, const char* new_name) noexcept;
+    LVC_API LvcError lvc_move_workspace(const char* lvc, const char* workspace_name, const char* previous_category, const char* category) noexcept;
+    LVC_API LvcError lvc_deactivate(const char* lvc, const char* workspace_name) noexcept;
     LVC_API LvcBool lvc_category_exists(const char* lvc, const char* name) noexcept;
     LVC_API LvcBool lvc_workspace_exists(const char* lvc, const char* name) noexcept;
+    LVC_API const char* lvc_error_string(LvcError error_code) noexcept;
     LVC_API void lvc_free_charpp(char** arr) noexcept;
 #ifdef __cplusplus
 }
 #endif
+
+// defines for which line of deflated version has what content
+#define VERSION_TYPE      0
+#define VERSION_ROOT_TREE 1
+#define VERSION_AUTHOR    2
+#define VERSION_WORKSPACE 3
+
+// file/folder name defines 
+#define NAME_WORKSPACE "workspace"
+#define NAME_INACTIVE "inactive"
+#define NAME_OBJECT "object"
+#define NAME_STATUS "status"
+#define NAME_DEFAULT "default"
+#define NAME_CURRENT "current"
+#define NAME_PREPARE "prepare"
+#define NAME_NAME "name"
+#define NAME_STORAGE "lvc.storage"
+
+// type string defines
+#define TYPE_TREE "tree"
+#define TYPE_BLOB "blob"

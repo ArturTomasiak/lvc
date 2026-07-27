@@ -1,0 +1,24 @@
+#pragma once
+#include <lvc.hpp>
+#include <zlib.h>
+#include <fstream>
+#include <cstring>
+#include <vector>
+#include <filesystem>
+
+void sha256(const char* in, uint64_t in_len, char out[65]);
+char* deflate(const char* in, uint64_t in_len, uint64_t& out_len);
+char* inflate(const std::string& in, uint64_t& out_len);
+
+std::vector<std::string> path_from_input(std::filesystem::path repository_root, const std::vector<std::string>& inputs, const std::string& version_id);
+void insert_pattern(std::string& content, const std::string& type);
+
+std::filesystem::path workspace_path(const std::filesystem::path& workspace_dir, const std::string& workspace_name);
+
+// io.cpp
+bool file_create(std::filesystem::path path, std::ios_base::openmode flags);
+bool file_create(std::filesystem::path path, std::ios_base::openmode flags, const char* content, uint64_t length, bool compress);
+bool dir_create(std::filesystem::path lvc);
+std::string content(std::filesystem::path file_path, bool decompress);
+std::string content_first_line(std::filesystem::path file_path);
+std::vector<std::string> content_lines(std::filesystem::path file_path, bool decompress);

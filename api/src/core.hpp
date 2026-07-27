@@ -1,41 +1,10 @@
 #pragma once
 #include <lvc.hpp>
-#include <zlib.h>
 #include <helper.hpp>
-#include <filesystem>
-#include <fstream>
-#include <cstring>
 #include <algorithm>
 #include <unordered_set>
-#include <vector>
 
 #define RETURN_ERR LVC_RETURN_IF_ERROR
-
-#ifdef TEST_PRINTS
-#include <iostream>
-#endif
-
-inline constexpr char EMPTY_SHA256[65] = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
-
-// defines for which line of deflated version has what content
-#define VERSION_TYPE      0
-#define VERSION_ROOT_TREE 1
-#define VERSION_AUTHOR    2
-#define VERSION_WORKSPACE 3
-
-// file/folder name defines 
-#define NAME_WORKSPACE "workspace"
-#define NAME_OBJECT "object"
-#define NAME_STATUS "status"
-#define NAME_DEFAULT "default"
-#define NAME_CURRENT "current"
-#define NAME_PREPARE "prepare"
-#define NAME_NAME "name"
-#define NAME_STORAGE "lvc.storage"
-
-// type string defines
-#define TYPE_TREE "tree"
-#define TYPE_BLOB "blob"
 
 enum ObjectType {
     BLOB,
@@ -50,24 +19,12 @@ struct Object {
 
 namespace category {
     LvcError create(std::filesystem::path workspace_dir, std::string name);
+    LvcError rename(const std::filesystem::path& working_dir, const char* category_name, const char* new_nam);
     bool exists(std::filesystem::path workspace_dir, std::string name);
-}
-
-namespace file {
-    bool create(std::filesystem::path path, std::ios_base::openmode flags);
-    bool create(std::filesystem::path path, std::ios_base::openmode flags, const char* content, uint64_t length, bool deflate);
-    bool create_dir(std::filesystem::path lvc);
-
-    std::string content(std::filesystem::path file_path, bool deflated);
-    std::string content_first_line(std::filesystem::path file_path);
-    std::vector<std::string> content_lines(std::filesystem::path file_path, bool deflated);
-
-    std::vector<std::string> path_from_input(std::filesystem::path repository_root, const std::vector<std::string>& inputs);
 }
 
 namespace object {
     LvcError create(const std::filesystem::path& object_dir, const std::string& type, std::string& content, char id[65]);
-    void     insert_pattern(std::string& content, const std::string& type);
     bool     exists (std::filesystem::path object_dir, char id[65]);
     char*    deflate(const char* in, uint64_t in_len, uint64_t& out_len);
     char*    inflate(const std::string& in, uint64_t& out_len);
@@ -81,7 +38,7 @@ namespace repository {
 
 namespace version {
     LvcError create(std::filesystem::path lvc, const char* message);
-    LvcError prepare(std::filesystem::path lvc, std::vector<std::string> input);
+    LvcError prepare(std::filesystem::path lvc, std::vector<std::string> input, char*** prepared);
     LvcError revert(std::filesystem::path lvc, uint32_t version_id, std::vector<std::string> input);
 
     std::vector<std::string> diff(std::filesystem::path lvc);
@@ -89,19 +46,27 @@ namespace version {
     std::vector<std::string> status_all(std::filesystem::path lvc);
     
     std::string latest(std::filesystem::path branch);
-    std::vector<Object> all_objects(std::filesystem::path object, std::filesystem::path working_directory, std::string id);
-    std::vector<std::filesystem::path> deleted_since(std::filesystem::path lvc, std::string id);
+    std::vector<Object> all_objects(std::filesystem::path object_dir, std::filesystem::path working_directory, std::string id);
+    std::vector<Object> deleted_since(std::filesystem::path object_dir, std::filesystem::path working_directory, std::string id);
 }
 
 namespace workspace {
     LvcError create(std::filesystem::path workspace_dir, std::string category_name, std::string workspace_name);
     bool exists(std::filesystem::path workspace_dir, std::string name);
     bool exists(std::filesystem::path workspace_dir, std::string name, std::string& path);
-    LvcError _goto(std::filesystem::path lvc, const char* category_name, const char* workspace_name);
-    LvcError _default(std::filesystem::path lvc, const char* category_name, const char* workspace_name);
+    bool is_inactive(const std::filesystem::path& workspace_dir, std::string name);
+    bool is_inactive(std::filesystem::path workspace);
+    LvcError _goto(std::filesystem::path lvc, const char* workspace_name);
+    LvcError _default(std::filesystem::path lvc, const char* workspace_name);
 
+    LvcError move_categories(std::filesystem::path workspace_dir, const char* workspace_name, const char* previous_category, const char* category);
+    LvcError activate(std::filesystem::path workspace_dir, const char* workspace_name, const char* category_name);
+    LvcError deactivate(std::filesystem::path workspace_dir, const char* workspace_name);
     LvcError insert(const std::filesystem::path& lvc, const std::filesystem::path& src_workspace, const std::filesystem::path& dest_workspace);
     LvcError unite(const std::filesystem::path& lvc, const std::filesystem::path& src_workspace, const std::filesystem::path& dest_workspace);
+    
+
+    std::vector<Object> all_objects(std::filesystem::path working_directory);
 }
 
 inline void free_charpp(char** arr) {
@@ -138,17 +103,11 @@ inline uint64_t charplen(const char* str) {
     return len;
 }
 
-inline char* charpcombslash(const char* str1, const char* str2) {
-    uint64_t str1len = charplen(str1);
-    uint64_t str2len = charplen(str2);
-    char* result = (char*)malloc(str1len + str2len + 2);
-    if (result) {
-        memcpy(result, str1, str1len);
-        result[str1len] = '/';
-        memcpy(result + str1len + 1, str2, str2len);
-        result[str1len + str2len + 1] = '\0';
-    }
-    return result;
+inline bool charpcmp(const char* str1, const char* str2) {
+    while (*str1 && *str2)
+        if (*str1++ != *str2++)
+            return 0;
+    return *str1 == *str2;
 }
 
 inline constexpr char DEFAULT_HYBRID_STORAGE[] = R"LVC(# Format: <size in MB> <extension>

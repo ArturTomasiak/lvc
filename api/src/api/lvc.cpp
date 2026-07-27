@@ -9,8 +9,8 @@ extern "C" LVC_API LvcError lvc_create (LvcCreateInput input) noexcept {
     RETURN_ERR(repository::rename(lvc, input.repository_name));
     RETURN_ERR(category::create(lvc, input.category_name));
     RETURN_ERR(workspace::create(lvc, input.category_name, input.workspace_name));
-    RETURN_ERR(workspace::_goto(lvc, input.category_name, input.workspace_name));
-    RETURN_ERR(workspace::_default(lvc, input.category_name, input.workspace_name));
+    RETURN_ERR(workspace::_goto(lvc, input.workspace_name));
+    RETURN_ERR(workspace::_default(lvc, input.workspace_name));
     return SUCCESS;
 }
 
@@ -24,12 +24,12 @@ extern "C" LVC_API LvcError lvc_category(const char* lvc, const char* category_n
     return SUCCESS;
 }
 
-extern "C" LVC_API LvcError lvc_goto(const char* lvc, const char* category_name, const char* workspace_name) noexcept {
-    return workspace::_goto(lvc, category_name, workspace_name);
+extern "C" LVC_API LvcError lvc_goto(const char* lvc, const char* workspace_name) noexcept {
+    return workspace::_goto(lvc, workspace_name);
 }
 
-extern "C" LVC_API LvcError lvc_default(const char* lvc, const char* category_name, const char* workspace_name) noexcept {
-    return workspace::_default(lvc, category_name, workspace_name);
+extern "C" LVC_API LvcError lvc_default(const char* lvc, const char* workspace_name) noexcept {
+    return workspace::_default(lvc, workspace_name);
 }
 
 extern "C" LVC_API char** lvc_diff(const char* lvc) noexcept {
@@ -47,12 +47,15 @@ extern "C" LVC_API char** lvc_status_all(const char* lvc) noexcept {
     return strvector_to_charpp(status_all);
 }
 
-extern "C" LVC_API LvcError lvc_prepare(const char* lvc, int argc, char* argv[]) noexcept {
+extern "C" LVC_API char** lvc_prepare(const char* lvc, int argc, char* argv[], LvcError* err) noexcept {
     std::vector<std::string> input;
     input.reserve(argc);
     for (int i = 0; i < argc; i++)
         input.push_back(argv[i]);
-    return version::prepare(lvc, input);
+
+    char** out;
+    *err = version::prepare(lvc, input, &out);
+    return out;
 }
 
 extern "C" LVC_API LvcError lvc_version(const char* lvc, const char* message) noexcept {
@@ -104,6 +107,20 @@ extern "C" LVC_API LvcError lvc_push_server(const char* lvc) noexcept {
     return SUCCESS;
 }
 
+LVC_API LvcError lvc_rename_category(const char* lvc, const char* category_name, const char* new_name) noexcept {
+    std::filesystem::path workspace_dir = lvc;
+    workspace_dir /= NAME_WORKSPACE;
+    return category::rename(workspace_dir, category_name, new_name);
+}
+
+LVC_API LvcError lvc_move_workspace(const char* lvc, const char* workspace_name, const char* previous_category, const char* category) noexcept {
+    return workspace::move_categories(lvc, workspace_name, previous_category, category);
+}
+
+LVC_API LvcError lvc_deactivate(const char* lvc, const char* workspace_name) noexcept {
+    return workspace::deactivate(lvc, workspace_name);
+}
+
 extern "C" LVC_API LvcBool lvc_category_exists(const char* lvc, const char* name) noexcept {
     std::filesystem::path lvc_path = lvc;
     return category::exists(lvc_path / NAME_WORKSPACE, name);
@@ -120,7 +137,10 @@ static const std::unordered_map<LvcError, const char*> error_strings = {
     { WORKSPACE_FOLDER_CREATE,     "Could not create .lvc/workspace folder" },
     { OBJECT_FOLDER_CREATE,        "Could not create .lvc/object folder" },
     { CATEGORY_FOLDER_CREATE,      "Could not create .lvc/workspace/<category_name> folder" },
+    { CATEGORY_FOLDER_RENAME,      "Could not rename .lvc/workspace/<category_name> folder" },
     { WORKSPACE_FILE_CREATE,       "Could not create .lvc/workspace/<category_name>/<workspace_name> file" },
+    { WORKSPACE_MOVE_CATEGORIES,   "Could not move file to .lvc/workspace/<category_name>" },
+    { WORKSPACE_DEACTIVATE,        "Could not move file to .lvc/workspace/inactive" },
     { OBJECT_FILE_CREATE,          "Could not create a file in the .lvc/object directory" },
     { CURRENT,                     "Could not modify .lvc/current file" },
     { DEFAULT,                     "Could not modify .lvc/default file" },
@@ -131,7 +151,14 @@ static const std::unordered_map<LvcError, const char*> error_strings = {
     { WORKSPACE_NOT_EXISTS,        "Workspace doesn't exists" },
     { PREPARE_NO_INPUT,            "Input didn't match to a single file or directory" },
     { MEMORY_ALLOCATION_FAILED,    "Memory allocation failed" },
-    { VERSION_NO_MESSAGE,          "A message is required for creating a new version" }
+    { VERSION_NO_MESSAGE,          "A message is required for creating a new version" },
+
+    { CREATE_WORKSPACE_INACTIVE, "Inactive category is reserved and cannot be used for workspace creation" },
+    { GOTO_INACTIVE,             "Cannot goto inactive workspace" },
+    { DEFAULT_INACTIVE,          "Cannot make an inactive workspace default" },
+    { MOVE_INACTIVE,             "Cannot move to or from inactive category. To deactivate/activate a workspace, use lvc deactivate or lvc activate" },
+    { UNITE_INACTIVE,            "Cannot unite inactive workspaces" },
+    { INSERT_INACTIVE,           "Cannot insert an inactive workspace" }
 };
 
 extern "C" LVC_API const char* lvc_error_string(LvcError error_code) noexcept {

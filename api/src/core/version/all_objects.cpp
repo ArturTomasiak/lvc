@@ -1,7 +1,7 @@
 #include <core.hpp>
 
 static void get_all_paths(const std::filesystem::path& object_folder, std::vector<Object>& out, const std::string& tree_id, const std::filesystem::path& current) {
-    std::vector<std::string> content = file::content_lines(object_folder / tree_id, 1);
+    std::vector<std::string> content = content_lines(object_folder / tree_id, 1);
     for (uint64_t i = 1; i < content.size(); i++) {
         Object object;
         const std::string& line = content[i];
@@ -24,11 +24,11 @@ static void get_all_paths(const std::filesystem::path& object_folder, std::vecto
     }
 }
 
-std::vector<Object> all_paths(std::filesystem::path& object, std::filesystem::path working_directory, std::string id) {
-    std::vector<std::string> version_content = file::content_lines(object / id, 1);
+std::vector<Object> version::all_objects(std::filesystem::path object_dir, std::filesystem::path working_directory, std::string id) {
+    std::vector<std::string> version_content = content_lines(object_dir / id, 1);
     std::vector<Object> out;
     out.reserve(PREALLOCATE);
-    get_all_paths(object, out, version_content[VERSION_ROOT_TREE], working_directory);
+    get_all_paths(object_dir, out, version_content[VERSION_ROOT_TREE], working_directory);
     for (Object& object : out)
         object.path = object.path.lexically_relative(working_directory);
         
