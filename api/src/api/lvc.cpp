@@ -5,10 +5,11 @@
 extern "C" LVC_API LvcError lvc_create (LvcCreateInput input) noexcept {
     std::filesystem::path lvc = input.location;
     lvc /= ".lvc";
+    std::filesystem::path workspace_dir = lvc / NAME_WORKSPACE;
     RETURN_ERR(repository::create(lvc));
     RETURN_ERR(repository::rename(lvc, input.repository_name));
-    RETURN_ERR(category::create(lvc, input.category_name));
-    RETURN_ERR(workspace::create(lvc, input.category_name, input.workspace_name));
+    RETURN_ERR(category::create(workspace_dir, input.category_name));
+    RETURN_ERR(workspace::create(workspace_dir, input.category_name, input.workspace_name));
     RETURN_ERR(workspace::_goto(lvc, input.workspace_name));
     RETURN_ERR(workspace::_default(lvc, input.workspace_name));
     return SUCCESS;
@@ -32,13 +33,13 @@ extern "C" LVC_API LvcError lvc_default(const char* lvc, const char* workspace_n
     return workspace::_default(lvc, workspace_name);
 }
 
-extern "C" LVC_API char** lvc_diff(const char* lvc) noexcept {
-    std::vector<std::string> diff = version::diff(lvc);
+extern "C" LVC_API char** lvc_diff(const char* lvc, LvcError* err) noexcept {
+    std::vector<std::string> diff = version::diff(lvc, *err);
     return strvector_to_charpp(diff);
 }
 
-extern "C" LVC_API char** lvc_status(const char* lvc) noexcept {
-    std::vector<std::string> status = version::status(lvc);
+extern "C" LVC_API char** lvc_status(const char* lvc, LvcError* err) noexcept {
+    std::vector<std::string> status = version::status(lvc, *err);
     return strvector_to_charpp(status);
 }
 
@@ -49,8 +50,8 @@ extern "C" LVC_API char** lvc_status_all(const char* lvc) noexcept {
 
 extern "C" LVC_API char** lvc_prepare(const char* lvc, int argc, char* argv[], LvcError* err) noexcept {
     std::vector<std::string> input;
-    input.reserve(argc);
-    for (int i = 0; i < argc; i++)
+    input.reserve(argc - 2);
+    for (int i = 2; i < argc; i++)
         input.push_back(argv[i]);
 
     char** out;
@@ -62,8 +63,8 @@ extern "C" LVC_API LvcError lvc_prepare_reset(const char* lvc) noexcept {
     return version::prepare_reset(lvc);
 }
 
-extern "C" LVC_API LvcError lvc_version(const char* lvc, const char* message, const char* author, const char* inserted_workspace) noexcept {
-    return version::create(lvc, message, author, inserted_workspace);
+extern "C" LVC_API LvcError lvc_version(const char* lvc, const char* message, const char* author) noexcept {
+    return version::create(lvc, message, author, "");
 }
 
 extern "C" LVC_API LvcError lvc_conflict_manual(const char* lvc, LvcConflictArray* conflicts) noexcept {
@@ -130,33 +131,34 @@ extern "C" LVC_API LvcBool lvc_category_exists(const char* lvc, const char* name
     return category::exists(lvc_path / NAME_WORKSPACE, name);
 }
 
-extern "C" LVC_API LvcBool lvc_workspace_exists(const char* lvc, const char* name) noexcept {
+extern "C" LVC_API LvcBool lvc_workspace_exists(const char* lvc, const char* name, LvcError* err) noexcept {
     std::filesystem::path lvc_path = lvc;
-    return workspace::exists(lvc_path / NAME_WORKSPACE, name);
+    return workspace::exists(lvc_path / NAME_WORKSPACE, name, *err);
 }
 
 static const std::unordered_map<LvcError, const char*> error_strings = {
-    { SUCCESS,                     "No error" },
-    { LVC_FOLDER_CREATE,           "Could not create .lvc folder" },
-    { WORKSPACE_FOLDER_CREATE,     "Could not create .lvc/workspace folder" },
-    { OBJECT_FOLDER_CREATE,        "Could not create .lvc/object folder" },
-    { CATEGORY_FOLDER_CREATE,      "Could not create .lvc/workspace/<category_name> folder" },
-    { CATEGORY_FOLDER_RENAME,      "Could not rename .lvc/workspace/<category_name> folder" },
-    { WORKSPACE_FILE_CREATE,       "Could not create .lvc/workspace/<category_name>/<workspace_name> file" },
-    { WORKSPACE_MOVE_CATEGORIES,   "Could not move file to .lvc/workspace/<category_name>" },
-    { WORKSPACE_DEACTIVATE,        "Could not move file to .lvc/workspace/inactive" },
-    { OBJECT_FILE_CREATE,          "Could not create a file in the .lvc/object directory" },
-    { CURRENT,                     "Could not modify .lvc/current file" },
-    { DEFAULT,                     "Could not modify .lvc/default file" },
-    { NAME,                        "Could not modify .lvc/name file" },
-    { CATEGORY_EXISTS,             "Category already exists" },
-    { CATEGORY_NOT_EXISTS,         "Category doesn't exists" },
-    { WORKSPACE_EXISTS,            "Workspace already exists" },
-    { WORKSPACE_NOT_EXISTS,        "Workspace doesn't exists" },
-    { PREPARE_NO_INPUT,            "Input didn't match to a single file or directory" },
-    { MEMORY_ALLOCATION_FAILED,    "Memory allocation failed" },
-    { VERSION_NO_MESSAGE,          "A message is required for creating a new version" },
-    { PREPARE_RESET_ERROR,         "Could not delete .lvc/prepare" },
+    { SUCCESS,                      "No error" },
+    { LVC_FOLDER_CREATE,            "Could not create .lvc folder" },
+    { WORKSPACE_FOLDER_CREATE,      "Could not create .lvc/workspace folder" },
+    { OBJECT_FOLDER_CREATE,         "Could not create .lvc/object folder" },
+    { CATEGORY_FOLDER_CREATE,       "Could not create .lvc/workspace/<category_name> folder" },
+    { CATEGORY_FOLDER_RENAME,       "Could not rename .lvc/workspace/<category_name> folder" },
+    { WORKSPACE_FILE_CREATE,        "Could not create .lvc/workspace/<category_name>/<workspace_name> file" },
+    { WORKSPACE_MOVE_CATEGORIES,    "Could not move file to .lvc/workspace/<category_name>" },
+    { WORKSPACE_DEACTIVATE,         "Could not move file to .lvc/workspace/inactive" },
+    { OBJECT_FILE_CREATE,           "Could not create a file in the .lvc/object directory" },
+    { CURRENT,                      "Could not modify .lvc/current file" },
+    { DEFAULT,                      "Could not modify .lvc/default file" },
+    { NAME,                         "Could not modify .lvc/name file" },
+    { CATEGORY_EXISTS,              "Category already exists" },
+    { CATEGORY_NOT_EXISTS,          "Category doesn't exists" },
+    { WORKSPACE_EXISTS,             "Workspace already exists" },
+    { WORKSPACE_NOT_EXISTS,         "Workspace doesn't exists" },
+    { PREPARE_NO_INPUT,             "Input didn't match to a single file or directory" },
+    { MEMORY_ALLOCATION_FAILED,     "Memory allocation failed" },
+    { VERSION_NO_MESSAGE,           "A message is required for creating a new version" },
+    { PREPARE_RESET_ERROR,          "Could not delete .lvc/prepare" },
+    { WORKING_DIR_ITERATION_FAILED, "Could not iterate through working directory. Check file permissions." },
 
     { CREATE_WORKSPACE_INACTIVE, "Inactive category is reserved and cannot be used for workspace creation" },
     { GOTO_INACTIVE,             "Cannot goto inactive workspace" },

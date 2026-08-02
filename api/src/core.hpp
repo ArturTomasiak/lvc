@@ -24,7 +24,7 @@ namespace category {
 }
 
 namespace object {
-    LvcError create(const std::filesystem::path& object_dir, const std::string& type, std::string& content, char id[65]);
+    LvcError create(const std::filesystem::path& object_dir, const std::string& type, std::string& content, std::string& out_id);
     bool     exists (std::filesystem::path object_dir, char id[65]);
     char*    deflate(const char* in, uint64_t in_len, uint64_t& out_len);
     char*    inflate(const std::string& in, uint64_t& out_len);
@@ -42,18 +42,18 @@ namespace version {
     LvcError prepare_reset(std::filesystem::path lvc);
     LvcError revert(std::filesystem::path lvc, uint32_t version_id, std::vector<std::string> input);
 
-    std::vector<std::string> diff(std::filesystem::path lvc);
-    std::vector<std::string> status(std::filesystem::path lvc);
+    std::vector<std::string> diff(std::filesystem::path lvc, LvcError& err);
+    std::vector<std::string> status(std::filesystem::path lvc, LvcError& err);
     std::vector<std::string> status_all(std::filesystem::path lvc);
     
     std::vector<Object> all_objects(std::filesystem::path object_dir, std::filesystem::path working_directory, std::string id);
-    std::vector<Object> deleted_since(std::filesystem::path object_dir, std::filesystem::path working_directory, std::string id);
+    std::vector<std::filesystem::path> deleted_since(std::filesystem::path object_dir, std::filesystem::path working_directory, std::string id, LvcError& err);
 }
 
 namespace workspace {
     LvcError create(std::filesystem::path workspace_dir, std::string category_name, std::string workspace_name);
-    bool exists(std::filesystem::path workspace_dir, std::string name);
-    bool exists(std::filesystem::path workspace_dir, std::string name, std::string& path);
+    bool exists(std::filesystem::path workspace_dir, std::string name, LvcError& err);
+    bool exists(std::filesystem::path workspace_dir, std::string name, LvcError& err, std::string& path);
     bool is_inactive(const std::filesystem::path& workspace_dir, std::string name);
     bool is_inactive(std::filesystem::path workspace);
     LvcError _goto(std::filesystem::path lvc, const char* workspace_name);
@@ -66,7 +66,7 @@ namespace workspace {
     LvcError unite(const std::filesystem::path& lvc, const std::filesystem::path& src_workspace, const std::filesystem::path& dest_workspace, const std::string& author);
     
 
-    std::vector<Object> all_objects(std::filesystem::path working_directory);
+    std::vector<Object> all_objects(std::filesystem::path working_directory, LvcError& err);
 }
 
 inline void free_charpp(char** arr) {

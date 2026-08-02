@@ -24,6 +24,7 @@ static std::vector<ProcessedInput> process_input(const std::vector<std::string>&
             result.clear();
             result.emplace_back();
             result.back().path_components.emplace_back("*");
+            break;
         }
         processed.root      = input.front() == '/';
         processed.directory = input.back()  == '/';
@@ -113,7 +114,7 @@ static bool rule_selects_file(const ProcessedInput& rule, const std::vector<std:
     return false;
 }
 
-static void iterate(const std::filesystem::path& relative_path, std::vector<std::string>& result, const std::vector<ProcessedInput>& included, const std::vector<ProcessedInput>& excluded, void* object) {
+static void iterate(const std::filesystem::path& relative_path, std::vector<std::string>& result, const std::vector<ProcessedInput>& included, const std::vector<ProcessedInput>& excluded, bool deleted) {
     std::vector<std::string> components;
     components.reserve(PREALLOCATE_SMALL);
 
@@ -138,58 +139,55 @@ static void iterate(const std::filesystem::path& relative_path, std::vector<std:
         );
 
         if (!excluded_match) {
-            if (object) {
-                std::string id = (*((Object*)object)).id;
-                result.push_back(id);
-            }
-            else {
-                result.push_back(relative_path.generic_string());
-            }
+            std::string out;
+            if (deleted)
+                out += PREFIX_DELETED;
+            out += relative_path.generic_string();
+            result.push_back(std::move(out));
+            
         }
     }
 }
 
-static std::vector<std::string> path_from_processed_input(std::filesystem::path repository_root, const std::vector<ProcessedInput>& included, const std::vector<ProcessedInput>& excluded, const std::string& version_id) {
+static std::vector<std::string> path_from_processed_input(std::filesystem::path repository_root, const std::vector<ProcessedInput>& included, const std::vector<ProcessedInput>& excluded, const std::string& version_id, LvcError& err) {
     std::vector<std::string> result;
 
     if (included.empty())
         return result;
 
-    std::error_code error;
-    const std::filesystem::directory_options options = std::filesystem::directory_options::skip_permission_denied;
-    std::filesystem::recursive_directory_iterator iterator(repository_root, options, error);
-    const std::filesystem::recursive_directory_iterator end;
-
-    if (error)
-        return result;
-
     result.reserve(PREALLOCATE);
 
-    while (iterator != end) {
-        error.clear();
-        if (!error && iterator->is_regular_file(error)) {
-            const std::filesystem::path relative_path = iterator->path().lexically_relative(repository_root);
+try {
+    std::filesystem::recursive_directory_iterator iterator(repository_root);
+    for (const std::filesystem::directory_entry& entry : iterator) {
+        if (entry.is_regular_file()) {
+            const std::filesystem::path relative_path = entry.path().lexically_relative(repository_root);
             iterate(relative_path, result, included, excluded, 0);
         }
-        iterator.increment(error);
     }
+}
+catch(const std::filesystem::filesystem_error& error) {
+    err = WORKING_DIR_ITERATION_FAILED;
+    return {};
+}
 
     if (!version_id.empty()) {
-        std::vector<Object> version_objects = version::deleted_since(repository_root / ".lvc" / NAME_OBJECT, repository_root, version_id);
-        for (const Object& object : version_objects)
-            iterate(object.path, result, included, excluded, (void*)(&object));
+        std::vector<std::filesystem::path> deleted = version::deleted_since(repository_root / ".lvc" / NAME_OBJECT, repository_root, version_id, err);
+        if (err) return {};
+        for (const std::filesystem::path& path : deleted)
+            iterate(path, result, included, excluded, 1);
     }
     
-
     return result;
 }
 
-std::vector<std::string> path_from_input(std::filesystem::path repository_root, const std::vector<std::string>& inputs, const std::string& version_id) {
-    std::vector<std::string> result;
+std::vector<std::string> path_from_input(std::filesystem::path repository_root, const std::vector<std::string>& inputs, const std::string& version_id, LvcError& err) {
+    err = SUCCESS;
+
     repository_root = repository_root.lexically_normal();
     std::error_code error;
     if (!std::filesystem::is_directory(repository_root, error) || error)
-        return result;
+        return {};
 
     bool all = false;
     std::vector<ProcessedInput> processed = process_input(inputs, all);
@@ -201,7 +199,7 @@ std::vector<std::string> path_from_input(std::filesystem::path repository_root, 
     for (ProcessedInput& item : processed)
         (item.exclude ? excluded : included).push_back(std::move(item));
     
-    result = path_from_processed_input(repository_root, included, excluded, version_id);
+    std::vector<std::string> result = path_from_processed_input(repository_root, included, excluded, version_id, err);
 
     return result;
 }

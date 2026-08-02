@@ -63,6 +63,7 @@ extern "C" {
         MEMORY_ALLOCATION_FAILED,
         VERSION_NO_MESSAGE,
         PREPARE_RESET_ERROR,
+        WORKING_DIR_ITERATION_FAILED,
 
         CREATE_WORKSPACE_INACTIVE,
         GOTO_INACTIVE,
@@ -111,12 +112,12 @@ extern "C" {
     LVC_API LvcError lvc_category(const char* lvc, const char* category_name) noexcept;
     LVC_API LvcError lvc_goto(const char* lvc, const char* workspace_name) noexcept;
     LVC_API LvcError lvc_default(const char* lvc, const char* workspace_name) noexcept;
-    LVC_API char**   lvc_diff(const char* lvc) noexcept;
-    LVC_API char**   lvc_status(const char* lvc) noexcept;
+    LVC_API char**   lvc_diff(const char* lvc, LvcError* err) noexcept;
+    LVC_API char**   lvc_status(const char* lvc, LvcError* err) noexcept;
     LVC_API char**   lvc_status_all(const char* lvc) noexcept;
     LVC_API char**   lvc_prepare(const char* lvc, int argc, char* argv[], LvcError* err) noexcept;
     LVC_API LvcError lvc_prepare_reset(const char* lvc) noexcept;
-    LVC_API LvcError lvc_version(const char* lvc, const char* message, const char* author, const char* inserted_workspace) noexcept;
+    LVC_API LvcError lvc_version(const char* lvc, const char* message, const char* author) noexcept;
     LVC_API LvcError lvc_conflict_manual(const char* lvc, LvcConflictArray* conflicts) noexcept;
     LVC_API LvcError lvc_conflict_manual_verify(const char* lvc, LvcConflictArray* conflicts) noexcept;
     LVC_API LvcError lvc_conflict_manual_sync(const char* lvc, LvcConflictArray* conflicts) noexcept;
@@ -130,7 +131,7 @@ extern "C" {
     LVC_API LvcError lvc_move_workspace(const char* lvc, const char* workspace_name, const char* previous_category, const char* category) noexcept;
     LVC_API LvcError lvc_deactivate(const char* lvc, const char* workspace_name) noexcept;
     LVC_API LvcBool lvc_category_exists(const char* lvc, const char* name) noexcept;
-    LVC_API LvcBool lvc_workspace_exists(const char* lvc, const char* name) noexcept;
+    LVC_API LvcBool lvc_workspace_exists(const char* lvc, const char* name, LvcError* err) noexcept;
     LVC_API const char* lvc_error_string(LvcError error_code) noexcept;
     LVC_API void lvc_free_charpp(char** arr) noexcept;
 #ifdef __cplusplus
@@ -159,3 +160,7 @@ extern "C" {
 #define TYPE_VERSION "version"
 #define TYPE_TREE "tree"
 #define TYPE_BLOB "blob"
+
+// prefixes
+
+#define PREFIX_DELETED "%DELETED% "

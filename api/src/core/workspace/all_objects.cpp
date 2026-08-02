@@ -1,32 +1,31 @@
 #include <core.hpp>
 
-std::vector<Object> workspace::all_objects(std::filesystem::path working_directory) {
+std::vector<Object> workspace::all_objects(std::filesystem::path working_directory, LvcError& err) {
     std::vector<Object> out;
     out.reserve(PREALLOCATE);
 
-    std::error_code error;
-    const std::filesystem::directory_options options = std::filesystem::directory_options::skip_permission_denied;
-    std::filesystem::recursive_directory_iterator iterator(working_directory, options, error);
-    const std::filesystem::recursive_directory_iterator end;
-
-     if (error)
-        return out;
-
-    while (iterator != end) {
-        error.clear();
-        if (!error && iterator->is_regular_file(error)) {
-            const std::filesystem::path relative_path = iterator->path().lexically_relative(working_directory);
-            Object object;
-            std::string buffer = io::content(relative_path, 0);
-            char id[65]; 
-            sha256(buffer.data(), buffer.size(), id);
-            object.path = relative_path;
-            object.type = BLOB;
-            object.id = id;
-            out.push_back(object);
-        }
-        iterator.increment(error);
+try {
+    std::filesystem::recursive_directory_iterator iterator(working_directory);
+     
+    for (const std::filesystem::directory_entry& entry : iterator) {
+        if (!entry.is_regular_file())
+            continue;
+        Object object;
+        object.path = entry.path().lexically_relative(working_directory);
+        object.type = BLOB;
+        std::string buffer = io::content(entry.path(), 0);
+        insert_pattern(buffer, TYPE_BLOB);
+        char id[65];
+        sha256(buffer.data(), buffer.size(), id);
+        object.id = id;
+        out.push_back(std::move(object));
     }
+}   
+catch(const std::filesystem::filesystem_error& error) {
+    err = WORKING_DIR_ITERATION_FAILED;
+    return out;
+}
 
+    err = SUCCESS;
     return out;
 }

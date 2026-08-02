@@ -13,7 +13,10 @@ LvcError version::prepare(std::filesystem::path lvc, std::vector<std::string> in
     const std::filesystem::path workspace  = workspace_path(lvc, workspace_name);
     const std::filesystem::path object_dir = lvc / NAME_OBJECT;
 
-    std::vector<std::string> paths = path_from_input(lvc.parent_path(), input, io::content_first_line(workspace));
+    LvcError err;
+    std::vector<std::string> paths = path_from_input(lvc.parent_path(), input, io::content_first_line(workspace), err);
+    if (err) return err;
+    
     if (paths.empty())
         return PREPARE_NO_INPUT;
 

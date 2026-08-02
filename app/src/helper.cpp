@@ -2,10 +2,10 @@
 
 bool helper::find_repository(std::filesystem::path& out) {
     out = std::filesystem::current_path();
+    std::filesystem::path previous;
     while (true) {
-        std::filesystem::path parent = out.parent_path();
-        std::filesystem::path lvc    = parent / ".lvc";
-        if (out == parent) {
+        std::filesystem::path lvc = out / ".lvc";
+        if (out == previous) {
             error_message = "Not in a valid lvc repository";
             return false;
         }
@@ -13,6 +13,7 @@ bool helper::find_repository(std::filesystem::path& out) {
             out = std::move(lvc);
             return true;
         }
-        out = std::move(parent);
+        previous = out;
+        out = out.parent_path();
     }
 }

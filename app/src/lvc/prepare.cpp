@@ -14,7 +14,7 @@ bool lvc::prepare(int argc, char* argv[]) {
     if (!helper::find_repository(lvc))
         return 0;
 
-    if (argc == 3 && argv[2] == "reset")
+    if (argc == 3 && !std::strcmp(argv[2], "reset"))
         return call_reset(lvc);
 
     LvcError err;

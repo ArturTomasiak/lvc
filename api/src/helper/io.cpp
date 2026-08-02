@@ -89,11 +89,10 @@ std::string io::content_first_line(std::filesystem::path file_path) {
 }
 
 std::vector<std::string> io::content_lines(std::filesystem::path file_path, bool decompress) {
-    std::vector<std::string> empty;
     if (decompress) {
         std::string decompressed = io::content(file_path, decompress);
         if (decompressed.empty())
-            return empty;
+            return {};
 
         std::istringstream stream(std::move(decompressed));
 
@@ -102,7 +101,7 @@ std::vector<std::string> io::content_lines(std::filesystem::path file_path, bool
     else {
         std::ifstream file(file_path, std::ios::binary);
         if (!file.is_open())
-            return empty;
+            return {};
             
         return stream_to_lines(file);
     }
