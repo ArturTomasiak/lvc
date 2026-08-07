@@ -13,11 +13,13 @@ bool lvc::status(int argc, char* argv[]) {
         return 0;
     }
     
-    if (status)
+    if (status) {
         std::cout << "Files prepared and changed since last version\n";
+        while (status)
+            std::cout << *status++;
+        lvc_free_charpp(status);
+    }
     else
         std::cout << "No difference in prepared files since last version";
-    while (status)
-        std::cout << *status++;
     return 1;
 }

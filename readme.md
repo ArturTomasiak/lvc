@@ -22,3 +22,9 @@ cmake -S api -B api/build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_COMPILER=gcc -DCMAK
 ```bash
 cmake --build api/build --parallel
 ```
+
+### debugging 
+
+```bash
+gdb --args ./app/bin/lvc <arguments>
+```

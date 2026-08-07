@@ -26,6 +26,8 @@ static void get_all_paths(const std::filesystem::path& object_folder, std::vecto
 
 std::vector<Object> version::all_objects(std::filesystem::path object_dir, std::filesystem::path working_directory, std::string id) {
     std::vector<std::string> version_content = io::content_lines(object_dir / id, 1);
+    if (version_content.empty())
+        return {};
     std::vector<Object> out;
     out.reserve(PREALLOCATE);
     get_all_paths(object_dir, out, version_content[VERSION_ROOT_TREE], working_directory);

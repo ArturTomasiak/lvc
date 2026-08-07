@@ -2,7 +2,7 @@
 
 LvcError version::prepare_reset(std::filesystem::path lvc) {
     std::error_code error;
-    bool deleted = std::filesystem::remove(lvc / NAME_STATUS, error);
+    bool deleted = std::filesystem::remove(lvc / NAME_PREPARE, error);
     if (!deleted || error)
         return PREPARE_RESET_ERROR;
     return SUCCESS;
@@ -10,7 +10,7 @@ LvcError version::prepare_reset(std::filesystem::path lvc) {
 
 LvcError version::prepare(std::filesystem::path lvc, std::vector<std::string> input, char*** prepared) {
     const std::string workspace_name       = io::content(lvc / NAME_CURRENT, 0);
-    const std::filesystem::path workspace  = workspace_path(lvc, workspace_name);
+    const std::filesystem::path workspace  = workspace_path(lvc / NAME_WORKSPACE, workspace_name);
     const std::filesystem::path object_dir = lvc / NAME_OBJECT;
     const std::string version_id           = io::content_first_line(workspace);
 

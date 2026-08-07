@@ -3,7 +3,7 @@
 std::vector<std::string> version::status(std::filesystem::path lvc, LvcError& err) {
     std::vector<std::string> status = io::content_lines(lvc / NAME_STATUS, 0);
     const std::vector<std::string> diff = version::diff(lvc, err);
-
+    
     std::unordered_set<std::string> diff_entries;
     diff_entries.reserve(diff.size());
     for (const std::string& entry : diff)

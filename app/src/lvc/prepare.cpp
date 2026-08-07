@@ -6,6 +6,7 @@ static bool call_reset(const std::filesystem::path& lvc) {
         error_message = lvc_error_string(err);
         return 0;
     }
+    std::cout << "Succesfully removed all files from prepare\n";
     return 1;
 }
 
@@ -24,8 +25,12 @@ bool lvc::prepare(int argc, char* argv[]) {
         return 0;
     }
 
-    if (prepared_files)
-        std::cout << "Succesfully prepared " << prepared_files << " files\nFor more information check paths at .lvc/status";
+    if (prepared_files) {
+        std::cout << "Succesfully prepared following files:\n";
+        while (prepared_files)
+            std::cout << *prepared_files++;
+        lvc_free_charpp(prepared_files);
+    }
     else
         std::cout << "No files were prepared";
     return 1;
