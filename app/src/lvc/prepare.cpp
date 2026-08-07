@@ -26,10 +26,10 @@ bool lvc::prepare(int argc, char* argv[]) {
     }
 
     char** prepared_files_copy = prepared_files;
-    
+
     if (prepared_files) {
         std::cout << "Succesfully prepared following files:\n";
-        while (prepared_files)
+        while (prepared_files && *prepared_files)
             std::cout << *prepared_files++ << "\n";
         lvc_free_charpp(prepared_files_copy);
     }

@@ -17,7 +17,7 @@ bool lvc::status(int argc, char* argv[]) {
 
     if (status) {
         std::cout << "Files prepared and changed since last version\n";
-        while (status)
+        while (status && *status)
             std::cout << *status++ << "\n";
         lvc_free_charpp(status_copy);
     }
