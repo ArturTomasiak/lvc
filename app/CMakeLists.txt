@@ -76,27 +76,22 @@ target_include_directories(lvc
 target_compile_options(lvc PRIVATE
     $<$<CXX_COMPILER_ID:MSVC>:
         /WX
-        /O2
     >
 
     $<$<CXX_COMPILER_ID:GNU>:
         -Werror
-        -O3
     >
 
     $<$<CXX_COMPILER_ID:Clang>:
         -Werror
-        -O3
     >
 
     $<$<CXX_COMPILER_ID:AppleClang>:
         -Werror
-        -O3
     >
 
     $<$<CXX_COMPILER_ID:IntelLLVM>:
         -Werror
-        -O3
     >
 )
 

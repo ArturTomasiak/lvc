@@ -57,7 +57,10 @@ std::string io::content(std::filesystem::path file_path, bool decompress) {
     if (decompress) {
         uint64_t inflated_len;
         char*    inflated = inflate(out, inflated_len);
-        out.assign(inflated, inflated_len);
+        if (inflated)
+            out.assign(inflated, inflated_len);
+        else
+            return {};
     }
 
     return out;
@@ -89,6 +92,8 @@ std::string io::content_first_line(std::filesystem::path file_path) {
 }
 
 std::vector<std::string> io::content_lines(std::filesystem::path file_path, bool decompress) {
+    if (!std::filesystem::exists(file_path))
+        return {};
     if (decompress) {
         std::string decompressed = io::content(file_path, decompress);
         if (decompressed.empty())
