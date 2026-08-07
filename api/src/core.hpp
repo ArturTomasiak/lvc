@@ -70,9 +70,9 @@ namespace workspace {
 }
 
 inline void free_charpp(char** arr) {
-    if (arr == 0)
+    if (!arr)
         return;
-    for (int i = 0; arr[i] != 0; i++)
+    for (int i = 0; arr[i]; i++)
         free(arr[i]);
     free(arr);
 }

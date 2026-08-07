@@ -25,11 +25,13 @@ bool lvc::prepare(int argc, char* argv[]) {
         return 0;
     }
 
+    char** prepared_files_copy = prepared_files;
+    
     if (prepared_files) {
         std::cout << "Succesfully prepared following files:\n";
         while (prepared_files)
-            std::cout << *prepared_files++;
-        lvc_free_charpp(prepared_files);
+            std::cout << *prepared_files++ << "\n";
+        lvc_free_charpp(prepared_files_copy);
     }
     else
         std::cout << "No files were prepared";
