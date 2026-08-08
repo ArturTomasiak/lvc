@@ -59,6 +59,8 @@ namespace workspace {
     LvcError _goto(std::filesystem::path lvc, const char* workspace_name);
     LvcError _default(std::filesystem::path lvc, const char* workspace_name);
 
+    LvcError add_version(std::filesystem::path lvc, const char* id);
+
     LvcError move_categories(std::filesystem::path workspace_dir, const char* workspace_name, const char* previous_category, const char* category);
     LvcError activate(std::filesystem::path workspace_dir, const char* workspace_name, const char* category_name);
     LvcError deactivate(std::filesystem::path workspace_dir, const char* workspace_name);

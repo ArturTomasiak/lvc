@@ -43,6 +43,14 @@ extern "C" {
 
     typedef enum LvcError {
         SUCCESS,
+
+        FILE_CREATION_FAILURE,
+        FILE_WRITING_FAILURE,
+        FILE_READING_FAILURE,
+
+        DEFLATION_FAILURE,
+        INFLATION_FAILUTE,
+        
         LVC_FOLDER_CREATE, 
         WORKSPACE_FOLDER_CREATE,
         OBJECT_FOLDER_CREATE,

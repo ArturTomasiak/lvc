@@ -177,6 +177,10 @@ LvcError version::create(std::filesystem::path lvc, std::string message, std::st
 
     std::string id;
     object::create(object_dir, TYPE_VERSION, buffer, id);
+    id += "\n";
+    io::prefix_file_content(workspace, id.c_str());
 
-    return version::prepare_reset(lvc);
+    RETURN_ERR(version::prepare_reset(lvc));
+
+    return SUCCESS;
 }

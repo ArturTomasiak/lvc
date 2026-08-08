@@ -9,7 +9,6 @@ LvcError workspace::create(std::filesystem::path workspace_dir, std::string cate
     if (workspace::exists(workspace_dir, workspace_name, err))
         return WORKSPACE_EXISTS;
     if (err) return err;
-    if (!io::file(workspace_dir / category_name / workspace_name, std::ios::binary))
-        return WORKSPACE_FILE_CREATE;
+    RETURN_ERR(io::file(workspace_dir / category_name / workspace_name, std::ios::binary));
     return SUCCESS;
 }

@@ -1,23 +1,23 @@
 #include <helper.hpp>
 
-bool io::file(std::filesystem::path path, std::ios_base::openmode flags) {
+LvcError io::file(std::filesystem::path path, std::ios_base::openmode flags) {
     std::ofstream file(path, flags);
     if (!file)
-        return 0;
+        return FILE_CREATION_FAILURE;
     file.close();
-    return 1;
+    return SUCCESS;
 }
 
-bool io::file(std::filesystem::path path, std::ios_base::openmode flags, const char* content, uint64_t length, bool compress) {
+LvcError io::file(std::filesystem::path path, std::ios_base::openmode flags, const char* content, uint64_t length, bool compress) {
     std::ofstream file(path, flags);
     if (!file)
-        return 0;
+        return FILE_CREATION_FAILURE;
 
     if (compress) {
         uint64_t deflated_length;
         char* deflated = deflate(content, length, deflated_length);
         if (!deflated)
-            return 0;
+            return DEFLATION_FAILURE;
         file.write(deflated, deflated_length);
         free(deflated);
     }
@@ -26,9 +26,32 @@ bool io::file(std::filesystem::path path, std::ios_base::openmode flags, const c
         file.write(content, length);
     
     if (!file)
-        return 0;
+        return FILE_WRITING_FAILURE;
     file.close();
-    return 1;
+    return SUCCESS;
+}
+
+LvcError prefix_file_content(std::filesystem::path path, const char* content) {
+    const std::filesystem::path temp = std::filesystem::temp_directory_path() / path.filename();
+
+    std::ifstream input(path, std::ios::binary);
+    if (!input)
+        return FILE_READING_FAILURE;
+
+    std::ofstream output(temp, std::ios::binary | std::ios::trunc);
+
+    if (!output)
+        return FILE_CREATION_FAILURE;
+
+    output.write(content, strlen(content));
+
+    output << input.rdbuf();
+
+    if (!output)
+        return FILE_WRITING_FAILURE;
+
+    std::filesystem::rename(temp, path);
+    return SUCCESS;
 }
 
 bool io::dir(std::filesystem::path lvc) {

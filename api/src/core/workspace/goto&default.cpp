@@ -11,8 +11,7 @@ LvcError workspace::_goto(std::filesystem::path lvc, const char* workspace_name)
     if (workspace::is_inactive(workspace_dir, workspace_name))
         return GOTO_INACTIVE;
 
-    if (!io::file(lvc / NAME_CURRENT, std::ios::binary, workspace_name, charplen(workspace_name), 0))
-        return CURRENT;
+    RETURN_ERR(io::file(lvc / NAME_CURRENT, std::ios::binary, workspace_name, charplen(workspace_name), 0));
     return SUCCESS;
 }
 
@@ -27,7 +26,6 @@ LvcError workspace::_default(std::filesystem::path lvc, const char* workspace_na
     if (workspace::is_inactive(workspace_dir, workspace_name))
         return DEFAULT_INACTIVE;
         
-    if (!io::file(lvc / NAME_DEFAULT, std::ios::binary, workspace_name, charplen(workspace_name), 0))
-        return DEFAULT;
+    RETURN_ERR(io::file(lvc / NAME_DEFAULT, std::ios::binary, workspace_name, charplen(workspace_name), 0));
     return SUCCESS;
 }

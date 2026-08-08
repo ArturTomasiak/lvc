@@ -6,6 +6,16 @@
 #include <vector>
 #include <filesystem>
 
+// as of current unused defines,
+// I will eventually rewrite io.cpp to not use c++ abstractions for reading/writing
+#if defined(_WIN32)
+    #define WINDOWS
+#elif defined(__linux__)
+    #define LINUX
+#elif defined(__APPLE__) && defined(__MACH__)
+    #define MAC
+#endif
+
 void sha256(const char* in, uint64_t in_len, char out[65]);
 char* deflate(const char* in, uint64_t in_len, uint64_t& out_len);
 char* inflate(const std::string& in, uint64_t& out_len);
@@ -16,8 +26,9 @@ void insert_pattern(std::string& content, const std::string& type);
 std::filesystem::path workspace_path(const std::filesystem::path& workspace_dir, const std::string& workspace_name);
 
 namespace io {
-    bool file(std::filesystem::path path, std::ios_base::openmode flags);
-    bool file(std::filesystem::path path, std::ios_base::openmode flags, const char* content, uint64_t length, bool compress);
+    LvcError file(std::filesystem::path path, std::ios_base::openmode flags);
+    LvcError file(std::filesystem::path path, std::ios_base::openmode flags, const char* content, uint64_t length, bool compress);
+    LvcError prefix_file_content(std::filesystem::path path, const char* content);
     bool dir(std::filesystem::path lvc);
     std::string content(std::filesystem::path file_path, bool decompress);
     std::string content_first_line(std::filesystem::path file_path);

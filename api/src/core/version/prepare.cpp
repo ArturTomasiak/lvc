@@ -27,8 +27,8 @@ LvcError version::prepare(std::filesystem::path lvc, std::vector<std::string> in
             current.push_back(path);
 
     for (std::string& path : paths) {
+        path += "\n";
         io::file(lvc / NAME_PREPARE, std::ios::binary | std::ios::app, path.data(), path.size(), 0);
-        io::file(lvc / NAME_PREPARE, std::ios::binary | std::ios::app, "\n", 1, 0);
         const std::filesystem::path object = object_dir / path;
         if (std::filesystem::exists(object) && std::filesystem::is_regular_file(object))
             path = "REMOVED OBJECT: " + path;

@@ -14,8 +14,7 @@ LvcError object::create(const std::filesystem::path& object_dir, const std::stri
     if (object::exists(object_dir, id))
         return SUCCESS;
 
-    if (!io::file(object_dir / out_id, std::ios::binary, content.data(), content.size(), 1))
-        return OBJECT_FILE_CREATE;
+    RETURN_ERR(io::file(object_dir / out_id, std::ios::binary, content.data(), content.size(), 1));
 
     return SUCCESS;
 }
