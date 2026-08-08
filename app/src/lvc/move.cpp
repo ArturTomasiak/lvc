@@ -10,11 +10,9 @@ bool lvc::move(int argc, char* argv[]) {
         return 0;
     }
 
-    LvcError err = lvc_move_workspace(lvc.c_str(), argv[2], argv[3], argv[4]);
-    if (err) {
-        error_message = lvc_error_string(err);
-        return 0;
-    }
+    LvcError err;
+    LVCEXEC(lvc_move_workspace(lvc.c_str(), argv[2], argv[3], argv[4]), err, err);
+
     std::cout << "Successfully moved " << argv[2] << " from " << argv[3] << " to " << argv[4] << '\n';
     return 1;
 }

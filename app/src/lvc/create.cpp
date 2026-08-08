@@ -67,10 +67,7 @@ bool lvc::create(int argc, char* argv[]) {
     input.workspace_name   = workspace_name.c_str();
     input.clone_repository = clone.empty() ? 0 : clone.c_str();
 
-    LvcError err = lvc_create(input);
-    if (err) {
-        error_message = lvc_error_string(err);
-        return 0;
-    }
+    LvcError err;
+    LVCEXEC(lvc_create(input), err, err);
     return 1;
 }

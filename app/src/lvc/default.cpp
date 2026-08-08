@@ -10,11 +10,8 @@ bool lvc::_default(int argc, char* argv[]) {
         return 0;
     }
 
-    LvcError err = lvc_default(lvc.c_str(), argv[2]);
-    if (err) {
-        error_message = lvc_error_string(err);
-        return 0;
-    }
+    LvcError err;
+    LVCEXEC(lvc_default(lvc.c_str(), argv[2]), err, err);
     
     std::cout << "Successfully made " << argv[2] << " default\n";
     return 1;

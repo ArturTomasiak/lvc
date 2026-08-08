@@ -6,11 +6,9 @@ bool lvc::diff(int argc, char* argv[]) {
         return 0;
 
     LvcError err;
-    char** diff = lvc_diff(lvc.c_str(), &err);
-    if (err) {
-        error_message = lvc_error_string(err);
-        return 0;
-    }
+    char** diff;
+    LVCEXEC(lvc_diff(lvc.c_str(), &err), diff, err);
+
     if (diff && *diff) {
         std::cout << "Files changed since last version: \n";
         while (diff)

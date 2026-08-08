@@ -1,7 +1,7 @@
 #include <core.hpp>
 
 std::vector<std::string> version::status(std::filesystem::path lvc, LvcError& err) {
-    std::vector<std::string> status = io::content_lines(lvc / NAME_STATUS, 0);
+    std::vector<std::string> status = io::content_lines(lvc / NAME_PREPARE, 0);
     const std::vector<std::string> diff = version::diff(lvc, err);
     
     std::unordered_set<std::string> diff_entries;
@@ -15,5 +15,5 @@ std::vector<std::string> version::status(std::filesystem::path lvc, LvcError& er
 }
 
 std::vector<std::string> version::status_all(std::filesystem::path lvc) {
-    return io::content_lines(lvc / NAME_STATUS, 0);
+    return io::content_lines(lvc / NAME_PREPARE, 0);
 }

@@ -13,10 +13,10 @@ static std::vector<ProcessedInput> process_input(const std::vector<std::string>&
     std::string component;
     std::stringstream stream;
     for (std::string input : inputs) {
-        if (input.empty() || input == "!")
+        if (input.empty() || input == "~")
             continue;
         ProcessedInput processed;
-        if (input.front() == '!') {
+        if (input.front() == '~') {
             processed.exclude = true;
             input.erase(0, 1);
         }
@@ -199,6 +199,9 @@ std::vector<std::string> path_from_input(std::filesystem::path repository_root, 
     for (ProcessedInput& item : processed)
         (item.exclude ? excluded : included).push_back(std::move(item));
     
+    ProcessedInput lvc_exclude = {1, 1, 1, {".lvc"}};
+    excluded.push_back(std::move(lvc_exclude));
+
     std::vector<std::string> result = path_from_processed_input(repository_root, included, excluded, version_id, err);
 
     return result;

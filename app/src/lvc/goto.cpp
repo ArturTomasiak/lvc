@@ -10,11 +10,9 @@ bool lvc::_goto(int argc, char* argv[]) {
         return 0;
     }
 
-    LvcError err = lvc_goto(lvc.c_str(), argv[2]);
-    if (err) {
-        error_message = lvc_error_string(err);
-        return 0;
-    }
+    LvcError err;
+    LVCEXEC(lvc_goto(lvc.c_str(), argv[2]), err, err);
+    
     std::cout << "Successfully went to " << argv[2] << '\n';
     return 1;
 }
