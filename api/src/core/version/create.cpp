@@ -136,7 +136,7 @@ static std::string build(const std::filesystem::path& object_dir, const std::fil
             tree = &trees.back();
         }
 
-        if (std::filesystem::exists(working_path) && std::filesystem::is_regular_file(working_path))
+        if (std::filesystem::is_regular_file(working_path))
             add_object(str, object_dir, working_dir, tree->objects);
             
         else if (str.starts_with(PREFIX_DELETED))
@@ -154,14 +154,13 @@ LvcError version::create(std::filesystem::path lvc, std::string message, std::st
     std::filesystem::path working_dir = lvc.parent_path();
     std::filesystem::path object_dir  = lvc / NAME_OBJECT;
     std::string workspace_name        = io::content(lvc / NAME_CURRENT, 0);
-
     std::filesystem::path workspace = workspace_path(lvc / NAME_WORKSPACE, workspace_name);
+    std::string version_id = io::content_first_line(workspace);
 
     LvcError err;
     std::vector<std::string> status = version::status(lvc, err);
     if (err) return err;
     
-    std::string version_id = io::content_first_line(workspace);
     std::string root_id;
     if (!version_id.empty()) {
         std::vector<std::string> version_content = io::content_lines(object_dir / version_id, 1);

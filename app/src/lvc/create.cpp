@@ -41,6 +41,27 @@ static StorageBehaviour ask_storage() {
     }
 }
 
+static void ask_clone(std::string& clone, bool& clone_versioning) {
+    clone = ask_line("Clone repository path/link (leave empty to start from scratch) ", 1);
+    if (clone.empty())
+        return;
+
+    std::string answer;
+    while (true) {
+        answer = ask_line("Clone the .lvc folder as well? Y/N ", 0);
+        answer = std::tolower(answer[0]);
+        if (answer == "y") {
+            clone_versioning = 1;
+            return;
+        }
+        if (answer == "n") {
+            clone_versioning = 0;
+            return;
+        }
+        std::cout << "Invalid response, type Y or N.\n";
+    }
+}
+
 bool lvc::create(int argc, char* argv[]) {
     LvcCreateInput input{};
     std::string location = std::filesystem::current_path();
@@ -55,11 +76,15 @@ bool lvc::create(int argc, char* argv[]) {
         server_link = ask_line("Server link: ", 0);
         input.storage_behaviour = ask_storage();
     }
+    ask_clone(clone, input.clone_versioning);
+    if (input.clone_versioning) 
+        goto skip_verioning_questions;
+
     repository_name = ask_line("Repository name ", 0);
     category_name = ask_line("Create default workspace’s category name ", 0);
     workspace_name = ask_line("Create default workspace name ", 0);
-    clone = ask_line("Clone repository link (leave empty to start from scratch) ", 1);
-
+    
+skip_verioning_questions:
     input.location         = location.c_str();
     input.repository_name  = repository_name.c_str();
     input.server_link      = server_link.c_str();

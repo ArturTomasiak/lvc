@@ -47,9 +47,11 @@ extern "C" {
         FILE_CREATION_FAILURE,
         FILE_WRITING_FAILURE,
         FILE_READING_FAILURE,
+        FILESYSTEM_COPY_ERROR,
+        CLONE_NO_LVC,
 
         DEFLATION_FAILURE,
-        INFLATION_FAILUTE,
+        INFLATION_FAILURE,
         
         LVC_FOLDER_CREATE, 
         WORKSPACE_FOLDER_CREATE,
@@ -96,6 +98,7 @@ extern "C" {
         const char* category_name;
         const char* workspace_name;
         const char* clone_repository;
+        bool clone_versioning;
     } LvcCreateInput;
 
     typedef struct LvcDiff {
@@ -162,6 +165,7 @@ extern "C" {
 #define NAME_CURRENT "current"
 #define NAME_PREPARE "prepare"
 #define NAME_NAME "name"
+#define NAME_IGNORE "lvc.ignore"
 #define NAME_STORAGE "lvc.storage"
 
 // type string defines

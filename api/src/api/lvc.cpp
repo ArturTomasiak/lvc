@@ -6,6 +6,10 @@ extern "C" LVC_API LvcError lvc_create (LvcCreateInput input) noexcept {
     std::filesystem::path lvc = input.location;
     lvc /= ".lvc";
     std::filesystem::path workspace_dir = lvc / NAME_WORKSPACE;
+    if (input.clone_repository)
+        RETURN_ERR(repository::clone(input.location, input.clone_repository, input.clone_versioning));
+    if (input.clone_versioning)
+        return SUCCESS;
     RETURN_ERR(repository::create(lvc));
     RETURN_ERR(repository::rename(lvc, input.repository_name));
     RETURN_ERR(category::create(workspace_dir, input.category_name));
@@ -138,6 +142,16 @@ extern "C" LVC_API LvcBool lvc_workspace_exists(const char* lvc, const char* nam
 
 static const std::unordered_map<LvcError, const char*> error_strings = {
     { SUCCESS,                      "No error" },
+
+    { FILE_CREATION_FAILURE,        "Failed to create a file" },
+    { FILE_WRITING_FAILURE,         "Failed to write a file" },
+    { FILE_READING_FAILURE,         "Failed to read a file" },
+    { FILESYSTEM_COPY_ERROR,        "Failed to copy a folder or file" },
+    { CLONE_NO_LVC,                 "Cloned local repository must be a path to a folder with a valid .lvc folder" },
+
+    { DEFLATION_FAILURE,            "Failed to deflate file" },
+    { INFLATION_FAILURE,            "Failed to inflate file" },
+
     { LVC_FOLDER_CREATE,            "Could not create .lvc folder" },
     { WORKSPACE_FOLDER_CREATE,      "Could not create .lvc/workspace folder" },
     { OBJECT_FOLDER_CREATE,         "Could not create .lvc/object folder" },

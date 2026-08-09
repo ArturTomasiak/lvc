@@ -31,7 +31,7 @@ LvcError io::file(std::filesystem::path path, std::ios_base::openmode flags, con
     return SUCCESS;
 }
 
-LvcError prefix_file_content(std::filesystem::path path, const char* content) {
+LvcError io::prefix_file_content(std::filesystem::path path, const char* content) {
     const std::filesystem::path temp = std::filesystem::temp_directory_path() / path.filename();
 
     std::ifstream input(path, std::ios::binary);

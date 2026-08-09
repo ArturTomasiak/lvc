@@ -13,18 +13,15 @@ static std::vector<ProcessedInput> process_input(const std::vector<std::string>&
     std::string component;
     std::stringstream stream;
     for (std::string input : inputs) {
+        input.erase(0, input.find_first_not_of(' '));
+        input.erase(input.find_last_not_of(' ') + 1);
+
         if (input.empty() || input == "~")
             continue;
         ProcessedInput processed;
         if (input.front() == '~') {
             processed.exclude = true;
             input.erase(0, 1);
-        }
-        if (input == ".") {
-            result.clear();
-            result.emplace_back();
-            result.back().path_components.emplace_back("*");
-            break;
         }
         processed.root      = input.front() == '/';
         processed.directory = input.back()  == '/';

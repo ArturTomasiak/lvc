@@ -9,7 +9,7 @@ bool helper::find_repository(std::filesystem::path& out) {
             error_message = "Not in a valid lvc repository";
             return false;
         }
-        if (std::filesystem::exists(lvc) && std::filesystem::is_directory(lvc)) {
+        if (std::filesystem::is_directory(lvc)) {
             out = std::move(lvc);
             return true;
         }

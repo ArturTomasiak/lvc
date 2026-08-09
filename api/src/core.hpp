@@ -32,6 +32,7 @@ namespace object {
 
 namespace repository {
     LvcError create(std::filesystem::path lvc);
+    LvcError clone(std::filesystem::path working_dir, std::string path, bool clone_versioning);
     LvcError rename(std::filesystem::path lvc, const char* name);
     LvcError storage_template(std::filesystem::path directory_root, StorageBehaviour option);
 }
