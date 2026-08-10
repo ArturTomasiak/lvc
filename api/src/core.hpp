@@ -44,7 +44,7 @@ namespace version {
     LvcError revert(std::filesystem::path lvc, uint32_t version_id, std::vector<std::string> input);
 
     std::vector<std::string> diff(std::filesystem::path lvc, LvcError& err);
-    std::vector<std::string> status(std::filesystem::path lvc, LvcError& err);
+    std::vector<std::string> status(std::filesystem::path lvc);
     std::vector<std::string> status_all(std::filesystem::path lvc);
     
     std::vector<Object> all_objects(std::filesystem::path object_dir, std::filesystem::path working_directory, std::string id);

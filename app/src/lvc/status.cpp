@@ -5,15 +5,12 @@ bool lvc::status(int argc, char* argv[]) {
     if (!helper::find_repository(lvc))
         return 0;
 
-
-        
-    LvcError err;
     char** status;
     
     if (argc == 3 && !std::strcmp(argv[2], "all"))
-        LVCEXEC(lvc_status_all(lvc.c_str()), status, err);
+        status = lvc_status_all(lvc.c_str());
     else
-        LVCEXEC(lvc_status(lvc.c_str(), &err), status, err);
+        status = lvc_status(lvc.c_str());
     
     char** status_copy = status;
 

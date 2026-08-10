@@ -42,8 +42,8 @@ extern "C" LVC_API char** lvc_diff(const char* lvc, LvcError* err) noexcept {
     return strvector_to_charpp(diff);
 }
 
-extern "C" LVC_API char** lvc_status(const char* lvc, LvcError* err) noexcept {
-    std::vector<std::string> status = version::status(lvc, *err);
+extern "C" LVC_API char** lvc_status(const char* lvc) noexcept {
+    std::vector<std::string> status = version::status(lvc);
     return strvector_to_charpp(status);
 }
 

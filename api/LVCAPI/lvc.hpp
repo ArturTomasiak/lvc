@@ -124,7 +124,7 @@ extern "C" {
     LVC_API LvcError lvc_goto(const char* lvc, const char* workspace_name) noexcept;
     LVC_API LvcError lvc_default(const char* lvc, const char* workspace_name) noexcept;
     LVC_API char**   lvc_diff(const char* lvc, LvcError* err) noexcept;
-    LVC_API char**   lvc_status(const char* lvc, LvcError* err) noexcept;
+    LVC_API char**   lvc_status(const char* lvc) noexcept;
     LVC_API char**   lvc_status_all(const char* lvc) noexcept;
     LVC_API char**   lvc_prepare(const char* lvc, int argc, char* argv[], LvcError* err) noexcept;
     LVC_API LvcError lvc_prepare_reset(const char* lvc) noexcept;

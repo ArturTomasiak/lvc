@@ -156,10 +156,7 @@ LvcError version::create(std::filesystem::path lvc, std::string message, std::st
     std::string workspace_name        = io::content(lvc / NAME_CURRENT, 0);
     std::filesystem::path workspace = workspace_path(lvc / NAME_WORKSPACE, workspace_name);
     std::string version_id = io::content_first_line(workspace);
-
-    LvcError err;
-    std::vector<std::string> status = version::status(lvc, err);
-    if (err) return err;
+    std::vector<std::string> status = version::status(lvc);
     
     std::string root_id;
     if (!version_id.empty()) {

@@ -1,7 +1,5 @@
 #include <core.hpp>
 
-
-
 std::vector<std::string> version::diff(std::filesystem::path lvc, LvcError& err) {
     std::string workspace_name        = io::content(lvc / NAME_CURRENT, 0);
     std::filesystem::path workspace   = workspace_path(lvc / NAME_WORKSPACE, workspace_name);
@@ -10,7 +8,6 @@ std::vector<std::string> version::diff(std::filesystem::path lvc, LvcError& err)
 
     std::vector<Object> objects_version     = version::all_objects(lvc / NAME_OBJECT, working_dir, version);
     std::vector<Object> objects_working_dir = workspace::all_objects(working_dir, err);
-
 
     std::unordered_set<std::string_view> version_ids;
     version_ids.reserve(objects_version.size());
