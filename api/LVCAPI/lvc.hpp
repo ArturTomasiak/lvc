@@ -150,7 +150,7 @@ extern "C" {
 #endif
 
 // defines which line of deflated version has what content
-#define VERSION_TYPE      0
+#define VERSION_PATTERN   0
 #define VERSION_ROOT_TREE 1
 #define VERSION_MESSAGE   2
 #define VERSION_AUTHOR    3

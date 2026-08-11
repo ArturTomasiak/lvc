@@ -28,7 +28,7 @@ std::filesystem::path workspace_path(const std::filesystem::path& workspace_dir,
 namespace io {
     LvcError file(std::filesystem::path path, std::ios_base::openmode flags);
     LvcError file(std::filesystem::path path, std::ios_base::openmode flags, const char* content, uint64_t length, bool compress);
-    LvcError prefix_file_content(std::filesystem::path path, const char* content);
+    LvcError prefix_file_content(std::filesystem::path path, const char* content, uint64_t length);
     bool dir(std::filesystem::path lvc);
     std::string content(std::filesystem::path file_path, bool decompress);
     std::string content_first_line(std::filesystem::path file_path);

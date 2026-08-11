@@ -154,7 +154,7 @@ LvcError version::create(std::filesystem::path lvc, std::string message, std::st
     std::filesystem::path working_dir = lvc.parent_path();
     std::filesystem::path object_dir  = lvc / NAME_OBJECT;
     std::string workspace_name        = io::content(lvc / NAME_CURRENT, 0);
-    std::filesystem::path workspace = workspace_path(lvc / NAME_WORKSPACE, workspace_name);
+    std::filesystem::path workspace   = workspace_path(lvc / NAME_WORKSPACE, workspace_name);
     std::string version_id = io::content_first_line(workspace);
     std::vector<std::string> status = version::status(lvc);
     
@@ -167,15 +167,15 @@ LvcError version::create(std::filesystem::path lvc, std::string message, std::st
     std::string new_root_id = build(object_dir, working_dir, root_id, status);
     
     const std::string nl = "\n";
-    std::string buffer = TYPE_VERSION + nl + new_root_id + nl + message + nl + author;
+    std::string buffer = new_root_id + nl + message + nl + author;
     if (!inserted_workspace.empty())
         buffer += nl + inserted_workspace;
 
     std::string id;
     object::create(object_dir, TYPE_VERSION, buffer, id);
     id += "\n";
-    io::prefix_file_content(workspace, id.c_str());
-
+    
+    RETURN_ERR(io::prefix_file_content(workspace, id.c_str(), id.size()));
     RETURN_ERR(version::prepare_reset(lvc));
 
     return SUCCESS;

@@ -13,16 +13,20 @@ std::vector<std::string> version::status(std::filesystem::path lvc) {
     std::unordered_set<std::string> unmodified;
     unmodified.reserve(objects.size());
     char id[65];
-    for (Object& object : objects) {
+    for (Object& object : objects) { 
         std::filesystem::path path = working_dir / object.path;
-        if (!std::filesystem::exists(path))
+        if (!std::filesystem::is_regular_file(path))
             continue;
         std::string buffer = io::content(path, 0);
+        insert_pattern(buffer, TYPE_BLOB);
         sha256(buffer.data(), buffer.size(), id);
         if (object.id != id)
             continue;
         unmodified.emplace(std::move(object.path));
     }
+    std::erase_if(status, [&](const std::string& path) {
+        return unmodified.contains(path);
+    });
 
     return status;
 }

@@ -31,26 +31,43 @@ LvcError io::file(std::filesystem::path path, std::ios_base::openmode flags, con
     return SUCCESS;
 }
 
-LvcError io::prefix_file_content(std::filesystem::path path, const char* content) {
-    const std::filesystem::path temp = std::filesystem::temp_directory_path() / path.filename();
+LvcError io::prefix_file_content(std::filesystem::path path, const char* content, uint64_t length) {
+    const std::filesystem::path temp = path.parent_path() / (path.filename().string() + ".tmp");
 
     std::ifstream input(path, std::ios::binary);
     if (!input)
         return FILE_READING_FAILURE;
 
     std::ofstream output(temp, std::ios::binary | std::ios::trunc);
-
     if (!output)
         return FILE_CREATION_FAILURE;
 
-    output.write(content, strlen(content));
-
+    output.write(content, length);
     output << input.rdbuf();
 
-    if (!output)
+    if (output.bad()) {
+        output.close();
+        std::filesystem::remove(temp);
         return FILE_WRITING_FAILURE;
+    }
 
-    std::filesystem::rename(temp, path);
+    input.close();
+    output.close();
+
+    std::error_code ec;
+
+    std::filesystem::remove(path, ec);
+    if (ec) {
+        std::filesystem::remove(temp);
+        return FILE_WRITING_FAILURE;
+    }
+
+    std::filesystem::rename(temp, path, ec);
+    if (ec) {
+        std::filesystem::remove(temp);
+        return FILE_WRITING_FAILURE;
+    }
+
     return SUCCESS;
 }
 
