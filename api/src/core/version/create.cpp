@@ -43,7 +43,7 @@ static void tree_from_version(const std::filesystem::path& object_dir, std::vect
     trees.push_back(tree);
 }
 
-static void add_object(std::filesystem::path path, const std::filesystem::path& object_dir, const std::filesystem::path& working_dir, std::vector<VersionObject>& objects) {
+static void add_object(std::filesystem::path path, const std::filesystem::path& object_dir, std::vector<VersionObject>& objects) {
     std::string filename = path.filename();
     std::erase_if(objects, [&](const VersionObject& object) {
         return object.name == filename;
@@ -53,9 +53,10 @@ static void add_object(std::filesystem::path path, const std::filesystem::path& 
     object.type         = TYPE_BLOB;
     std::string buffer = io::content(path, 0);
     object::create(object_dir, TYPE_BLOB, buffer, object.id);
+    objects.push_back(std::move(object));
 }
 
-static void rem_object(std::string str, const std::filesystem::path& object_dir, const std::filesystem::path& working_dir, std::vector<VersionObject>& objects) {
+static void rem_object(std::string str, const std::filesystem::path& object_dir, std::vector<VersionObject>& objects) {
     str.erase(0, strlen(PREFIX_DELETED));
     std::filesystem::path path = str;
     std::erase_if(objects, [&](const VersionObject& object) {
@@ -93,7 +94,7 @@ static void tree_relation_builder(std::vector<Tree>& trees, TreeRelation& tree_r
         if (tree_parent == current) {
             tree_relation.children.push_back({std::move(*iterator), {}});
             iterator = trees.erase(iterator);
-            tree_relation_builder(trees, tree_relation.children.back(), iterator->relative);
+            tree_relation_builder(trees, tree_relation.children.back(), tree_relation.children.back().tree.relative);
             iterator = trees.begin();
         }
         else iterator++;
@@ -137,10 +138,10 @@ static std::string build(const std::filesystem::path& object_dir, const std::fil
         }
 
         if (std::filesystem::is_regular_file(working_path))
-            add_object(str, object_dir, working_dir, tree->objects);
+            add_object(working_path, object_dir, tree->objects);
             
         else if (str.starts_with(PREFIX_DELETED))
-            rem_object(str, object_dir, working_dir, tree->objects);
+            rem_object(str, object_dir, tree->objects);
     }
 
     TreeRelation tree_relation = tree_relation_init(trees);
