@@ -1,10 +1,10 @@
 #include <helper.hpp>
 
-char* deflate(const char* in, uint64_t in_len, uint64_t& out_len) {
+char* deflate(const char* in, size_t in_len, size_t& out_len) {
     if (!in || !in_len)
         return 0;
     out_len = compressBound_z(in_len);
-    if (out_len == (uint64_t)-1)
+    if (out_len == (size_t)-1)
         return 0; //overflow 
     char* out = (char*)malloc(out_len);
     if (!out)
@@ -17,15 +17,15 @@ char* deflate(const char* in, uint64_t in_len, uint64_t& out_len) {
     return out;
 }
 
-char* inflate(const std::string& in, uint64_t& out_len) {
+char* inflate(const std::string& in, size_t& out_len) {
     const char* in_c = in.data();
-    uint64_t in_len  = in.size();
+    size_t in_len  = in.size();
 
     // probe is just to extract the pattern
     constexpr uint8_t probe_capacity = 40;
     char              probe[probe_capacity];
-    uint64_t          probe_bytes_written  = probe_capacity;
-    uint64_t          probe_bytes_consumed = in_len;
+    size_t            probe_bytes_written  = probe_capacity;
+    size_t            probe_bytes_consumed = in_len;
 
     int result = uncompress2_z(
         (Bytef*)probe,
@@ -46,7 +46,7 @@ char* inflate(const std::string& in, uint64_t& out_len) {
     space++;
     while (space != newline) {
         out_len *= 10;
-        out_len += (uint64_t)(*space - '0');
+        out_len += (size_t)(*space - '0');
         space++;
     }
 

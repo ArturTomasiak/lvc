@@ -8,13 +8,13 @@ LvcError io::file(std::filesystem::path path, std::ios_base::openmode flags) {
     return SUCCESS;
 }
 
-LvcError io::file(std::filesystem::path path, std::ios_base::openmode flags, const char* content, uint64_t length, bool compress) {
+LvcError io::file(std::filesystem::path path, std::ios_base::openmode flags, const char* content, size_t length, bool compress) {
     std::ofstream file(path, flags);
     if (!file)
         return FILE_CREATION_FAILURE;
 
     if (compress) {
-        uint64_t deflated_length;
+        size_t deflated_length;
         char* deflated = deflate(content, length, deflated_length);
         if (!deflated)
             return DEFLATION_FAILURE;
@@ -31,7 +31,7 @@ LvcError io::file(std::filesystem::path path, std::ios_base::openmode flags, con
     return SUCCESS;
 }
 
-LvcError io::prefix_file_content(std::filesystem::path path, const char* content, uint64_t length) {
+LvcError io::prefix_file_content(std::filesystem::path path, const char* content, size_t length) {
     const std::filesystem::path temp = path.parent_path() / (path.filename().string() + ".tmp");
 
     std::ifstream input(path, std::ios::binary);
@@ -95,7 +95,7 @@ std::string io::content(std::filesystem::path file_path, bool decompress) {
 
     out = buffer.str();
     if (decompress) {
-        uint64_t inflated_len;
+        size_t inflated_len;
         char*    inflated = inflate(out, inflated_len);
         if (inflated)
             out.assign(inflated, inflated_len);

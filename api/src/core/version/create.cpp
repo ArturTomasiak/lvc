@@ -21,10 +21,11 @@ struct TreeRelation {
 
 static void tree_from_version(const std::filesystem::path& object_dir, std::vector<Tree>& trees, const std::string& tree_id, std::filesystem::path current) {
     std::vector<std::string> tree_content = io::content_lines(object_dir / tree_id, 1);
-    uint64_t pos;
+    size_t pos;
     Tree tree;
     tree.relative = current;
-    for (std::string& line : tree_content) {
+    for (size_t i = 1; i < tree_content.size(); ++i) {
+        std::string line = tree_content[i];
         VersionObject object;
         pos         = line.find(' ');
         object.type = line.substr(0, pos);

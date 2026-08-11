@@ -10,6 +10,7 @@
 // DO NOT TOUCH
 
 #include <stdint.h>
+#include <stddef.h>
 #define LvcBool int8_t
 
 #ifdef TEST_PRINTS

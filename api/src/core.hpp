@@ -26,8 +26,8 @@ namespace category {
 namespace object {
     LvcError create(const std::filesystem::path& object_dir, const std::string& type, std::string& content, std::string& out_id);
     bool     exists (std::filesystem::path object_dir, char id[65]);
-    char*    deflate(const char* in, uint64_t in_len, uint64_t& out_len);
-    char*    inflate(const std::string& in, uint64_t& out_len);
+    char*    deflate(const char* in, size_t in_len, size_t& out_len);
+    char*    inflate(const std::string& in, size_t& out_len);
 }
 
 namespace repository {
@@ -99,8 +99,8 @@ inline char** strvector_to_charpp(const std::vector<std::string>& vector) {
     return result;
 }
 
-inline uint64_t charplen(const char* str) {
-    uint64_t len = 0;
+inline size_t charplen(const char* str) {
+    size_t len = 0;
     while (*str++)
         len++;
     return len;
@@ -179,4 +179,4 @@ inline constexpr char DEFAULT_HYBRID_STORAGE[] = R"LVC(# Format: <size in MB> <e
 25 ifc
 )LVC";
 
-inline constexpr uint64_t DEFAULT_HYBRID_STORAGE_LENGTH = sizeof(DEFAULT_HYBRID_STORAGE) - 1;
+inline constexpr size_t DEFAULT_HYBRID_STORAGE_LENGTH = sizeof(DEFAULT_HYBRID_STORAGE) - 1;

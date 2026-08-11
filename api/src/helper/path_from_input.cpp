@@ -42,12 +42,12 @@ invalid:;
 }
 
 static bool match_glob(std::string_view pattern, std::string_view text) {
-    constexpr uint64_t no_star = std::string_view::npos;
+    constexpr size_t no_star = std::string_view::npos;
 
-    uint64_t pattern_pos = 0;
-    uint64_t text_pos    = 0;
-    uint64_t star_pos    = no_star;
-    uint64_t retry_pos   = 0;
+    size_t pattern_pos = 0;
+    size_t text_pos    = 0;
+    size_t star_pos    = no_star;
+    size_t retry_pos   = 0;
 
     while (text_pos < text.size()) {
         if (pattern_pos < pattern.size() && (pattern[pattern_pos] == '?' || pattern[pattern_pos] == text[text_pos])) {
@@ -73,11 +73,11 @@ static bool match_glob(std::string_view pattern, std::string_view text) {
     return pattern_pos == pattern.size();
 }
 
-static bool matches_target(const ProcessedInput& rule, const std::vector<std::string>& target, uint64_t target_component_count, bool target_is_directory) {
+static bool matches_target(const ProcessedInput& rule, const std::vector<std::string>& target, size_t target_component_count, bool target_is_directory) {
     if (rule.directory && !target_is_directory)
         return false;
 
-    const uint64_t pattern_count = rule.path_components.size();
+    const size_t pattern_count = rule.path_components.size();
     if (pattern_count == 0) {
         return target_is_directory &&
                target_component_count == 0;
@@ -85,7 +85,7 @@ static bool matches_target(const ProcessedInput& rule, const std::vector<std::st
     if (pattern_count > target_component_count)
         return false;
 
-    uint64_t target_begin = 0;
+    size_t target_begin = 0;
 
     if (!rule.root)
         target_begin = target_component_count - pattern_count;
@@ -93,7 +93,7 @@ static bool matches_target(const ProcessedInput& rule, const std::vector<std::st
         if (pattern_count != target_component_count)
             return false;
 
-    for (uint64_t i = 0; i < pattern_count; i++)
+    for (size_t i = 0; i < pattern_count; i++)
         if (!match_glob(rule.path_components[i], target[target_begin + i]))
             return false;
 
@@ -104,7 +104,7 @@ static bool rule_selects_file(const ProcessedInput& rule, const std::vector<std:
     if (!rule.directory && matches_target(rule, file_components, file_components.size(), false))
         return true;
 
-    for (uint64_t count = 0; count < file_components.size(); count++)
+    for (size_t count = 0; count < file_components.size(); count++)
         if (matches_target(rule, file_components, count,true))
             return true;
 

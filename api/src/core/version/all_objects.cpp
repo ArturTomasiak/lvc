@@ -2,11 +2,11 @@
 
 static void get_all_paths(const std::filesystem::path& object_folder, std::vector<Object>& out, const std::string tree_id, const std::filesystem::path current) {
     std::vector<std::string> content = io::content_lines(object_folder / tree_id, 1);
-    for (uint64_t i = 1; i < content.size(); i++) {
+    for (size_t i = 1; i < content.size(); i++) {
         Object object;
         const std::string& line = content[i];
 
-        uint64_t position = line.find(' ');
+        size_t position = line.find(' ');
         std::string type  = line.substr(0, position);
 
         object.type = type == TYPE_TREE ? TREE : BLOB;

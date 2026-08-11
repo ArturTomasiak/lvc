@@ -72,27 +72,27 @@ static void process_chunk(const uint8_t* chunk, uint32_t state[8]) {
     state[7] += h;
 }
 
-void sha256(const char* in, uint64_t in_len, char out[65]) {
+void sha256(const char* in, size_t in_len, char out[65]) {
     if (!out || (!in && in_len))
         return;
-    uint64_t bit_len     = in_len << 3;
-    uint64_t remainder   = in_len % 64;
+    size_t bit_len     = in_len << 3;
+    size_t remainder   = in_len % 64;
     uint8_t padding[128] = {0};
     if (remainder)
         memcpy(padding, in + in_len - remainder, remainder);
     padding[remainder] = 0x80;
     
-    uint64_t in_chunks      = in_len >> 6;
-    uint64_t padding_chunks = remainder >= 56 ? 2 : 1;
+    size_t in_chunks      = in_len >> 6;
+    size_t padding_chunks = remainder >= 56 ? 2 : 1;
 
     for (int i = 0; i < 8; ++i)
         padding[((64 * padding_chunks) - 8) + i] = bit_len >> (56 - i * 8);
 
     uint32_t state[8] = {0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19};
         
-    for (uint64_t i = 0; i < in_chunks; i++)
+    for (size_t i = 0; i < in_chunks; i++)
         process_chunk((const uint8_t*)in + (i * 64), state);
-    for (uint64_t i = 0; i < padding_chunks; i++)
+    for (size_t i = 0; i < padding_chunks; i++)
         process_chunk(padding + (i * 64), state);
 
     static constexpr char hex[] = "0123456789abcdef";
