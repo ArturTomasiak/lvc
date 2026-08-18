@@ -42,7 +42,7 @@ do {                                     \
 extern "C" {
 #endif
 
-    typedef enum LvcError {
+    typedef enum {
         SUCCESS,
 
         FILE_CREATION_FAILURE,
@@ -84,13 +84,13 @@ extern "C" {
         INSERT_INACTIVE
     } LvcError;
 
-    typedef enum StorageBehaviour {
+    typedef enum {
         DISTRIBUTED = 1,
         HYBRID = 2,
         CENTRALIZED = 3
     } StorageBehaviour;
     
-    typedef struct LvcCreateInput {
+    typedef struct {
         LvcBool local;
         StorageBehaviour storage_behaviour;
         const char* location;
@@ -102,22 +102,29 @@ extern "C" {
         bool clone_versioning;
     } LvcCreateInput;
 
-    typedef struct LvcDiff {
+    typedef struct {
         uint32_t line_start;
         uint32_t line_end;
         const char* content;
     } LvcDiff;
 
-    typedef struct LvcConflict {
+    typedef struct {
         LvcDiff a;
         LvcDiff b;
+        const char* relative_path;
     } LvcConflict;
 
-    typedef struct LvcConflictArray {
+    typedef struct {
         uint32_t length;
         LvcConflict* conflict;
-        const char* absolute_path;
     } LvcConflictArray;
+
+    typedef struct LvcVersion {
+        LvcVersion* previous;
+        LvcVersion* nested_versions;
+        char* description;
+        char  id[65];
+    } LvcVersion;
 
     LVC_API LvcError lvc_create(LvcCreateInput input) noexcept;
     LVC_API LvcError lvc_workspace(const char* lvc, const char* category_name, const char* workspace_name) noexcept;
