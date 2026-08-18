@@ -10,6 +10,7 @@ struct Command {
 #define COMMANDS_ARRAY { \
     {"create", lvc::create}, \
     {"version", lvc::version}, \
+    {"history", lvc::history}, \
     {"prepare", lvc::prepare}, \
     {"diff", lvc::diff}, \
     {"status", lvc::status}, \

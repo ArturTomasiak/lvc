@@ -46,6 +46,9 @@ namespace version {
     std::vector<std::string> diff(std::filesystem::path lvc, LvcError& err);
     std::vector<std::string> status(std::filesystem::path lvc);
     std::vector<std::string> status_all(std::filesystem::path lvc);
+
+    LvcVersion* history(const std::filesystem::path& lvc, const std::filesystem::path& object_dir, const std::filesystem::path& workspace_dir, const std::string workspace_name);
+    void history_free(LvcVersion* version);
     
     std::vector<Object> all_objects(std::filesystem::path object_dir, std::filesystem::path working_directory, std::string id);
     std::vector<std::filesystem::path> deleted_since(std::filesystem::path object_dir, std::filesystem::path working_directory, std::string id, LvcError& err);
@@ -65,9 +68,11 @@ namespace workspace {
     LvcError move_categories(std::filesystem::path workspace_dir, const char* workspace_name, const char* previous_category, const char* category);
     LvcError activate(std::filesystem::path workspace_dir, const char* workspace_name, const char* category_name);
     LvcError deactivate(std::filesystem::path workspace_dir, const char* workspace_name);
-    LvcError insert(const std::filesystem::path& lvc, const std::filesystem::path& src_workspace, const std::filesystem::path& dest_workspace, const std::string& author);
-    LvcError unite(const std::filesystem::path& lvc, const std::filesystem::path& src_workspace, const std::filesystem::path& dest_workspace, const std::string& author);
-    
+
+    LvcError insert(const std::filesystem::path& lvc, const std::string& src_workspace, const std::string& dest_workspace, const std::string& author);
+    LvcError unite(const std::filesystem::path& lvc, const std::string& src_workspace, const std::string& dest_workspace, const std::string& author);
+    LvcError push(const std::filesystem::path& src_repository, const std::filesystem::path& dest_repository);
+    LvcError sync(const std::filesystem::path& src_repository, const std::filesystem::path& dest_repository, LvcConflictArray& conflict);
 
     std::vector<Object> all_objects(std::filesystem::path working_directory, LvcError& err);
 }
@@ -75,7 +80,7 @@ namespace workspace {
 inline void free_charpp(char** arr) {
     if (!arr)
         return;
-    for (int i = 0; arr[i]; i++)
+    for (size_t i = 0; arr[i]; i++)
         free(arr[i]);
     free(arr);
 }

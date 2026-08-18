@@ -25,6 +25,7 @@ namespace helper {
 namespace lvc {
     bool create(int argc, char* argv[]);
     bool version(int argc, char* argv[]);
+    bool history(int argc, char* argv[]);
     bool prepare(int argc, char* argv[]);
     bool diff(int argc, char* argv[]);
     bool status(int argc, char* argv[]);

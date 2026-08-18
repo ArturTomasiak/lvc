@@ -1,8 +1,6 @@
 #include "core.hpp"
 
-LvcVersion* version::history(const std::filesystem::path& lvc, const std::string& workspace_name) {
-    const std::filesystem::path workspace_dir = lvc / NAME_WORKSPACE;
-    const std::filesystem::path object_dir    = lvc / NAME_OBJECT;
+LvcVersion* version::history(const std::filesystem::path& lvc, const std::filesystem::path& object_dir, const std::filesystem::path& workspace_dir, const std::string workspace_name) {
     std::filesystem::path workspace = workspace_path(workspace_dir, workspace_name);
     if (!std::filesystem::exists(workspace))
         return {};
@@ -42,7 +40,7 @@ LvcVersion* version::history(const std::filesystem::path& lvc, const std::string
         version->description = (char*)malloc(desc_size + 1);
         memcpy(version->description, version_content[VERSION_MESSAGE].c_str(), desc_size + 1);
         if (version_content.size() -1 >= VERSION_WORKSPACE)
-            version->nested_versions = version::history(lvc, version_content[VERSION_WORKSPACE]);
+            version->nested_versions = version::history(lvc, object_dir, workspace_dir, version_content[VERSION_WORKSPACE]);
     }
 
     return first_version;

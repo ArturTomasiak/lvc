@@ -94,5 +94,6 @@ skip_verioning_questions:
 
     LvcError err;
     LVCEXEC(lvc_create(input), err, err);
+    std::cout << "Successfully created repository\n";
     return 1;
 }
