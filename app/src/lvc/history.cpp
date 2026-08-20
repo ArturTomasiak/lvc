@@ -2,7 +2,7 @@
 
 static void print_history(LvcVersion* version, std::string prefix = "") {
     while (version) {
-        std::cout << version->id << " " << version->description << "\n";
+        std::cout << prefix << version->id << " " << version->description << "\n";
         print_history(version->nested_versions, prefix += "   ");
         version = version->previous;
     }

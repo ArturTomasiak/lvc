@@ -55,7 +55,7 @@ extern "C" LVC_API char** lvc_status_all(const char* lvc) noexcept {
 extern "C" LVC_API char** lvc_prepare(const char* lvc, int argc, char* argv[], LvcError* err) noexcept {
     std::vector<std::string> input;
     input.reserve(argc - 2);
-    for (int i = 2; i < argc; i++)
+    for (size_t i = 2; i < argc; i++)
         input.push_back(argv[i]);
 
     char** out;
@@ -69,6 +69,17 @@ extern "C" LVC_API LvcError lvc_prepare_reset(const char* lvc) noexcept {
 
 extern "C" LVC_API LvcError lvc_version(const char* lvc, const char* message, const char* author) noexcept {
     return version::create(lvc, message, author, "");
+}
+
+extern "C" LVC_API LvcVersion* lvc_history(const char* lvc, const char* workspace) noexcept {
+    const std::filesystem::path lvc_dir       = lvc;
+    const std::filesystem::path object_dir    = lvc_dir / NAME_OBJECT;
+    const std::filesystem::path workspace_dir = lvc_dir / NAME_WORKSPACE;
+    return version::history(lvc_dir, object_dir, workspace_dir, workspace);
+}
+
+extern "C" LVC_API void lvc_history_free(LvcVersion* version) noexcept {
+    version::history_free(version);
 }
 
 extern "C" LVC_API LvcError lvc_conflict_manual(const char* lvc, LvcConflictArray* conflicts) noexcept {

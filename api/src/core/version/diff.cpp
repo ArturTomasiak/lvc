@@ -6,7 +6,7 @@ std::vector<std::string> version::diff(std::filesystem::path lvc, LvcError& err)
     std::filesystem::path working_dir = lvc.parent_path();
     std::string version = io::content_first_line(workspace);
 
-    std::vector<Object> objects_version     = version::all_objects(lvc / NAME_OBJECT, working_dir, version);
+    std::vector<Object> objects_version     = version::all_objects(lvc / NAME_OBJECT, version, {});
     std::vector<Object> objects_working_dir = workspace::all_objects(working_dir, err);
 
     std::unordered_set<std::string_view> version_ids;

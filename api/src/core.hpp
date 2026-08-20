@@ -41,7 +41,7 @@ namespace version {
     LvcError create(std::filesystem::path lvc, std::string message, std::string author, std::string inserted_workspace);
     LvcError prepare(std::filesystem::path lvc, std::vector<std::string> input, char*** prepared);
     LvcError prepare_reset(std::filesystem::path lvc);
-    LvcError revert(std::filesystem::path lvc, uint32_t version_id, std::vector<std::string> input);
+    LvcError revert(std::filesystem::path lvc, std::string version_id, std::vector<std::string> input_raw);
 
     std::vector<std::string> diff(std::filesystem::path lvc, LvcError& err);
     std::vector<std::string> status(std::filesystem::path lvc);
@@ -50,7 +50,7 @@ namespace version {
     LvcVersion* history(const std::filesystem::path& lvc, const std::filesystem::path& object_dir, const std::filesystem::path& workspace_dir, const std::string workspace_name);
     void history_free(LvcVersion* version);
     
-    std::vector<Object> all_objects(std::filesystem::path object_dir, std::filesystem::path working_directory, std::string id);
+    std::vector<Object> all_objects(std::filesystem::path object_dir, std::string id, std::unordered_set<std::string> ignore);
     std::vector<std::filesystem::path> deleted_since(std::filesystem::path object_dir, std::filesystem::path working_directory, std::string id, LvcError& err);
 }
 

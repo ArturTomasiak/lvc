@@ -178,7 +178,7 @@ catch(const std::filesystem::filesystem_error& error) {
     return result;
 }
 
-std::vector<std::string> path_from_input(std::filesystem::path repository_root, const std::vector<std::string>& inputs, const std::string& version_id, LvcError& err) {
+std::vector<std::string> path_from_input(std::filesystem::path repository_root, const std::vector<std::string>& inputs, const std::string version_id, LvcError& err) {
     err = SUCCESS;
 
     repository_root = repository_root.lexically_normal();

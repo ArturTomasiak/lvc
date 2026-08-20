@@ -8,7 +8,7 @@ std::vector<std::string> version::status(std::filesystem::path lvc) {
     std::string version = io::content_first_line(workspace);
     std::vector<std::string> status = io::content_lines(lvc / NAME_PREPARE, 0);
 
-    std::vector<Object> objects = version::all_objects(lvc / NAME_OBJECT, working_dir, version);
+    std::vector<Object> objects = version::all_objects(lvc / NAME_OBJECT, version, {});
     
     std::unordered_set<std::string> unmodified;
     unmodified.reserve(objects.size());
