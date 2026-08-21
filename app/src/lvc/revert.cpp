@@ -5,11 +5,6 @@ bool lvc::revert(int argc, char* argv[]) {
     if (!helper::find_repository(lvc))
         return 0;
 
-    if (argc < 3) {
-        error_message = "No version id given";
-        return 0;
-    }
-
     if (!std::filesystem::is_regular_file(lvc / NAME_OBJECT / argv[2])) {
         error_message = "Invalid version id";
         return 0;

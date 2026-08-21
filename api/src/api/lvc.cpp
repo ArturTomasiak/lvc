@@ -166,6 +166,8 @@ static const std::unordered_map<LvcError, const char*> error_strings = {
     { DEFLATION_FAILURE,            "Failed to deflate file" },
     { INFLATION_FAILURE,            "Failed to inflate file" },
 
+    { INVALID_VERSION_ID,            "Invalid version ID" },
+
     { LVC_FOLDER_CREATE,            "Could not create .lvc folder" },
     { WORKSPACE_FOLDER_CREATE,      "Could not create .lvc/workspace folder" },
     { OBJECT_FOLDER_CREATE,         "Could not create .lvc/object folder" },

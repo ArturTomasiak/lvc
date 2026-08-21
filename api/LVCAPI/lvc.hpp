@@ -53,6 +53,8 @@ extern "C" {
 
         DEFLATION_FAILURE,
         INFLATION_FAILURE,
+
+        INVALID_VERSION_ID,
         
         LVC_FOLDER_CREATE, 
         WORKSPACE_FOLDER_CREATE,
