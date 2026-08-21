@@ -93,15 +93,14 @@ std::string io::content(std::filesystem::path file_path, bool decompress) {
     if (!file.eof() && file.fail())
         return out;
 
-    out = buffer.str();
     if (decompress) {
         size_t inflated_len;
-        char*    inflated = inflate(out, inflated_len);
+        char* inflated = inflate(buffer.str(), inflated_len);
         if (inflated)
             out.assign(inflated, inflated_len);
-        else
-            return {};
     }
+    else
+        out = buffer.str();
 
     return out;
 }

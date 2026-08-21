@@ -17,10 +17,10 @@ LvcError version::prepare(std::filesystem::path lvc, std::vector<std::string> in
 
     LvcError err;
     std::vector<std::string> ignore_raw = io::content_lines(working_dir / NAME_IGNORE, 0);
-    std::vector<std::string> ignore     = path_from_input(working_dir, ignore_raw, version_id, err);
+    std::vector<std::string> ignore     = path_from_input(working_dir, ignore_raw, version_id, 1, err);
     if (err) return err;
 
-    std::vector<std::string> input = path_from_input(working_dir, input_raw, version_id, err);
+    std::vector<std::string> input = path_from_input(working_dir, input_raw, version_id, 1, err);
     if (err) return err;
     if (input.empty())
         return PREPARE_NO_INPUT;

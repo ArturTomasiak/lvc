@@ -11,11 +11,8 @@ std::vector<std::filesystem::path> version::deleted_since(std::filesystem::path 
     
 try {
     std::filesystem::recursive_directory_iterator iterator(working_directory);
-    for (const std::filesystem::directory_entry& entry : iterator) {
-        if (!entry.is_regular_file())
-            continue;
+    for (const std::filesystem::directory_entry& entry : iterator)
         working_files.insert(entry.path().lexically_relative(working_directory));
-    }
 }   
 catch(const std::filesystem::filesystem_error& error) {
     err = WORKING_DIR_ITERATION_FAILED;

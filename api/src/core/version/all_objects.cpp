@@ -20,7 +20,7 @@ static void get_all_paths(const std::filesystem::path& object_folder, std::vecto
         if (type == TYPE_TREE)
             get_all_paths(object_folder, out, object.id, object.path, ignore);
         if (!ignore.contains(object.path))
-                    out.push_back(object);
+            out.push_back(object);
     }
 }
 
