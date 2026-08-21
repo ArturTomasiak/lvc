@@ -3,7 +3,7 @@
 // Revert specified files or all files if no input is given in the working directory to the state of the version_id.
 // Does not touch files specified by lvc.ignore.
 
-LvcError version::revert(std::filesystem::path lvc, std::string version_id, std::vector<std::string> input_raw) {
+LvcError version::revert(std::filesystem::path lvc, std::string version_id, std::vector<std::string>& input_raw) {
     std::filesystem::path working_dir = lvc.parent_path();
     std::filesystem::path object_dir  = lvc / NAME_OBJECT;
     LvcError out = SUCCESS;

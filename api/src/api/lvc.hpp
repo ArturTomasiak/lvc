@@ -145,7 +145,7 @@ extern "C" {
     LVC_API LvcError lvc_sync(const char* lvc, const char* tmp_lvc, LvcConflictArray* conflicts) noexcept;
     LVC_API LvcError lvc_unite(const char* lvc, const char* src_workspace_name, const char* dest_workspace_name, LvcConflictArray* conflicts) noexcept;
     LVC_API LvcError lvc_insert(const char* lvc, const char* src_workspace_name, const char* dest_workspace_name, LvcConflictArray* conflicts) noexcept;
-    LVC_API LvcError lvc_revert(const char* lvc, uint32_t version_id, uint32_t file_count, char** files) noexcept;
+    LVC_API LvcError lvc_revert(const char* lvc, char* version_id, uint32_t input_count, char** input) noexcept;
     LVC_API LvcError lvc_push_local(const char* lvc, const char* tmp_lvc) noexcept;
     LVC_API LvcError lvc_push_server(const char* lvc) noexcept;
     LVC_API LvcError lvc_rename_category(const char* lvc, const char* category_name, const char* new_name) noexcept;

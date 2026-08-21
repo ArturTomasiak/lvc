@@ -32,4 +32,5 @@ namespace lvc {
     bool _default(int argc, char* argv[]);
     bool _goto(int argc, char* argv[]);
     bool move(int argc, char* argv[]);
+    bool revert(int argc, char* argv[]);
 }

@@ -17,6 +17,7 @@ struct Command {
     {"default", lvc::_default}, \
     {"goto", lvc::_goto}, \
     {"move", lvc::move}, \
+    {"revert", lvc::revert}, \
 }
 
 static bool (*command(std::string input))(int argc, char* argv[]) {

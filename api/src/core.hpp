@@ -41,7 +41,7 @@ namespace version {
     LvcError create(std::filesystem::path lvc, std::string message, std::string author, std::string inserted_workspace);
     LvcError prepare(std::filesystem::path lvc, std::vector<std::string> input, char*** prepared);
     LvcError prepare_reset(std::filesystem::path lvc);
-    LvcError revert(std::filesystem::path lvc, std::string version_id, std::vector<std::string> input_raw);
+    LvcError revert(std::filesystem::path lvc, std::string version_id, std::vector<std::string>& input_raw);
 
     std::vector<std::string> diff(std::filesystem::path lvc, LvcError& err);
     std::vector<std::string> status(std::filesystem::path lvc);
