@@ -77,13 +77,16 @@ void sha256(const char* in, size_t in_len, char out[65]) {
         return;
     size_t bit_len     = in_len << 3;
     size_t remainder   = in_len % 64;
-    uint8_t padding[128] = {0};
+    uint8_t padding[128];
     if (remainder)
         memcpy(padding, in + in_len - remainder, remainder);
     padding[remainder] = 0x80;
     
     size_t in_chunks      = in_len >> 6;
     size_t padding_chunks = remainder >= 56 ? 2 : 1;
+    const size_t padding_size = padding_chunks * 64;
+
+    memset(padding + remainder + 1, 0, padding_size - remainder - 1);
 
     for (int i = 0; i < 8; ++i)
         padding[((64 * padding_chunks) - 8) + i] = bit_len >> (56 - i * 8);
