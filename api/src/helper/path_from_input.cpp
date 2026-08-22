@@ -74,9 +74,6 @@ static bool match_glob(std::string_view pattern, std::string_view text) {
 }
 
 static bool matches_target(const ProcessedInput& rule, const std::vector<std::string>& target, size_t target_component_count, bool target_is_directory) {
-    if (rule.directory && !target_is_directory)
-        return false;
-
     const size_t pattern_count = rule.path_components.size();
     if (pattern_count == 0) {
         return target_is_directory &&
@@ -101,11 +98,11 @@ static bool matches_target(const ProcessedInput& rule, const std::vector<std::st
 }
 
 static bool rule_selects_file(const ProcessedInput& rule, const std::vector<std::string>& file_components) {
-    if (!rule.directory && matches_target(rule, file_components, file_components.size(), false))
+    if (matches_target(rule, file_components, file_components.size(), rule.directory))
         return true;
 
     for (size_t count = 0; count < file_components.size(); count++)
-        if (matches_target(rule, file_components, count,true))
+        if (matches_target(rule, file_components, count, true))
             return true;
 
     return false;
@@ -194,8 +191,7 @@ std::vector<std::string> path_from_input(std::filesystem::path repository_root, 
     for (ProcessedInput& item : processed)
         (item.exclude ? excluded : included).push_back(std::move(item));
     
-    ProcessedInput lvc_exclude = {1, 1, 1, {".lvc"}};
-    excluded.push_back(std::move(lvc_exclude));
+    excluded.push_back({1, 1, 1, {".lvc"}});
 
     std::vector<std::string> result = path_from_processed_input(repository_root, included, excluded, version_id, prefix_deleted, err);
 
