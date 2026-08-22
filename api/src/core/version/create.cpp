@@ -44,7 +44,7 @@ static void tree_from_version(const std::filesystem::path& object_dir, std::vect
     trees.push_back(tree);
 }
 
-static void add_object(std::filesystem::path path, const std::filesystem::path& object_dir, std::vector<VersionObject>& objects) {
+static void add_object(std::filesystem::path& path, const std::filesystem::path& object_dir, std::vector<VersionObject>& objects) {
     std::string filename = path.filename();
     std::erase_if(objects, [&](const VersionObject& object) {
         return object.name == filename;

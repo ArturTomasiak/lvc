@@ -139,7 +139,7 @@ extern "C" {
     LVC_API char**   lvc_prepare(const char* lvc, int argc, char* argv[], LvcError* err) noexcept;
     LVC_API LvcError lvc_prepare_reset(const char* lvc) noexcept;
     LVC_API LvcError lvc_version(const char* lvc, const char* message, const char* author) noexcept;
-    LVC_API LvcVersion* lvc_history(const char* lvc, const char* workspace) noexcept;
+    LVC_API LvcVersion* lvc_history(const char* lvc, const char* workspace, size_t depth, size_t length, bool all) noexcept;
     LVC_API void        lvc_history_free(LvcVersion* version) noexcept;
     LVC_API LvcError lvc_conflict_manual(const char* lvc, LvcConflictArray* conflicts) noexcept;
     LVC_API LvcError lvc_conflict_manual_verify(const char* lvc, LvcConflictArray* conflicts) noexcept;

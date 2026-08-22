@@ -47,7 +47,8 @@ namespace version {
     std::vector<std::string> status(std::filesystem::path lvc);
     std::vector<std::string> status_all(std::filesystem::path lvc);
 
-    LvcVersion* history(const std::filesystem::path& lvc, const std::filesystem::path& object_dir, const std::filesystem::path& workspace_dir, const std::string workspace_name);
+    LvcVersion* history(const std::filesystem::path object_dir, const std::filesystem::path workspace_dir, const std::string workspace_name, size_t depth, size_t length);
+    LvcVersion* history_all(const std::filesystem::path object_dir, const std::filesystem::path workspace_dir, const std::string workspace_name);
     void history_free(LvcVersion* version);
     
     std::vector<Object> all_objects(std::filesystem::path object_dir, std::string id, std::unordered_set<std::string> ignore);
@@ -72,7 +73,9 @@ namespace workspace {
     LvcError insert(const std::filesystem::path& lvc, const std::string& src_workspace, const std::string& dest_workspace, const std::string& author);
     LvcError unite(const std::filesystem::path& lvc, const std::string& src_workspace, const std::string& dest_workspace, const std::string& author);
     LvcError push(const std::filesystem::path& src_repository, const std::filesystem::path& dest_repository);
-    LvcError sync(const std::filesystem::path& src_repository, const std::filesystem::path& dest_repository, LvcConflictArray& conflict);
+
+    LvcConflictArray conflict(const std::filesystem::path lvc, const std::string src_workspace, const std::filesystem::path dest_workspace);
+    LvcConflictArray conflict_push(const std::filesystem::path src_repository, const std::filesystem::path dest_repository);
 
     std::vector<Object> all_objects(std::filesystem::path working_directory, LvcError& err);
 }

@@ -71,11 +71,12 @@ extern "C" LVC_API LvcError lvc_version(const char* lvc, const char* message, co
     return version::create(lvc, message, author, "");
 }
 
-extern "C" LVC_API LvcVersion* lvc_history(const char* lvc, const char* workspace) noexcept {
-    const std::filesystem::path lvc_dir       = lvc;
-    const std::filesystem::path object_dir    = lvc_dir / NAME_OBJECT;
-    const std::filesystem::path workspace_dir = lvc_dir / NAME_WORKSPACE;
-    return version::history(lvc_dir, object_dir, workspace_dir, workspace);
+extern "C" LVC_API LvcVersion* lvc_history(const char* lvc, const char* workspace, size_t depth, size_t length, bool all) noexcept {
+    const std::filesystem::path lvc_dir = lvc;
+    if (all)
+        return version::history_all(lvc_dir / NAME_OBJECT, lvc_dir / NAME_WORKSPACE, workspace);
+    else
+        return version::history(lvc_dir / NAME_OBJECT, lvc_dir / NAME_WORKSPACE, workspace, depth, length);
 }
 
 extern "C" LVC_API void lvc_history_free(LvcVersion* version) noexcept {
