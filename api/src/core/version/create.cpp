@@ -19,31 +19,6 @@ struct TreeRelation {
     std::vector<TreeRelation> children;
 };
 
-static void tree_from_version(const std::filesystem::path& object_dir, std::vector<Tree>& trees, const std::string& tree_id, std::filesystem::path current) {
-    std::vector<std::string> tree_content = io::content_lines(object_dir / tree_id, 1);
-    size_t pos;
-    Tree tree;
-    tree.relative = current;
-    for (size_t i = 1; i < tree_content.size(); ++i) {
-        std::string line = tree_content[i];
-        VersionObject object;
-        pos         = line.find(' ');
-        object.type = line.substr(0, pos);
-
-        line = line.substr(pos + 1);
-        pos  = line.find(' ');
-
-        object.id           = line.substr(0, pos);
-        object.name         = line.substr(pos + 1);
-
-        if (object.type == TYPE_TREE)  // tree objects are inserted in tree_builder
-            tree_from_version(object_dir, trees, object.id, current / object.name);
-        else
-            tree.objects.push_back(object);
-    }
-    trees.push_back(tree);
-}
-
 static void add_object(std::filesystem::path& path, const std::filesystem::path& object_dir, std::vector<VersionObject>& objects) {
     std::string filename = path.filename();
     std::erase_if(objects, [&](const VersionObject& object) {
@@ -115,26 +90,29 @@ static TreeRelation tree_relation_init(std::vector<Tree>& trees) {
     return tree_relation;
 }
 
-static void ensure_tree(std::vector<Tree>& trees, const std::filesystem::path& relative) {
-    std::filesystem::path current;
+static void tree_from_version(const std::filesystem::path& object_dir, std::vector<Tree>& trees, const std::string& tree_id, std::filesystem::path current) {
+    std::vector<std::string> tree_content = io::content_lines(object_dir / tree_id, 1);
+    size_t pos;
+    Tree tree;
+    tree.relative = current;
+    for (size_t i = 1; i < tree_content.size(); ++i) {
+        std::string line = tree_content[i];
+        VersionObject object;
+        pos         = line.find(' ');
+        object.type = line.substr(0, pos);
 
-    for (const std::filesystem::path& part : relative) {
-        current /= part;
-        bool exists = false;
+        line = line.substr(pos + 1);
+        pos  = line.find(' ');
 
-        for (const Tree& tree : trees) {
-            if (tree.relative == current) {
-                exists = true;
-                break;
-            }
-        }
+        object.id           = line.substr(0, pos);
+        object.name         = line.substr(pos + 1);
 
-        if (!exists) {
-            Tree tree;
-            tree.relative = current;
-            trees.push_back(std::move(tree));
-        }
+        if (object.type == TYPE_TREE)  // tree objects are inserted in tree_builder
+            tree_from_version(object_dir, trees, object.id, current / object.name);
+        else
+            tree.objects.push_back(object);
     }
+    trees.push_back(tree);
 }
 
 static std::string build(const std::filesystem::path& object_dir, const std::filesystem::path& working_dir, const std::string& tree_id, const std::vector<std::string>& status) {
@@ -154,9 +132,6 @@ static std::string build(const std::filesystem::path& object_dir, const std::fil
         std::filesystem::path relative     = path;
         relative = relative.parent_path();
 
-        if (!deleted)
-            ensure_tree(trees, relative);
-
         Tree* tree = nullptr;
         for (Tree& current_tree : trees)
             if (current_tree.relative == relative)
@@ -164,7 +139,14 @@ static std::string build(const std::filesystem::path& object_dir, const std::fil
         if (tree == nullptr)
             continue;
 
-        if (std::filesystem::is_regular_file(working_path))
+        if (std::filesystem::is_directory(working_path)) {
+            if (deleted)
+                std::erase_if(trees, [&](const Tree& tree) {return tree.relative == path;});
+            else
+                trees.emplace_back(Tree{ .relative = path });
+        }
+
+        else if (std::filesystem::is_regular_file(working_path))
             add_object(working_path, object_dir, tree->objects);
             
         else if (deleted)

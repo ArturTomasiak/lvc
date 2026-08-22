@@ -20,7 +20,7 @@ catch(const std::filesystem::filesystem_error& error) {
 }
 
     for (const Object& object : version)
-        if (object.type != TREE && !working_files.contains(object.path))
+        if (!working_files.contains(object.path))
             out.push_back(object.path);
 
     return out;

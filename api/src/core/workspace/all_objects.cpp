@@ -15,12 +15,9 @@ try {
             continue;
         }
 
-        if (!entry.is_regular_file())
-            continue;
-
         Object object;
         object.path = entry.path().lexically_relative(working_directory);
-        object.type = BLOB;
+        object.type = std::filesystem::is_regular_file(entry.path()) ? BLOB : TREE;
 
         std::string buffer = io::content(entry.path(), 0);
         insert_pattern(buffer, TYPE_BLOB);

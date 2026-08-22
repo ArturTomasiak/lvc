@@ -15,12 +15,14 @@ std::vector<std::string> version::status(std::filesystem::path lvc) {
     char id[65];
     for (Object& object : objects) { 
         std::filesystem::path path = working_dir / object.path;
-        if (!std::filesystem::is_regular_file(path))
-            continue;
-        std::string buffer = io::content(path, 0);
-        insert_pattern(buffer, TYPE_BLOB);
-        sha256(buffer.data(), buffer.size(), id);
-        if (object.id != id)
+        if (std::filesystem::is_regular_file(path)) {
+            std::string buffer = io::content(path, 0);
+            insert_pattern(buffer, TYPE_BLOB);
+            sha256(buffer.data(), buffer.size(), id);
+            if (object.id != id)
+                continue;
+        }
+        else if (!std::filesystem::is_directory(path))
             continue;
         unmodified.emplace(std::move(object.path));
     }
