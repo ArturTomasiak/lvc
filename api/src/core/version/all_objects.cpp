@@ -25,6 +25,8 @@ static void get_all_paths(const std::filesystem::path& object_folder, std::vecto
 }
 
 std::vector<Object> version::all_objects(std::filesystem::path object_dir, std::string id, std::unordered_set<std::string> ignore) {
+    if (id.empty())
+        return {};
     std::vector<std::string> version_content = io::content_lines(object_dir / id, 1);
     if (version_content.empty())
         return {};

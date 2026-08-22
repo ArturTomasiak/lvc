@@ -1,14 +1,10 @@
 #include <core.hpp>
 
-std::vector<std::string> version::status(std::filesystem::path lvc) {
-    std::string workspace_name        = io::content(lvc / NAME_CURRENT, 0);
-    std::filesystem::path workspace   = workspace_path(lvc / NAME_WORKSPACE, workspace_name);
+std::vector<std::string> version::status(std::filesystem::path& lvc, std::string& latest_version) {
     std::filesystem::path working_dir = lvc.parent_path();
 
-    std::string version = io::content_first_line(workspace);
     std::vector<std::string> status = io::content_lines(lvc / NAME_PREPARE, 0);
-
-    std::vector<Object> objects = version::all_objects(lvc / NAME_OBJECT, version, {});
+    std::vector<Object> objects = version::all_objects(lvc / NAME_OBJECT, latest_version, {});
     
     std::unordered_set<std::string> unmodified;
     unmodified.reserve(objects.size());

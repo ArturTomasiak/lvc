@@ -43,7 +43,11 @@ extern "C" LVC_API char** lvc_diff(const char* lvc, LvcError* err) noexcept {
 }
 
 extern "C" LVC_API char** lvc_status(const char* lvc) noexcept {
-    std::vector<std::string> status = version::status(lvc);
+    std::filesystem::path lvc_path = lvc;
+    std::string workspace_name      = io::content(lvc_path / NAME_CURRENT, 0);
+    std::filesystem::path workspace = workspace_path(lvc_path / NAME_WORKSPACE, workspace_name);
+    std::string version_id          = io::content_first_line(workspace);
+    std::vector<std::string> status = version::status(lvc_path, version_id);
     return strvector_to_charpp(status);
 }
 
@@ -168,6 +172,7 @@ static const std::unordered_map<LvcError, const char*> error_strings = {
     { INFLATION_FAILURE,            "Failed to inflate file" },
 
     { INVALID_VERSION_ID,            "Invalid version ID" },
+    { NO_FILES_PREPARED,             "No files were prepared" },
 
     { LVC_FOLDER_CREATE,            "Could not create .lvc folder" },
     { WORKSPACE_FOLDER_CREATE,      "Could not create .lvc/workspace folder" },

@@ -161,12 +161,17 @@ static std::string build(const std::filesystem::path& object_dir, const std::fil
 LvcError version::create(std::filesystem::path lvc, std::string message, std::string author, std::string inserted_workspace) {
     if (message.empty())
         return VERSION_NO_MESSAGE;
+        
+    std::filesystem::path prepare_path = lvc / NAME_PREPARE;
+    if (!std::filesystem::is_regular_file(prepare_path))
+        return NO_FILES_PREPARED;
+
     std::filesystem::path working_dir = lvc.parent_path();
     std::filesystem::path object_dir  = lvc / NAME_OBJECT;
     std::string workspace_name        = io::content(lvc / NAME_CURRENT, 0);
     std::filesystem::path workspace   = workspace_path(lvc / NAME_WORKSPACE, workspace_name);
     std::string version_id = io::content_first_line(workspace);
-    std::vector<std::string> status = version::status(lvc);
+    std::vector<std::string> status = version::status(lvc, version_id);
     
     std::string root_id;
     if (!version_id.empty()) {
@@ -186,7 +191,11 @@ LvcError version::create(std::filesystem::path lvc, std::string message, std::st
     id += "\n";
     
     RETURN_ERR(io::prefix_file_content(workspace, id.c_str(), id.size()));
-    RETURN_ERR(version::prepare_reset(lvc));
+
+    std::error_code error;
+    bool deleted = std::filesystem::remove(prepare_path, error);
+    if (!deleted || error)
+        return PREPARE_RESET_ERROR;
 
     return SUCCESS;
 }
