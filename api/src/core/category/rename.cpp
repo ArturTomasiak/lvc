@@ -1,7 +1,9 @@
 #include <core.hpp>
 
-LvcError category::rename(const std::filesystem::path& workspace_dir, const char* category_name, const char* new_name) {
+void category::rename(const std::filesystem::path& workspace_dir, const char* category_name, const char* new_name, char** error_message) {
     std::error_code ec;
     std::filesystem::rename(workspace_dir / category_name, workspace_dir / new_name, ec);
-    return ec ? CATEGORY_FOLDER_RENAME : SUCCESS;
+    if (ec) {
+        error_message_creator_path("Failed to rename category", category_name, error_message);
+    }
 }

@@ -1,23 +1,28 @@
 #include <helper.hpp>
 
-LvcError io::file(std::filesystem::path path, std::ios_base::openmode flags) {
+void io::file(std::filesystem::path path, std::ios_base::openmode flags, char** error_message) {
     std::ofstream file(path, flags);
-    if (!file)
-        return FILE_CREATION_FAILURE;
+    if (!file) {
+        error_message_creator_path("Could not create file", path, error_message);
+        return;
+    }
     file.close();
-    return SUCCESS;
 }
 
-LvcError io::file(std::filesystem::path path, std::ios_base::openmode flags, const char* content, size_t length, bool compress) {
+void io::file(std::filesystem::path path, std::ios_base::openmode flags, const char* content, size_t length, bool compress, char** error_message) {
     std::ofstream file(path, flags);
-    if (!file)
-        return FILE_CREATION_FAILURE;
+    if (!file) {
+        error_message_creator_path("Could not create file", path, error_message);
+        return;
+    }
 
     if (compress) {
         size_t deflated_length;
         char* deflated = deflate(content, length, deflated_length);
-        if (!deflated)
-            return DEFLATION_FAILURE;
+        if (!file) {
+            error_message_creator_path("Could not deflate file", path, error_message);
+            return;
+        }
         file.write(deflated, deflated_length);
         free(deflated);
     }
@@ -25,22 +30,28 @@ LvcError io::file(std::filesystem::path path, std::ios_base::openmode flags, con
     else
         file.write(content, length);
     
-    if (!file)
-        return FILE_WRITING_FAILURE;
+    if (!file) {
+        error_message_creator_path("Could not write file", path, error_message);
+        return;
+    }
+
     file.close();
-    return SUCCESS;
 }
 
-LvcError io::prefix_file_content(std::filesystem::path path, const char* content, size_t length) {
+void io::prefix_file_content(std::filesystem::path path, const char* content, size_t length, char** error_message) {
     const std::filesystem::path temp = path.parent_path() / (path.filename().string() + ".tmp");
 
     std::ifstream input(path, std::ios::binary);
-    if (!input)
-        return FILE_READING_FAILURE;
+    if (!input) {
+        error_message_creator_path("Could not read file", path, error_message);
+        return;
+    }
 
     std::ofstream output(temp, std::ios::binary | std::ios::trunc);
-    if (!output)
-        return FILE_CREATION_FAILURE;
+    if (!output) {
+        error_message_creator_path("Could not create file", temp, error_message);
+        return;
+    }
 
     output.write(content, length);
     output << input.rdbuf();
@@ -48,7 +59,8 @@ LvcError io::prefix_file_content(std::filesystem::path path, const char* content
     if (output.bad()) {
         output.close();
         std::filesystem::remove(temp);
-        return FILE_WRITING_FAILURE;
+        error_message_creator_path("Could not write file", temp, error_message);
+        return;
     }
 
     input.close();
@@ -59,31 +71,26 @@ LvcError io::prefix_file_content(std::filesystem::path path, const char* content
     std::filesystem::remove(path, ec);
     if (ec) {
         std::filesystem::remove(temp);
-        return FILE_WRITING_FAILURE;
+        error_message_creator_path("Could not write file", temp, error_message);
+        return;
     }
 
     std::filesystem::rename(temp, path, ec);
     if (ec) {
         std::filesystem::remove(temp);
-        return FILE_WRITING_FAILURE;
+        error_message_creator_path("Could not write file", path, error_message);
+        return;
     }
-
-    return SUCCESS;
 }
 
-bool io::dir(std::filesystem::path lvc) {
+bool io::dir(std::filesystem::path lvc, char** error_message) {
     std::error_code error;
-    if (!std::filesystem::create_directory(lvc, error) || error) {
-        #ifdef TEST_PRINTS
-        if (error)
-            std::cout << error.message() << "\n";
-        #endif
+    if (!std::filesystem::create_directory(lvc, error) || error)
         return 0;
-    }
     return 1;
 }
 
-std::string io::content(std::filesystem::path file_path, bool decompress) {
+std::string io::content(std::filesystem::path file_path, bool decompress, char** error_message) {
     std::ifstream file(file_path, std::ios::binary);
     std::string out;
     if (!file)
@@ -117,7 +124,7 @@ static std::vector<std::string> stream_to_lines(std::istream& stream) {
     return result;
 }
 
-std::string io::content_first_line(std::filesystem::path file_path) {
+std::string io::content_first_line(std::filesystem::path file_path, char** error_message) {
     std::string result;
 
     std::ifstream file(file_path, std::ios::binary);
@@ -130,11 +137,11 @@ std::string io::content_first_line(std::filesystem::path file_path) {
     return result;
 }
 
-std::vector<std::string> io::content_lines(std::filesystem::path file_path, bool decompress) {
+std::vector<std::string> io::content_lines(std::filesystem::path file_path, bool decompress, char** error_message) {
     if (!std::filesystem::exists(file_path))
         return {};
     if (decompress) {
-        std::string decompressed = io::content(file_path, decompress);
+        std::string decompressed = io::content(file_path, decompress, error_message);
         if (decompressed.empty())
             return {};
 

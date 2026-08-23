@@ -1,31 +1,30 @@
 #include <core.hpp>
 
-LvcError workspace::_goto(std::filesystem::path lvc, const char* workspace_name) {
+void workspace::_goto(std::filesystem::path lvc, const char* workspace_name, char** error_message) {
     std::filesystem::path workspace_dir = lvc / NAME_WORKSPACE;
     
-    LvcError err;
-    if (!workspace::exists(workspace_dir, workspace_name, err))
-        return WORKSPACE_NOT_EXISTS;
-    if (err) return err;
+    if (!workspace::exists(workspace_dir, workspace_name, error_message)) {
+        std::string workspace_str = workspace_name;
+        error_message_creator("Workspace " + workspace_str + " doesn't exist", error_message);
+    }
+    if (error_message) return;
 
-    if (workspace::is_inactive(workspace_dir, workspace_name))
-        return GOTO_INACTIVE;
-
-    RETURN_ERR(io::file(lvc / NAME_CURRENT, std::ios::binary, workspace_name, charplen(workspace_name), 0));
-    return SUCCESS;
+    io::file(lvc / NAME_CURRENT, std::ios::binary, workspace_name, charplen(workspace_name), 0, error_message);
 }
 
-LvcError workspace::_default(std::filesystem::path lvc, const char* workspace_name) {
+void workspace::_default(std::filesystem::path lvc, const char* workspace_name, char** error_message) {
     std::filesystem::path workspace_dir = lvc / NAME_WORKSPACE;
 
-    LvcError err;
-    if (!workspace::exists(workspace_dir, workspace_name, err))
-        return WORKSPACE_NOT_EXISTS;
-    if (err) return err;
+    if (!workspace::exists(workspace_dir, workspace_name, error_message)) {
+        std::string workspace_str = workspace_name;
+        error_message_creator("Workspace " + workspace_str + " doesn't exist", error_message);
+    }
+    if (error_message) return;
     
-    if (workspace::is_inactive(workspace_dir, workspace_name))
-        return DEFAULT_INACTIVE;
+    if (workspace::is_inactive(workspace_dir, workspace_name)) {
+        error_message_creator("Cannot make inactive workspace default", error_message);
+        return;
+    }
         
-    RETURN_ERR(io::file(lvc / NAME_DEFAULT, std::ios::binary, workspace_name, charplen(workspace_name), 0));
-    return SUCCESS;
+    io::file(lvc / NAME_DEFAULT, std::ios::binary, workspace_name, charplen(workspace_name), 0, error_message);
 }

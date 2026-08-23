@@ -143,7 +143,7 @@ static void iterate(const std::filesystem::path& relative_path, std::vector<std:
     }
 }
 
-static std::vector<std::string> path_from_processed_input(std::filesystem::path repository_root, const std::vector<ProcessedInput>& included, const std::vector<ProcessedInput>& excluded, const std::string& version_id, bool prefix_deleted, LvcError& err) {
+static std::vector<std::string> path_from_processed_input(std::filesystem::path repository_root, const std::vector<ProcessedInput>& included, const std::vector<ProcessedInput>& excluded, const std::string& version_id, bool prefix_deleted, char** error_message) {
     std::vector<std::string> result;
 
     if (included.empty())
@@ -159,13 +159,13 @@ try {
     }
 }
 catch(const std::filesystem::filesystem_error& error) {
-    err = WORKING_DIR_ITERATION_FAILED;
+    error_message_creator("Directory iteration failure" , error_message);
     return {};
 }
 
     if (!version_id.empty()) {
-        std::vector<std::filesystem::path> deleted = version::deleted_since(repository_root / ".lvc" / NAME_OBJECT, repository_root, version_id, err);
-        if (err) return {};
+        std::vector<std::filesystem::path> deleted = version::deleted_since(repository_root / ".lvc" / NAME_OBJECT, repository_root, version_id, error_message);
+        if (error_message) return {};
         for (const std::filesystem::path& path : deleted)
             iterate(path, result, included, excluded, prefix_deleted);
     }
@@ -173,9 +173,7 @@ catch(const std::filesystem::filesystem_error& error) {
     return result;
 }
 
-std::vector<std::string> path_from_input(std::filesystem::path repository_root, const std::vector<std::string>& inputs, const std::string version_id, bool prefix_deleted, LvcError& err) {
-    err = SUCCESS;
-
+std::vector<std::string> path_from_input(std::filesystem::path repository_root, const std::vector<std::string>& inputs, const std::string version_id, bool prefix_deleted, char** error_message) {
     repository_root = repository_root.lexically_normal();
     std::error_code error;
     if (!std::filesystem::is_directory(repository_root, error) || error)
@@ -193,7 +191,7 @@ std::vector<std::string> path_from_input(std::filesystem::path repository_root, 
     
     excluded.push_back({1, 1, 1, {".lvc"}});
 
-    std::vector<std::string> result = path_from_processed_input(repository_root, included, excluded, version_id, prefix_deleted, err);
+    std::vector<std::string> result = path_from_processed_input(repository_root, included, excluded, version_id, prefix_deleted, error_message);
 
     return result;
 }

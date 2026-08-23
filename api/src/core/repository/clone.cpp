@@ -1,15 +1,14 @@
 #include "core.hpp"
 
-static LvcError validate_local(std::filesystem::path path) {
+static void validate_local(std::filesystem::path path, char** error_message) {
     std::filesystem::path lvc = path / ".lvc";
     if (!std::filesystem::is_directory(lvc))
-        return CLONE_NO_LVC;
-
-    return SUCCESS;
+        error_message_creator("Clone has no .lvc folder", error_message);
 }
 
-static LvcError clone_local(std::filesystem::path& working_dir, std::filesystem::path path, bool& clone_versioning) {
-    RETURN_ERR(validate_local(path));
+static void clone_local(std::filesystem::path& working_dir, std::filesystem::path path, bool& clone_versioning, char** error_message) {
+    validate_local(path, error_message);
+    if (error_message) return;
     std::error_code ec;
 
 try {
@@ -25,24 +24,25 @@ try {
             std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing,
             ec
         );
-        if (ec)
-            return FILESYSTEM_COPY_ERROR;
+        if (ec) {
+            error_message_creator_path("Failed to copy file", entry.path().filename(), error_message);
+            return;
+        }
     }
 }
 catch(const std::filesystem::filesystem_error& error) {
-    return WORKING_DIR_ITERATION_FAILED;
+    error_message_creator("Directory iteration failure", error_message);
+        return;
 }
-    
-    return SUCCESS;
-}
-
-static LvcError clone_remote(std::filesystem::path& working_dir, std::string& link, bool& clone_versioning) {
-    return SUCCESS;
 }
 
-LvcError repository::clone(std::filesystem::path working_dir, std::string path, bool clone_versioning) {
+static void clone_remote(std::filesystem::path& working_dir, std::string& link, bool& clone_versioning, char** error_message) {
+   // TODO
+}
+
+void repository::clone(std::filesystem::path working_dir, std::string path, bool clone_versioning, char** error_message) {
     if (std::filesystem::is_directory(path))
-        return clone_local(working_dir, path, clone_versioning);
+        clone_local(working_dir, path, clone_versioning, error_message);
     else 
-        return SUCCESS; //TODO
+        clone_remote(working_dir, path, clone_versioning, error_message);
 }

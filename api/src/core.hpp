@@ -5,8 +5,6 @@
 #include <unordered_set>
 #include <unordered_map>
 
-#define RETURN_ERR LVC_RETURN_IF_ERROR
-
 enum ObjectType {
     BLOB,
     TREE
@@ -24,64 +22,62 @@ struct ObjectDiff {
 };
 
 namespace category {
-    LvcError create(std::filesystem::path workspace_dir, std::string name);
-    LvcError rename(const std::filesystem::path& working_dir, const char* category_name, const char* new_nam);
+    void create(std::filesystem::path workspace_dir, std::string name, char** error_message);
+    void rename(const std::filesystem::path& working_dir, const char* category_name, const char* new_name, char** error_message);
     bool exists(std::filesystem::path workspace_dir, std::string name);
 }
 
 namespace object {
-    LvcError create(const std::filesystem::path& object_dir, const std::string& type, std::string& content, std::string& out_id);
+    void create(const std::filesystem::path& object_dir, const std::string& type, std::string& content, std::string& out_id, char** error_message);
     bool     exists (std::filesystem::path object_dir, char id[65]);
     std::vector<ObjectDiff> find_difference(const std::vector<Object>& src, const std::vector<Object>& dest);
 }
 
 namespace repository {
-    LvcError create(std::filesystem::path lvc);
-    LvcError clone(std::filesystem::path working_dir, std::string path, bool clone_versioning);
-    LvcError rename(std::filesystem::path lvc, const char* name);
-    LvcError storage_template(std::filesystem::path directory_root, StorageBehaviour option);
+    void create(std::filesystem::path lvc, char** error_message);
+    void clone(std::filesystem::path working_dir, std::string path, bool clone_versioning, char** error_message);
+    void rename(std::filesystem::path lvc, const char* name, char** error_message);
+    void storage_template(std::filesystem::path directory_root, StorageBehaviour option, char** error_message);
 
-    LvcConflictArray sync(const std::filesystem::path src_repository, const std::filesystem::path dest_repository);
+    LvcConflictArray sync(const std::filesystem::path src_repository, const std::filesystem::path dest_repository, char** error_message);
 }
 
 namespace version {
-    LvcError create(std::filesystem::path lvc, std::string message, std::string author, std::string inserted_workspace);
-    LvcError prepare(std::filesystem::path lvc, std::vector<std::string> input, char*** prepared);
-    LvcError prepare_reset(std::filesystem::path lvc);
-    LvcError revert(std::filesystem::path lvc, std::string version_id, std::vector<std::string>& input_raw);
+    void create(std::filesystem::path lvc, std::string message, std::string author, std::string inserted_workspace, char** error_message);
+    void prepare(std::filesystem::path lvc, std::vector<std::string> input, char*** prepared, char** error_message);
+    void prepare_reset(std::filesystem::path lvc, char** error_message);
+    void revert(std::filesystem::path lvc, std::string version_id, std::vector<std::string>& input_raw, char** error_message);
 
-    std::vector<std::string> diff(std::filesystem::path lvc, LvcError& err);
-    std::vector<std::string> status(std::filesystem::path& lvc, std::string& latest_version);
-    std::vector<std::string> status_all(std::filesystem::path lvc);
+    std::vector<std::string> diff(std::filesystem::path lvc, char** error_message);
+    std::vector<std::string> status(std::filesystem::path& lvc, std::string& latest_version, char** error_message);
+    std::vector<std::string> status_all(std::filesystem::path lvc, char** error_message);
 
-    LvcVersion* history(const std::filesystem::path object_dir, const std::filesystem::path workspace_dir, const std::string workspace_name, size_t depth, size_t length);
-    LvcVersion* history_all(const std::filesystem::path object_dir, const std::filesystem::path workspace_dir, const std::string workspace_name);
+    LvcVersion* history(const std::filesystem::path object_dir, const std::filesystem::path workspace_dir, const std::string workspace_name, size_t depth, size_t length, char** error_message);
+    LvcVersion* history_all(const std::filesystem::path object_dir, const std::filesystem::path workspace_dir, const std::string workspace_name, char** error_message);
     void history_free(LvcVersion* version);
     
-    std::vector<Object> all_objects(std::filesystem::path object_dir, std::string id, std::unordered_set<std::string> ignore);
-    std::vector<std::filesystem::path> deleted_since(std::filesystem::path object_dir, std::filesystem::path working_directory, std::string id, LvcError& err);
+    std::vector<Object> all_objects(std::filesystem::path object_dir, std::string id, std::unordered_set<std::string> ignore, char** error_message);
+    std::vector<std::filesystem::path> deleted_since(std::filesystem::path object_dir, std::filesystem::path working_directory, std::string id, char** error_message);
 }
 
 namespace workspace {
-    LvcError create(std::filesystem::path workspace_dir, std::string category_name, std::string workspace_name);
-    bool exists(std::filesystem::path workspace_dir, std::string name, LvcError& err);
-    bool exists(std::filesystem::path workspace_dir, std::string name, LvcError& err, std::string& path);
+    void create(std::filesystem::path workspace_dir, std::string category_name, std::string workspace_name, char** error_message);
+    bool exists(std::filesystem::path workspace_dir, std::string name, char** error_message);
+    bool exists(std::filesystem::path workspace_dir, std::string name, std::string& path, char** error_message);
     bool is_inactive(const std::filesystem::path& workspace_dir, std::string name);
     bool is_inactive(std::filesystem::path workspace);
-    LvcError _goto(std::filesystem::path lvc, const char* workspace_name);
-    LvcError _default(std::filesystem::path lvc, const char* workspace_name);
+    void _goto(std::filesystem::path lvc, const char* workspace_name, char** error_message);
+    void _default(std::filesystem::path lvc, const char* workspace_name, char** error_message);
 
-    LvcError add_version(std::filesystem::path lvc, const char* id);
+    void move_categories(std::filesystem::path workspace_dir, const char* workspace_name, const char* previous_category, const char* category, char** error_message);
+    void activate(std::filesystem::path workspace_dir, const char* workspace_name, const char* category_name, char** error_message);
+    void deactivate(std::filesystem::path workspace_dir, const char* workspace_name, char** error_message);
 
-    LvcError move_categories(std::filesystem::path workspace_dir, const char* workspace_name, const char* previous_category, const char* category);
-    LvcError activate(std::filesystem::path workspace_dir, const char* workspace_name, const char* category_name);
-    LvcError deactivate(std::filesystem::path workspace_dir, const char* workspace_name);
+    void insert(const std::filesystem::path& lvc, const std::string& src_workspace, const std::string& dest_workspace, const std::string& author, char** error_message);
+    void unite(const std::filesystem::path& lvc, const std::string& src_workspace, const std::string& dest_workspace, const std::string& author, char** error_message);
+    void push(const std::filesystem::path& src_repository, const std::filesystem::path& dest_repository, char** error_message);
 
-    LvcError insert(const std::filesystem::path& lvc, const std::string& src_workspace, const std::string& dest_workspace, const std::string& author);
-    LvcError unite(const std::filesystem::path& lvc, const std::string& src_workspace, const std::string& dest_workspace, const std::string& author);
-    LvcError push(const std::filesystem::path& src_repository, const std::filesystem::path& dest_repository);
-
-    std::vector<Object> all_objects(std::filesystem::path working_directory, LvcError& err);
+    std::vector<Object> all_objects(std::filesystem::path working_directory, char** error_message);
 }
 
 inline void free_charpp(char** arr) {

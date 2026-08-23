@@ -2,7 +2,7 @@
 
 bool lvc::version(int argc, char* argv[]) {
     if (argc < 3) {
-        error_message = "No version description given";
+        helper::error("No version description given");
         return 0;
     }
     
@@ -24,12 +24,10 @@ bool lvc::version(int argc, char* argv[]) {
         
     description[--counter] = '\0';
 
-    LvcError err = lvc_version(lvc.c_str(), description, "TODO");
+    lvc_version(lvc.c_str(), description, "TODO", &error_message);
     free(description);
-    if (err) {
-        error_message = lvc_error_string(err);
+    if (error_message)
         return 0;
-    }
     std::cout << "Successfully created version\n";
     return 1;
 }

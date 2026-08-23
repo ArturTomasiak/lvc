@@ -6,7 +6,7 @@ bool helper::find_repository(std::filesystem::path& out) {
     while (true) {
         std::filesystem::path lvc = out / ".lvc";
         if (out == previous) {
-            error_message = "Not in a valid lvc repository";
+            helper::error("Not in a valid lvc repository");
             return false;
         }
         if (std::filesystem::is_directory(lvc)) {
@@ -16,4 +16,10 @@ bool helper::find_repository(std::filesystem::path& out) {
         previous = out;
         out = out.parent_path();
     }
+}
+
+void helper::error(std::string message) {
+    error_message = (char*)malloc(message.size() + 1);
+    memcpy(error_message, message.data(), message.size());
+    error_message[message.size()] = '\0';
 }

@@ -1,9 +1,12 @@
 # LVC - Literally Control Version
-Work in progress; documentation not accessible until finished
+
+A new version control system, build from the ground up for native support of local, distributed and centralized usage.
+
+Work in progress; documentation not accessible as of current.
 
 ## Compilation
 
-All lvc api settings are at the top of lvc.hpp file; these are both for the api and applications using it as a dependency.
+All external dependencies are handled in cmake with FetchContent. All lvc configuration is accessible in lvc.hpp within LVCAPI folder.
 
 ### APP COMPILATION 
 

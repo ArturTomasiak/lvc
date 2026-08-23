@@ -16,21 +16,13 @@ static void print_history(LvcVersion* version, std::string prefix = "") {
 
 bool lvc::history(int argc, char* argv[]) {
     if (argc < 3) {
-        error_message = "No workspace name given";
+        helper::error("No workspace name given");
         return 0;
     }
 
     std::filesystem::path lvc;
     if (!helper::find_repository(lvc))
         return 0;
-
-    LvcError* err;
-    if (!lvc_workspace_exists(lvc.c_str(), argv[2], err)) {
-        error_message = "Workspace ";
-        error_message += argv[2];
-        error_message += " doesn't exist";
-        return 0;
-    }
 
     bool   all    = 0;
     size_t depth  = 1;
@@ -44,13 +36,13 @@ bool lvc::history(int argc, char* argv[]) {
         else if (!std::strcmp(argv[i], "all")) 
             all = 1;
         else {
-            error_message = "Unknown option ";
-            error_message += argv[i];
+            std::string message = "Unknown option ";
+            helper::error(message + argv[i]);
             return 0;
         }
     }
    
-    LvcVersion* version = lvc_history(lvc.c_str(), argv[2], depth, length, all);
+    LvcVersion* version = lvc_history(lvc.c_str(), argv[2], depth, length, all, &error_message);
     print_history(version);
     lvc_history_free(version);
     return 1;

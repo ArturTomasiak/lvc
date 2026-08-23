@@ -4,7 +4,7 @@
 // the sha256 hash of pattern is the ID
 // the deflation of pattern is written file content
 
-LvcError object::create(const std::filesystem::path& object_dir, const std::string& type, std::string& content, std::string& out_id) {
+void object::create(const std::filesystem::path& object_dir, const std::string& type, std::string& content, std::string& out_id, char** error_message) {
     insert_pattern(content, type);
     
     char id[65];
@@ -12,9 +12,7 @@ LvcError object::create(const std::filesystem::path& object_dir, const std::stri
     out_id = id;
 
     if (object::exists(object_dir, id))
-        return SUCCESS;
+        return;
 
-    RETURN_ERR(io::file(object_dir / out_id, std::ios::binary, content.data(), content.size(), 1));
-
-    return SUCCESS;
+    io::file(object_dir / out_id, std::ios::binary, content.data(), content.size(), 1, error_message);
 }

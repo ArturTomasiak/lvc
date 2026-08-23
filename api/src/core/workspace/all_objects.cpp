@@ -1,6 +1,6 @@
 #include <core.hpp>
 
-std::vector<Object> workspace::all_objects(std::filesystem::path working_directory, LvcError& err) {
+std::vector<Object> workspace::all_objects(std::filesystem::path working_directory, char** error_message) {
     std::vector<Object> out;
     out.reserve(PREALLOCATE);
 
@@ -19,7 +19,7 @@ try {
         object.path = entry.path().lexically_relative(working_directory);
         object.type = std::filesystem::is_regular_file(entry.path()) ? BLOB : TREE;
 
-        std::string buffer = io::content(entry.path(), 0);
+        std::string buffer = io::content(entry.path(), 0, error_message);
         insert_pattern(buffer, TYPE_BLOB);
 
         char id[65];
@@ -30,10 +30,8 @@ try {
     }
 }   
 catch(const std::filesystem::filesystem_error& error) {
-    err = WORKING_DIR_ITERATION_FAILED;
-    return out;
+    error_message_creator("Directory iteration failure", error_message);
 }
 
-    err = SUCCESS;
     return out;
 }

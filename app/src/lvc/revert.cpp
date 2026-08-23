@@ -6,11 +6,11 @@ bool lvc::revert(int argc, char* argv[]) {
         return 0;
 
     if (!std::filesystem::is_regular_file(lvc / NAME_OBJECT / argv[2])) {
-        error_message = "Invalid version id";
+        std::string id = argv[2];
+        helper::error("Invalid version id " + id);
         return 0;
     }
 
-    LvcError err;
-    LVCEXEC(lvc_revert(lvc.c_str(), argv[2], argc - 3, argv + 3), err, err);
+    lvc_revert(lvc.c_str(), argv[2], argc - 3, argv + 3, &error_message);
     return 1;
 }

@@ -1,12 +1,10 @@
 #include <core.hpp>
 
-std::vector<std::filesystem::path> version::deleted_since(std::filesystem::path object_dir, std::filesystem::path working_directory, std::string id, LvcError& err) {
-    err = SUCCESS;
-
+std::vector<std::filesystem::path> version::deleted_since(std::filesystem::path object_dir, std::filesystem::path working_directory, std::string id, char** error_message) {
     std::vector<std::filesystem::path> out;
     out.reserve(PREALLOCATE);
 
-    std::vector<Object> version = version::all_objects(object_dir, id, {});
+    std::vector<Object> version = version::all_objects(object_dir, id, {}, error_message);
     std::unordered_set<std::filesystem::path> working_files;
     
 try {
@@ -15,7 +13,7 @@ try {
         working_files.insert(entry.path().lexically_relative(working_directory));
 }   
 catch(const std::filesystem::filesystem_error& error) {
-    err = WORKING_DIR_ITERATION_FAILED;
+    error_message_creator("Directory iteration failure", error_message);
     return {};
 }
 

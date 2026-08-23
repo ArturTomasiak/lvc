@@ -1,14 +1,18 @@
 #include <core.hpp>
 
-LvcError workspace::create(std::filesystem::path workspace_dir, std::string category_name, std::string workspace_name) {
-    if (category_name == NAME_INACTIVE)
-        return CREATE_WORKSPACE_INACTIVE;
-    if (!category::exists(workspace_dir, category_name))
-        return CATEGORY_NOT_EXISTS;
-    LvcError err;
-    if (workspace::exists(workspace_dir, workspace_name, err))
-        return WORKSPACE_EXISTS;
-    if (err) return err;
-    RETURN_ERR(io::file(workspace_dir / category_name / workspace_name, std::ios::binary));
-    return SUCCESS;
+void workspace::create(std::filesystem::path workspace_dir, std::string category_name, std::string workspace_name, char** error_message) {
+    if (category_name == NAME_INACTIVE) {
+        error_message_creator("Creating a workspace in inactive category is forbidden", error_message);
+        return;
+    }
+    if (!category::exists(workspace_dir, category_name)) {
+        error_message_creator("Category" + category_name + "does not exist", error_message);
+        return;
+    }
+    if (workspace::exists(workspace_dir, workspace_name, error_message)) {
+        error_message_creator("Workspace already exists", error_message);
+        return;
+    }
+    if (error_message) return;
+    io::file(workspace_dir / category_name / workspace_name, std::ios::binary, error_message);
 }

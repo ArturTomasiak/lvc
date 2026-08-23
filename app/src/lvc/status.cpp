@@ -8,9 +8,9 @@ bool lvc::status(int argc, char* argv[]) {
     char** status;
     
     if (argc == 3 && !std::strcmp(argv[2], "all"))
-        status = lvc_status_all(lvc.c_str());
+        status = lvc_status_all(lvc.c_str(), &error_message);
     else
-        status = lvc_status(lvc.c_str());
+        status = lvc_status(lvc.c_str(), &error_message);
     
     char** status_copy = status;
 

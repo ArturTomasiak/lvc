@@ -92,8 +92,8 @@ skip_verioning_questions:
     input.workspace_name   = workspace_name.c_str();
     input.clone_repository = clone.empty() ? 0 : clone.c_str();
 
-    LvcError err;
-    LVCEXEC(lvc_create(input), err, err);
+    lvc_create(input, &error_message);
+    if (error_message) return 0;
     std::cout << "Successfully created repository\n";
     return 1;
 }

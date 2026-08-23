@@ -1,6 +1,6 @@
 #include <app.hpp>
 
-std::string error_message;
+char* error_message;
 
 struct Command {
     const std::string name;
@@ -25,8 +25,8 @@ static bool (*command(std::string input))(int argc, char* argv[]) {
     for (const Command& cmd : commands)
         if (input == cmd.name)
             return cmd.function;
-    error_message = "Invalid argument.";
-    return nullptr;
+    helper::error("Invalid argument");
+    return 0;
 }
 
 int main(int argc, char* argv[]) {
@@ -38,7 +38,8 @@ int main(int argc, char* argv[]) {
     if (function != nullptr && function(argc, argv))
         return EXIT_SUCCESS;
     else {
-        std::cout << error_message << "\n For more information head to lvc documentation\n";
+        std::cout << error_message << "\nFor more information head to lvc documentation\n";
+        free(error_message);
         return EXIT_FAILURE;
     }
 }

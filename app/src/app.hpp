@@ -7,19 +7,11 @@
 #include <cctype>
 #include <filesystem>
 
-extern std::string error_message;
-
-#define LVCEXEC(function, result, err)   \
-do {                                            \
-    result = (function);                        \
-    if (err) {                                  \
-        error_message = lvc_error_string(err);  \
-        return 0;                               \
-    }                                           \
-} while (0)
+extern char* error_message;
 
 namespace helper {
     bool find_repository(std::filesystem::path& out);
+    void error(std::string message);
 }
 
 namespace lvc {

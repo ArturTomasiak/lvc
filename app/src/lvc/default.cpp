@@ -6,12 +6,12 @@ bool lvc::_default(int argc, char* argv[]) {
         return 0;
     
     if (argc < 3) {
-        error_message = "No workspace name given";
+        helper::error("No workspace name given");
         return 0;
     }
 
-    LvcError err;
-    LVCEXEC(lvc_default(lvc.c_str(), argv[2]), err, err);
+    lvc_default(lvc.c_str(), argv[2], &error_message);
+    if (error_message) return 0;
     
     std::cout << "Successfully made " << argv[2] << " default\n";
     return 1;
