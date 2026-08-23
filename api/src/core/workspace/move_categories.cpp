@@ -18,7 +18,7 @@ void workspace::move_categories(std::filesystem::path workspace_dir, const char*
 
     if (!std::filesystem::is_regular_file(oldp))
         error_message_creator("Workspace does not belong to that category", error_message);
-    if (error_message) return;
+    if (*error_message) return;
 
     std::filesystem::path newp = workspace_dir / category / workspace_name;
     std::error_code ec;

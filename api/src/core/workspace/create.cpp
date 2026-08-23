@@ -13,6 +13,6 @@ void workspace::create(std::filesystem::path workspace_dir, std::string category
         error_message_creator("Workspace already exists", error_message);
         return;
     }
-    if (error_message) return;
+    if (*error_message) return;
     io::file(workspace_dir / category_name / workspace_name, std::ios::binary, error_message);
 }

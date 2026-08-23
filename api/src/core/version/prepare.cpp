@@ -21,10 +21,10 @@ void version::prepare(std::filesystem::path lvc, std::vector<std::string> input_
 
     std::vector<std::string> ignore_raw = io::content_lines(working_dir / NAME_IGNORE, 0, error_message);
     std::vector<std::string> ignore     = path_from_input(working_dir, ignore_raw, version_id, 1, error_message);
-    if (error_message) return;
+    if (*error_message) return;
 
     std::vector<std::string> input = path_from_input(working_dir, input_raw, version_id, 1, error_message);
-    if (error_message) return;
+    if (*error_message) return;
     if (input.empty()) return;   
 
     std::vector<std::string> current = io::content_lines(lvc / NAME_PREPARE, 0, error_message);

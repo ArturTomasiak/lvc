@@ -13,7 +13,7 @@ void version::revert(std::filesystem::path lvc, std::string version_id, std::vec
 
     std::vector<std::string> ignore_raw = io::content_lines(working_dir / NAME_IGNORE, 0, error_message);
     std::vector<std::string> ignore     = path_from_input(working_dir, ignore_raw, version_id, 0, error_message);
-    if (error_message) return;
+    if (*error_message) return;
 
     std::unordered_set<std::string> ignore_set;
     ignore_set.reserve(ignore.size());
@@ -26,7 +26,7 @@ void version::revert(std::filesystem::path lvc, std::string version_id, std::vec
         input_raw.push_back("/");
 
     std::vector<std::string> input = path_from_input(working_dir, input_raw, version_id, 0, error_message);
-    if (error_message) return;
+    if (*error_message) return;
 
     std::unordered_set<std::string> input_set;
     input_set.reserve(input.size());

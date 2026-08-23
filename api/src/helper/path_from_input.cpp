@@ -165,7 +165,7 @@ catch(const std::filesystem::filesystem_error& error) {
 
     if (!version_id.empty()) {
         std::vector<std::filesystem::path> deleted = version::deleted_since(repository_root / ".lvc" / NAME_OBJECT, repository_root, version_id, error_message);
-        if (error_message) return {};
+        if (*error_message) return {};
         for (const std::filesystem::path& path : deleted)
             iterate(path, result, included, excluded, prefix_deleted);
     }

@@ -12,17 +12,17 @@ extern "C" LVC_API void lvc_create (LvcCreateInput input, char** error_message) 
     if (input.clone_versioning)
         return;
     repository::create(lvc, error_message);
-    if (error_message) return;
+    if (*error_message) return;
     repository::rename(lvc, input.repository_name, error_message);
-    if (error_message) return;
+    if (*error_message) return;
     category::create(workspace_dir, input.category_name, error_message);
-    if (error_message) return;
+    if (*error_message) return;
     workspace::create(workspace_dir, input.category_name, input.workspace_name, error_message);
-    if (error_message) return;
+    if (*error_message) return;
     workspace::_goto(lvc, input.workspace_name, error_message);
-    if (error_message) return;
+    if (*error_message) return;
     workspace::_default(lvc, input.workspace_name, error_message);
-    if (error_message) return;
+    if (*error_message) return;
 }
 
 extern "C" LVC_API void lvc_workspace(const char* lvc, const char* category_name, const char* workspace_name, char** error_message) noexcept {
@@ -57,7 +57,7 @@ extern "C" LVC_API char** lvc_status(const char* lvc, char** error_message) noex
     std::string workspace_name      = io::content(lvc_path / NAME_CURRENT, 0, error_message);
     std::filesystem::path workspace = workspace_path(lvc_path / NAME_WORKSPACE, workspace_name);
     std::string version_id          = io::content_first_line(workspace, error_message);
-    if (error_message) return 0;
+    if (*error_message) return 0;
     std::vector<std::string> status = version::status(lvc_path, version_id, error_message);
     return strvector_to_charpp(status);
 }

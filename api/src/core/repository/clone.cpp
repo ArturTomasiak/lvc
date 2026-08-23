@@ -8,7 +8,7 @@ static void validate_local(std::filesystem::path path, char** error_message) {
 
 static void clone_local(std::filesystem::path& working_dir, std::filesystem::path path, bool& clone_versioning, char** error_message) {
     validate_local(path, error_message);
-    if (error_message) return;
+    if (*error_message) return;
     std::error_code ec;
 
 try {

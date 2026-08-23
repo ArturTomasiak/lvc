@@ -195,7 +195,7 @@ void version::create(std::filesystem::path lvc, std::string message, std::string
     id += "\n";
     
     io::prefix_file_content(workspace, id.c_str(), id.size(), error_message);
-    if (error_message) return;
+    if (*error_message) return;
 
     std::error_code error;
     bool deleted = std::filesystem::remove(prepare_path, error);
