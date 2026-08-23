@@ -117,7 +117,7 @@ extern "C" LVC_API LvcError lvc_insert(const char* lvc, const char* src_workspac
     return SUCCESS;
 }
 
-extern "C" LVC_API LvcError lvc_revert(const char* lvc, char* version_id, uint32_t input_count, char** input) noexcept {
+extern "C" LVC_API LvcError lvc_revert(const char* lvc, char* version_id, size_t input_count, char** input) noexcept {
     std::vector<std::string> input_vector;
     input_vector.reserve(input_count);
     for (size_t i = 0; i < input_count; i++)

@@ -36,3 +36,11 @@ namespace io {
     std::string content_first_line(std::filesystem::path file_path);
     std::vector<std::string> content_lines(std::filesystem::path file_path, bool decompress);
 }
+
+inline std::string latest_common_version(const std::vector<std::string>& a, const std::vector<std::string>& b) {
+    for (size_t i = 0; i < a.size(); i++)
+        for (size_t j = 0; j < b.size(); j++)
+            if (a[i] == b[j])
+                return a[i];
+    return "";
+}

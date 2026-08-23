@@ -3,6 +3,7 @@
 #include <helper.hpp>
 #include <algorithm>
 #include <unordered_set>
+#include <unordered_map>
 
 #define RETURN_ERR LVC_RETURN_IF_ERROR
 
@@ -17,6 +18,11 @@ struct Object {
     std::filesystem::path path;
 };
 
+struct ObjectDiff {
+    Object src;
+    Object dest;
+};
+
 namespace category {
     LvcError create(std::filesystem::path workspace_dir, std::string name);
     LvcError rename(const std::filesystem::path& working_dir, const char* category_name, const char* new_nam);
@@ -26,8 +32,7 @@ namespace category {
 namespace object {
     LvcError create(const std::filesystem::path& object_dir, const std::string& type, std::string& content, std::string& out_id);
     bool     exists (std::filesystem::path object_dir, char id[65]);
-    char*    deflate(const char* in, size_t in_len, size_t& out_len);
-    char*    inflate(const std::string& in, size_t& out_len);
+    std::vector<ObjectDiff> find_difference(const std::vector<Object>& src, const std::vector<Object>& dest);
 }
 
 namespace repository {
@@ -35,6 +40,8 @@ namespace repository {
     LvcError clone(std::filesystem::path working_dir, std::string path, bool clone_versioning);
     LvcError rename(std::filesystem::path lvc, const char* name);
     LvcError storage_template(std::filesystem::path directory_root, StorageBehaviour option);
+
+    LvcConflictArray sync(const std::filesystem::path src_repository, const std::filesystem::path dest_repository);
 }
 
 namespace version {
@@ -73,9 +80,6 @@ namespace workspace {
     LvcError insert(const std::filesystem::path& lvc, const std::string& src_workspace, const std::string& dest_workspace, const std::string& author);
     LvcError unite(const std::filesystem::path& lvc, const std::string& src_workspace, const std::string& dest_workspace, const std::string& author);
     LvcError push(const std::filesystem::path& src_repository, const std::filesystem::path& dest_repository);
-
-    LvcConflictArray conflict(const std::filesystem::path lvc, const std::string src_workspace, const std::filesystem::path dest_workspace);
-    LvcConflictArray conflict_push(const std::filesystem::path src_repository, const std::filesystem::path dest_repository);
 
     std::vector<Object> all_objects(std::filesystem::path working_directory, LvcError& err);
 }
