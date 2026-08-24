@@ -15,8 +15,6 @@ static LvcConflictArray combine_workspaces(const std::filesystem::path& lvc, con
     std::vector<Object> src    = version::all_objects(object_dir, src_id, {}, error_message);
     std::vector<Object> dest   = version::all_objects(object_dir, dest_id, {}, error_message);
     std::vector<Object> common = version::all_objects(object_dir, common_id, {}, error_message);
-    
-    std::vector<ObjectDiff> diff = object::find_difference(src, dest);
     LvcConflictArray out;
     return out;
 }

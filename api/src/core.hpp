@@ -16,11 +16,6 @@ struct Object {
     std::filesystem::path path;
 };
 
-struct ObjectDiff {
-    Object src;
-    Object dest;
-};
-
 namespace category {
     void create(std::filesystem::path workspace_dir, std::string name, char** error_message);
     void rename(const std::filesystem::path& working_dir, const char* category_name, const char* new_name, char** error_message);
@@ -30,7 +25,6 @@ namespace category {
 namespace object {
     void create(const std::filesystem::path& object_dir, const std::string& type, std::string& content, std::string& out_id, char** error_message);
     bool     exists (std::filesystem::path object_dir, char id[65]);
-    std::vector<ObjectDiff> find_difference(const std::vector<Object>& src, const std::vector<Object>& dest);
 }
 
 namespace repository {

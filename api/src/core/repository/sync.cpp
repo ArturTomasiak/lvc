@@ -20,7 +20,5 @@ LvcConflictArray repository::sync(const std::filesystem::path src_repository, co
     std::vector<Object> src    = version::all_objects(src_object_directory, src_id, {}, error_message);
     std::vector<Object> dest   = version::all_objects(dest_object_directory, dest_id, {}, error_message);
     std::vector<Object> common = version::all_objects(src_object_directory, common_id, {}, error_message);
-
-    std::vector<ObjectDiff> diff = object::find_difference(src, dest);
     return {};
 }
