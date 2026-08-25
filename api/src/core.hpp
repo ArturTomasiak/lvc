@@ -24,7 +24,7 @@ namespace category {
 
 namespace object {
     void create(const std::filesystem::path& object_dir, const std::string& type, std::string& content, std::string& out_id, char** error_message);
-    bool     exists (std::filesystem::path object_dir, char id[65]);
+    bool exists (std::filesystem::path object_dir, char id[65]);
 }
 
 namespace repository {
@@ -50,7 +50,7 @@ namespace version {
     LvcVersion* history_all(const std::filesystem::path object_dir, const std::filesystem::path workspace_dir, const std::string workspace_name, char** error_message);
     void history_free(LvcVersion* version);
     
-    std::vector<Object> all_objects(std::filesystem::path object_dir, std::string id, std::unordered_set<std::string> ignore, char** error_message);
+    std::vector<Object> all_objects(std::filesystem::path object_dir, std::string id, std::unordered_set<std::string_view> ignore, char** error_message);
     std::vector<std::filesystem::path> deleted_since(std::filesystem::path object_dir, std::filesystem::path working_directory, std::string id, char** error_message);
 }
 
@@ -67,8 +67,8 @@ namespace workspace {
     void activate(std::filesystem::path workspace_dir, const char* workspace_name, const char* category_name, char** error_message);
     void deactivate(std::filesystem::path workspace_dir, const char* workspace_name, char** error_message);
 
-    void insert(const std::filesystem::path& lvc, const std::string& src_workspace, const std::string& dest_workspace, const std::string& author, char** error_message);
-    void unite(const std::filesystem::path& lvc, const std::string& src_workspace, const std::string& dest_workspace, const std::string& author, char** error_message);
+    void insert(const std::filesystem::path& lvc, const char* src_workspace, const char* dest_workspace, const char* author, char** error_message);
+    void unite(const std::filesystem::path& lvc, const char* src_workspace, const char* dest_workspace, const char* author, char** error_message);
     void push(const std::filesystem::path& src_repository, const std::filesystem::path& dest_repository, char** error_message);
 
     std::vector<Object> all_objects(std::filesystem::path working_directory, char** error_message);
@@ -86,7 +86,7 @@ inline char** strvector_to_charpp(const std::vector<std::string>& vector) {
     char** result = (char**)calloc((vector.size() + 1), sizeof(char*));
     if (result) {
         char** copy = result;
-        for (const std::string& str : vector) {
+        for (std::string_view str : vector) {
             *copy = (char*)malloc(str.size() + 1);
             if (!copy) {
                 free_charpp(result);

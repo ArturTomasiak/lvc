@@ -29,7 +29,7 @@ void version::prepare(std::filesystem::path lvc, std::vector<std::string> input_
 
     std::vector<std::string> current = io::content_lines(lvc / NAME_PREPARE, 0, error_message);
 
-    std::unordered_set<std::string> current_entries;
+    std::unordered_set<std::string_view> current_entries;
     current_entries.reserve(current.size());
     for (const std::string& path : current)
         current_entries.insert(path);
@@ -38,7 +38,7 @@ void version::prepare(std::filesystem::path lvc, std::vector<std::string> input_
         if (!current_entries.contains(path))
             current.push_back(path);
 
-    std::unordered_set<std::string> ignore_entries;
+    std::unordered_set<std::string_view> ignore_entries;
     ignore_entries.reserve(ignore.size());
     for (const std::string& entry : ignore)
         ignore_entries.insert(entry);

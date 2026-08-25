@@ -1,5 +1,7 @@
 #include <core.hpp>
 
+static constexpr std::string inactive_error_message = " is inactive";
+
 static LvcConflictArray combine_workspaces(const std::filesystem::path& lvc, const std::filesystem::path& src_workspace, const std::filesystem::path& dest_workspace, char** error_message) {
     version::prepare_reset(lvc, error_message);
     std::filesystem::path workspace_dir = lvc / NAME_WORKSPACE;
@@ -19,14 +21,14 @@ static LvcConflictArray combine_workspaces(const std::filesystem::path& lvc, con
     return out;
 }
 
-void workspace::unite(const std::filesystem::path& lvc, const std::string& src_workspace, const std::string& dest_workspace, const std::string& author, char** error_message) {
+void workspace::unite(const std::filesystem::path& lvc, const char* src_workspace, const char* dest_workspace, const char* author, char** error_message) {
     std::filesystem::path workspace_dir = lvc / NAME_WORKSPACE;
     if (workspace::is_inactive(src_workspace)) {
-        error_message_creator(src_workspace + " is inactive", error_message);
+        error_message_creator(src_workspace + inactive_error_message, error_message);
         return;
     }
     if (workspace::is_inactive(dest_workspace)) {
-        error_message_creator(dest_workspace + " is inactive", error_message);
+        error_message_creator(dest_workspace + inactive_error_message, error_message);
         return;
     }
     LvcConflictArray conflicts = combine_workspaces(lvc, src_workspace, dest_workspace, error_message);
@@ -35,14 +37,14 @@ void workspace::unite(const std::filesystem::path& lvc, const std::string& src_w
     version::create(lvc, message.c_str(), author, "", error_message);
 }
 
-void workspace::insert(const std::filesystem::path& lvc, const std::string& src_workspace, const std::string& dest_workspace, const std::string& author, char** error_message) {
+void workspace::insert(const std::filesystem::path& lvc, const char* src_workspace, const char* dest_workspace, const char* author, char** error_message) {
     std::filesystem::path workspace_dir = lvc / NAME_WORKSPACE;
     if (workspace::is_inactive(src_workspace)) {
-        error_message_creator(src_workspace + " is inactive", error_message);
+        error_message_creator(src_workspace + inactive_error_message, error_message);
         return;
     }
     if (workspace::is_inactive(dest_workspace)) {
-        error_message_creator(dest_workspace + " is inactive", error_message);
+        error_message_creator(dest_workspace + inactive_error_message, error_message);
         return;
     }
     LvcConflictArray conflicts = combine_workspaces(lvc, src_workspace, dest_workspace, error_message);

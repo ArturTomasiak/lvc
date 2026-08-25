@@ -15,7 +15,7 @@ void version::revert(std::filesystem::path lvc, std::string version_id, std::vec
     std::vector<std::string> ignore     = path_from_input(working_dir, ignore_raw, version_id, 0, error_message);
     if (*error_message) return;
 
-    std::unordered_set<std::string> ignore_set;
+    std::unordered_set<std::string_view> ignore_set;
     ignore_set.reserve(ignore.size());
     for (const std::string& entry : ignore)
         ignore_set.insert(entry);
@@ -28,7 +28,7 @@ void version::revert(std::filesystem::path lvc, std::string version_id, std::vec
     std::vector<std::string> input = path_from_input(working_dir, input_raw, version_id, 0, error_message);
     if (*error_message) return;
 
-    std::unordered_set<std::string> input_set;
+    std::unordered_set<std::string_view> input_set;
     input_set.reserve(input.size());
     for (const std::string& entry : input)
         input_set.insert(entry);
@@ -36,20 +36,20 @@ void version::revert(std::filesystem::path lvc, std::string version_id, std::vec
     for (const std::string& entry : ignore)
         input_set.erase(entry);
 
-    std::erase_if(objects, [&input_set](const Object& entry) {return !input_set.contains(entry.path);});
+    std::erase_if(objects, [&input_set](const Object& entry) {return !input_set.contains(entry.path.string());});
 
-    std::unordered_set<std::string> objects_set;
+    std::unordered_set<std::string_view> objects_set;
     objects_set.reserve(input.size());
     for (const Object& entry : objects)
-        objects_set.insert(entry.path);
+        objects_set.insert(entry.path.string());
 
 try {
     std::filesystem::recursive_directory_iterator iterator(working_dir);
     for (const std::filesystem::directory_entry& entry : iterator) {
         std::filesystem::path relative = entry.path().lexically_relative(working_dir);
-        if (!input_set.contains(relative))
+        if (!input_set.contains(relative.string()))
             continue;
-        if (!objects_set.contains(relative))
+        if (!objects_set.contains(relative.string()))
             std::filesystem::remove_all(entry.path());
     }
 }   

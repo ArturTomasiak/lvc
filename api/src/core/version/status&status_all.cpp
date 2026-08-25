@@ -1,6 +1,6 @@
 #include <core.hpp>
 
-static void get_unmodified(const std::filesystem::path& object_folder, const std::filesystem::path& working_dir, std::unordered_set<std::string>& unmodified, std::unordered_set<std::string>& status, const std::string tree_id, const std::filesystem::path current, char** error_message) {
+static void get_unmodified(const std::filesystem::path& object_folder, const std::filesystem::path& working_dir, std::unordered_set<std::string_view>& unmodified, std::unordered_set<std::string_view>& status, const std::string tree_id, const std::filesystem::path current, char** error_message) {
     char id[65];
     std::vector<std::string> content = io::content_lines(object_folder / tree_id, 1, error_message);
     for (size_t i = 1; i < content.size(); i++) {
@@ -18,7 +18,7 @@ static void get_unmodified(const std::filesystem::path& object_folder, const std
         object.id        = object.id.substr(0, position);
         object.path      = current / name;
 
-        if (status.contains(object.path)) {
+        if (status.contains(object.path.string())) {
             std::filesystem::path path = working_dir / object.path;
             if (std::filesystem::is_regular_file(path)) {
                 std::string buffer = io::content(path, 0, error_message);
@@ -29,7 +29,7 @@ static void get_unmodified(const std::filesystem::path& object_folder, const std
             }
             else if (!std::filesystem::is_directory(path))
                 continue;
-            unmodified.emplace(std::move(object.path));
+            unmodified.emplace(object.path.string());
         }
 
         if (type == TYPE_TREE)
@@ -41,13 +41,13 @@ std::vector<std::string> version::status(std::filesystem::path& lvc, std::string
     std::filesystem::path working_dir = lvc.parent_path();
 
     std::vector<std::string> status = io::content_lines(lvc / NAME_PREPARE, 0, error_message);
-    std::unordered_set<std::string> status_set;
+    std::unordered_set<std::string_view> status_set;
     status_set.reserve(status.size());
     for (const std::string& entry : status)
         status_set.insert(entry);
 
     std::filesystem::path object_dir = lvc / NAME_OBJECT;
-    std::unordered_set<std::string> unmodified;
+    std::unordered_set<std::string_view> unmodified;
     unmodified.reserve(status.size());
     std::vector<std::string> version_content = io::content_lines(object_dir / latest_version, 1, error_message);
     if (version_content.empty())
