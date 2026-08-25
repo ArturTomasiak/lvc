@@ -12,7 +12,7 @@ struct Command {
     {"version", lvc::version}, \
     {"history", lvc::history}, \
     {"prepare", lvc::prepare}, \
-    {"diff", lvc::diff}, \
+    {"checkout", lvc::checkout}, \
     {"status", lvc::status}, \
     {"default", lvc::_default}, \
     {"goto", lvc::_goto}, \

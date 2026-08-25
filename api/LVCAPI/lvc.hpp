@@ -81,7 +81,7 @@ extern "C" {
     LVC_API void lvc_category(const char* lvc, const char* category_name, char** error_message) noexcept;
     LVC_API void lvc_goto(const char* lvc, const char* workspace_name, char** error_message) noexcept;
     LVC_API void lvc_default(const char* lvc, const char* workspace_name, char** error_message) noexcept;
-    LVC_API char**   lvc_diff(const char* lvc, char** error_message) noexcept;
+    LVC_API char**   lvc_checkout(const char* lvc, char** error_message) noexcept;
     LVC_API char**   lvc_status(const char* lvc, char** error_message) noexcept;
     LVC_API char**   lvc_status_all(const char* lvc, char** error_message) noexcept;
     LVC_API char**   lvc_prepare(const char* lvc, int argc, char* argv[], char** error_message) noexcept;

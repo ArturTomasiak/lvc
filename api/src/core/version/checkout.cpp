@@ -1,6 +1,6 @@
 #include <core.hpp>
 
-std::vector<std::string> version::diff(std::filesystem::path lvc, char** error_message) {
+std::vector<std::string> version::checkout(std::filesystem::path lvc, char** error_message) {
     std::string workspace_name        = io::content(lvc / NAME_CURRENT, 0, error_message);
     std::filesystem::path workspace   = workspace_path(lvc / NAME_WORKSPACE, workspace_name);
     std::filesystem::path working_dir = lvc.parent_path();

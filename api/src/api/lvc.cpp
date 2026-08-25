@@ -45,10 +45,10 @@ extern "C" LVC_API void lvc_default(const char* lvc, const char* workspace_name,
     workspace::_default(lvc, workspace_name, error_message);
 }
 
-extern "C" LVC_API char** lvc_diff(const char* lvc, char** error_message) noexcept {
+extern "C" LVC_API char** lvc_checkout(const char* lvc, char** error_message) noexcept {
     *error_message = 0;
-    std::vector<std::string> diff = version::diff(lvc, error_message);
-    return strvector_to_charpp(diff);
+    std::vector<std::string> checkout = version::checkout(lvc, error_message);
+    return strvector_to_charpp(checkout);
 }
 
 extern "C" LVC_API char** lvc_status(const char* lvc, char** error_message) noexcept {

@@ -19,7 +19,7 @@ namespace lvc {
     bool version(int argc, char* argv[]);
     bool history(int argc, char* argv[]);
     bool prepare(int argc, char* argv[]);
-    bool diff(int argc, char* argv[]);
+    bool checkout(int argc, char* argv[]);
     bool status(int argc, char* argv[]);
     bool _default(int argc, char* argv[]);
     bool _goto(int argc, char* argv[]);

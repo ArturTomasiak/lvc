@@ -42,7 +42,7 @@ namespace version {
     void prepare_reset(std::filesystem::path lvc, char** error_message);
     void revert(std::filesystem::path lvc, std::string version_id, std::vector<std::string>& input_raw, char** error_message);
 
-    std::vector<std::string> diff(std::filesystem::path lvc, char** error_message);
+    std::vector<std::string> checkout(std::filesystem::path lvc, char** error_message);
     std::vector<std::string> status(std::filesystem::path& lvc, std::string& latest_version, char** error_message);
     std::vector<std::string> status_all(std::filesystem::path lvc, char** error_message);
 
