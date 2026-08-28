@@ -4,7 +4,7 @@ std::vector<std::filesystem::path> version::deleted_since(std::filesystem::path 
     std::vector<std::filesystem::path> out;
     out.reserve(PREALLOCATE);
 
-    std::vector<Object> version = version::all_objects(object_dir, id, {}, error_message);
+    std::vector<object::info> version = version::all_objects(object_dir, id, {}, error_message);
     std::unordered_set<std::filesystem::path> working_files;
     
 try {
@@ -17,7 +17,7 @@ catch(const std::filesystem::filesystem_error& error) {
     return {};
 }
 
-    for (const Object& object : version)
+    for (const object::info& object : version)
         if (!object.path.empty() && !working_files.contains(object.path))
             out.push_back(object.path);
 

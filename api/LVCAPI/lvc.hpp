@@ -126,6 +126,8 @@ extern "C" {
 #define NAME_NAME "name"
 #define NAME_IGNORE "lvc.ignore"
 #define NAME_STORAGE "lvc.storage"
+#define NAME_OPERATION "operation"
+#define NAME_LOCAL "local"
 
 // type string defines
 #define TYPE_VERSION "version"

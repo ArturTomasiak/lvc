@@ -163,20 +163,21 @@ void version::create(std::filesystem::path lvc, std::string message, std::string
         error_message_creator("No version message recieved", error_message);
         return;
     }
-        
-    std::filesystem::path prepare_path = lvc / NAME_PREPARE;
+
+    std::filesystem::path working_dir = lvc.parent_path();
+    std::filesystem::path workspace_dir   = lvc / NAME_WORKSPACE;
+    std::filesystem::path object_dir  = lvc / NAME_OBJECT;
+    std::string workspace_name        = io::content(lvc / NAME_CURRENT, 0, error_message);
+    std::filesystem::path workspace   = workspace_path(workspace_dir, workspace_name);
+    std::string version_id = io::content_first_line(workspace, error_message);
+    std::vector<std::string> status = version::status(lvc, version_id, error_message);
+    
+    std::filesystem::path prepare_path = workspace_dir / NAME_LOCAL / workspace_name / NAME_PREPARE;
     if (!std::filesystem::is_regular_file(prepare_path)) {
         error_message_creator("No files prepared", error_message);
         return;
     }
 
-    std::filesystem::path working_dir = lvc.parent_path();
-    std::filesystem::path object_dir  = lvc / NAME_OBJECT;
-    std::string workspace_name        = io::content(lvc / NAME_CURRENT, 0, error_message);
-    std::filesystem::path workspace   = workspace_path(lvc / NAME_WORKSPACE, workspace_name);
-    std::string version_id = io::content_first_line(workspace, error_message);
-    std::vector<std::string> status = version::status(lvc, version_id, error_message);
-    
     std::string root_id;
     if (!version_id.empty()) {
         std::vector<std::string> version_content = io::content_lines(object_dir / version_id, 1, error_message);

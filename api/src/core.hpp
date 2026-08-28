@@ -5,17 +5,6 @@
 #include <unordered_set>
 #include <unordered_map>
 
-enum ObjectType {
-    BLOB,
-    TREE
-};
-
-struct Object {
-    ObjectType type;
-    std::string id;
-    std::filesystem::path path;
-};
-
 namespace category {
     void create(std::filesystem::path workspace_dir, std::string name, char** error_message);
     void rename(const std::filesystem::path& working_dir, const char* category_name, const char* new_name, char** error_message);
@@ -23,6 +12,16 @@ namespace category {
 }
 
 namespace object {
+    enum class type : uint8_t {
+        blob,
+        tree
+    };
+    struct info {
+        object::type type;
+        std::string id;
+        std::filesystem::path path;
+    };
+
     void create(const std::filesystem::path& object_dir, const std::string& type, std::string& content, std::string& out_id, char** error_message);
     bool exists (std::filesystem::path object_dir, char id[65]);
 }
@@ -32,8 +31,6 @@ namespace repository {
     void clone(std::filesystem::path working_dir, std::string path, bool clone_versioning, char** error_message);
     void rename(std::filesystem::path lvc, const char* name, char** error_message);
     void storage_template(std::filesystem::path directory_root, StorageBehaviour option, char** error_message);
-
-    LvcConflictArray sync(const std::filesystem::path src_repository, const std::filesystem::path dest_repository, char** error_message);
 }
 
 namespace version {
@@ -50,7 +47,7 @@ namespace version {
     LvcVersion* history_all(const std::filesystem::path object_dir, const std::filesystem::path workspace_dir, const std::string workspace_name, char** error_message);
     void history_free(LvcVersion* version);
     
-    std::vector<Object> all_objects(std::filesystem::path object_dir, std::string id, std::unordered_set<std::string_view> ignore, char** error_message);
+    std::vector<object::info> all_objects(std::filesystem::path object_dir, std::string id, std::unordered_set<std::string_view> ignore, char** error_message);
     std::vector<std::filesystem::path> deleted_since(std::filesystem::path object_dir, std::filesystem::path working_directory, std::string id, char** error_message);
 }
 
@@ -67,11 +64,30 @@ namespace workspace {
     void activate(std::filesystem::path workspace_dir, const char* workspace_name, const char* category_name, char** error_message);
     void deactivate(std::filesystem::path workspace_dir, const char* workspace_name, char** error_message);
 
+    
+
+    std::vector<object::info> all_objects(std::filesystem::path working_directory, char** error_message);
+}
+
+namespace operation {
+    inline constexpr char filename_sync[]   = "sync";
+    inline constexpr char filename_unite[]  = "unite";
+    inline constexpr char filename_insert[] = "insert";
+
+    enum class type : uint8_t {
+        none,
+        sync,
+        unite,
+        insert
+    };
+
+    void create_folder(const std::filesystem::path& operation_dir, operation::type type, char** error_message);
+    operation::type ongoing(const std::filesystem::path& operation_dir, char** error_message);
+
+    LvcConflictArray sync(const std::filesystem::path src_repository, const std::filesystem::path dest_repository, char** error_message);
     void insert(const std::filesystem::path& lvc, const char* src_workspace, const char* dest_workspace, const char* author, char** error_message);
     void unite(const std::filesystem::path& lvc, const char* src_workspace, const char* dest_workspace, const char* author, char** error_message);
     void push(const std::filesystem::path& src_repository, const std::filesystem::path& dest_repository, char** error_message);
-
-    std::vector<Object> all_objects(std::filesystem::path working_directory, char** error_message);
 }
 
 inline void free_charpp(char** arr) {

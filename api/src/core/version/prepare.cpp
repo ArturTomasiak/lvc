@@ -1,8 +1,11 @@
 #include <core.hpp>
 
 void version::prepare_reset(std::filesystem::path lvc, char** error_message) {
+    const std::string workspace_name        = io::content(lvc / NAME_CURRENT, 0, error_message);
+    const std::filesystem::path workspace_dir = lvc / NAME_WORKSPACE;
+    const std::filesystem::path prepare_dir = workspace_dir / NAME_LOCAL / workspace_name / NAME_PREPARE;
     std::error_code error;
-    bool deleted = std::filesystem::remove(lvc / NAME_PREPARE, error);
+    bool deleted = std::filesystem::remove(prepare_dir, error);
     if (!deleted || error)
         error_message_creator("Could not reset prepare", error_message);
 }
@@ -14,9 +17,11 @@ void version::prepare(std::filesystem::path lvc, std::vector<std::string> input_
     }
 
     const std::string workspace_name        = io::content(lvc / NAME_CURRENT, 0, error_message);
-    const std::filesystem::path workspace   = workspace_path(lvc / NAME_WORKSPACE, workspace_name);
+    const std::filesystem::path workspace_dir = lvc / NAME_WORKSPACE;
+    const std::filesystem::path workspace   = workspace_path(workspace_dir, workspace_name);
     const std::filesystem::path object_dir  = lvc / NAME_OBJECT;
     const std::filesystem::path working_dir = lvc.parent_path();
+    const std::filesystem::path prepare_dir = workspace_dir / NAME_LOCAL / workspace_name / NAME_PREPARE;
     const std::string version_id            = io::content_first_line(workspace, error_message);
 
     std::vector<std::string> ignore_raw = io::content_lines(working_dir / NAME_IGNORE, 0, error_message);
@@ -27,7 +32,7 @@ void version::prepare(std::filesystem::path lvc, std::vector<std::string> input_
     if (*error_message) return;
     if (input.empty()) return;   
 
-    std::vector<std::string> current = io::content_lines(lvc / NAME_PREPARE, 0, error_message);
+    std::vector<std::string> current = io::content_lines(prepare_dir, 0, error_message);
 
     std::unordered_set<std::string_view> current_entries;
     current_entries.reserve(current.size());
@@ -52,7 +57,7 @@ void version::prepare(std::filesystem::path lvc, std::vector<std::string> input_
         buffer += path + "\n";
     }
 
-    io::file(lvc / NAME_PREPARE, std::ios::binary, buffer.data(), buffer.size(), 0, error_message);
+    io::file(prepare_dir, std::ios::binary, buffer.data(), buffer.size(), 0, error_message);
 
     if (prepared)
         *prepared = strvector_to_charpp(current);

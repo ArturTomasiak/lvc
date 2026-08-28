@@ -4,13 +4,13 @@ static void get_unmodified(const std::filesystem::path& object_folder, const std
     char id[65];
     std::vector<std::string> content = io::content_lines(object_folder / tree_id, 1, error_message);
     for (size_t i = 1; i < content.size(); i++) {
-        Object object;
+        object::info object;
         const std::string& line = content[i];
 
         size_t position = line.find(' ');
         std::string type  = line.substr(0, position);
 
-        object.type = type == TYPE_TREE ? TREE : BLOB;
+        object.type = type == TYPE_TREE ? object::type::tree : object::type::blob;
 
         object.id        = line.substr(position + 1);
         position         = object.id.find(' ');
@@ -40,7 +40,11 @@ static void get_unmodified(const std::filesystem::path& object_folder, const std
 std::vector<std::string> version::status(std::filesystem::path& lvc, std::string& latest_version, char** error_message) {
     std::filesystem::path working_dir = lvc.parent_path();
 
-    std::vector<std::string> status = io::content_lines(lvc / NAME_PREPARE, 0, error_message);
+    const std::string workspace_name        = io::content(lvc / NAME_CURRENT, 0, error_message);
+    const std::filesystem::path workspace_dir = lvc / NAME_WORKSPACE;
+    const std::filesystem::path prepare_dir = workspace_dir / NAME_LOCAL / workspace_name / NAME_PREPARE;
+
+    std::vector<std::string> status = io::content_lines(prepare_dir, 0, error_message);
     std::unordered_set<std::string_view> status_set;
     status_set.reserve(status.size());
     for (const std::string& entry : status)
@@ -62,5 +66,8 @@ std::vector<std::string> version::status(std::filesystem::path& lvc, std::string
 }
 
 std::vector<std::string> version::status_all(std::filesystem::path lvc, char** error_message) {
-    return io::content_lines(lvc / NAME_PREPARE, 0, error_message);
+    const std::string workspace_name        = io::content(lvc / NAME_CURRENT, 0, error_message);
+    const std::filesystem::path workspace_dir = lvc / NAME_WORKSPACE;
+    const std::filesystem::path prepare_dir = workspace_dir / NAME_LOCAL / workspace_name / NAME_PREPARE;
+    return io::content_lines(prepare_dir, 0, error_message);
 }

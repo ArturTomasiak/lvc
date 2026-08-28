@@ -14,14 +14,14 @@ static LvcConflictArray combine_workspaces(const std::filesystem::path& lvc, con
     std::string src_id    = src_version_vector[0];
     std::string dest_id    = dest_version_vector[0];
     std::string common_id = latest_common_version(src_version_vector, dest_version_vector);
-    std::vector<Object> src    = version::all_objects(object_dir, src_id, {}, error_message);
-    std::vector<Object> dest   = version::all_objects(object_dir, dest_id, {}, error_message);
-    std::vector<Object> common = version::all_objects(object_dir, common_id, {}, error_message);
+    std::vector<object::info> src    = version::all_objects(object_dir, src_id, {}, error_message);
+    std::vector<object::info> dest   = version::all_objects(object_dir, dest_id, {}, error_message);
+    std::vector<object::info> common = version::all_objects(object_dir, common_id, {}, error_message);
     LvcConflictArray out;
     return out;
 }
 
-void workspace::unite(const std::filesystem::path& lvc, const char* src_workspace, const char* dest_workspace, const char* author, char** error_message) {
+void operation::unite(const std::filesystem::path& lvc, const char* src_workspace, const char* dest_workspace, const char* author, char** error_message) {
     std::filesystem::path workspace_dir = lvc / NAME_WORKSPACE;
     if (workspace::is_inactive(src_workspace)) {
         error_message_creator(src_workspace + inactive_error_message, error_message);
@@ -37,7 +37,7 @@ void workspace::unite(const std::filesystem::path& lvc, const char* src_workspac
     version::create(lvc, message.c_str(), author, "", error_message);
 }
 
-void workspace::insert(const std::filesystem::path& lvc, const char* src_workspace, const char* dest_workspace, const char* author, char** error_message) {
+void operation::insert(const std::filesystem::path& lvc, const char* src_workspace, const char* dest_workspace, const char* author, char** error_message) {
     std::filesystem::path workspace_dir = lvc / NAME_WORKSPACE;
     if (workspace::is_inactive(src_workspace)) {
         error_message_creator(src_workspace + inactive_error_message, error_message);

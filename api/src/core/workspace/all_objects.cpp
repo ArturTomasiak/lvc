@@ -1,7 +1,7 @@
 #include <core.hpp>
 
-std::vector<Object> workspace::all_objects(std::filesystem::path working_directory, char** error_message) {
-    std::vector<Object> out;
+std::vector<object::info> workspace::all_objects(std::filesystem::path working_directory, char** error_message) {
+    std::vector<object::info> out;
     out.reserve(PREALLOCATE);
 
 try {
@@ -15,9 +15,9 @@ try {
             continue;
         }
 
-        Object object;
+        object::info object;
         object.path = entry.path().lexically_relative(working_directory);
-        object.type = std::filesystem::is_regular_file(entry.path()) ? BLOB : TREE;
+        object.type = std::filesystem::is_regular_file(entry.path()) ? object::type::blob : object::type::tree;
 
         std::string buffer = io::content(entry.path(), 0, error_message);
         insert_pattern(buffer, TYPE_BLOB);

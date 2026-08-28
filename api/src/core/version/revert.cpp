@@ -20,7 +20,7 @@ void version::revert(std::filesystem::path lvc, std::string version_id, std::vec
     for (const std::string& entry : ignore)
         ignore_set.insert(entry);
 
-    std::vector<Object> objects = version::all_objects(object_dir, version_id, ignore_set, error_message);
+    std::vector<object::info> objects = version::all_objects(object_dir, version_id, ignore_set, error_message);
     
     if (input_raw.empty()) 
         input_raw.push_back("/");
@@ -36,11 +36,11 @@ void version::revert(std::filesystem::path lvc, std::string version_id, std::vec
     for (const std::string& entry : ignore)
         input_set.erase(entry);
 
-    std::erase_if(objects, [&input_set](const Object& entry) {return !input_set.contains(entry.path.string());});
+    std::erase_if(objects, [&input_set](const object::info& entry) {return !input_set.contains(entry.path.string());});
 
     std::unordered_set<std::string_view> objects_set;
     objects_set.reserve(input.size());
-    for (const Object& entry : objects)
+    for (const object::info& entry : objects)
         objects_set.insert(entry.path.string());
 
 try {
@@ -58,9 +58,9 @@ catch(const std::filesystem::filesystem_error& error) {
     return;
 }
 
-    for (Object& object : objects) {
+    for (object::info& object : objects) {
         std::filesystem::create_directories(object.path);
-        if (object.type == BLOB) { 
+        if (object.type == object::type::blob) { 
             std::string buffer = io::content(object_dir / object.id, 1, error_message);
             size_t pos = buffer.find('\n');
             io::file(working_dir / object.path, std::ios::binary, buffer.data() + pos + 1, buffer.size() - pos - 1, 0, error_message);
