@@ -1,68 +1,61 @@
 #include <core.hpp>
 
-// Revert specified files or all files if no input is given in the working directory to the state of the version_id.
-// Does not touch files specified by lvc.ignore.
+// Revert specified files or all files if no input is given in the working
+// directory to the state of the version_id. Does not touch files specified by
+// lvc.ignore.
 
 void version::revert(std::filesystem::path lvc, std::string version_id, std::vector<std::string>& input_raw, char** error_message) {
     std::filesystem::path working_dir = lvc.parent_path();
     std::filesystem::path object_dir  = lvc / NAME_OBJECT;
-    if (!std::filesystem::is_regular_file(object_dir / version_id)) {
+    if(!std::filesystem::is_regular_file(object_dir / version_id)) {
         error_message_creator("Invalid version ID " + version_id, error_message);
         return;
     }
 
     std::vector<std::string> ignore_raw = io::content_lines(working_dir / NAME_IGNORE, 0, error_message);
     std::vector<std::string> ignore     = path_from_input(working_dir, ignore_raw, version_id, 0, error_message);
-    if (*error_message) return;
+    if(*error_message) return;
 
     std::unordered_set<std::string_view> ignore_set;
     ignore_set.reserve(ignore.size());
-    for (const std::string& entry : ignore)
-        ignore_set.insert(entry);
+    for(const std::string& entry : ignore) ignore_set.insert(entry);
 
     std::vector<object::info> objects = version::all_objects(object_dir, version_id, ignore_set, error_message);
-    
-    if (input_raw.empty()) 
-        input_raw.push_back("/");
+
+    if(input_raw.empty()) input_raw.push_back("/");
 
     std::vector<std::string> input = path_from_input(working_dir, input_raw, version_id, 0, error_message);
-    if (*error_message) return;
+    if(*error_message) return;
 
     std::unordered_set<std::string_view> input_set;
     input_set.reserve(input.size());
-    for (const std::string& entry : input)
-        input_set.insert(entry);
+    for(const std::string& entry : input) input_set.insert(entry);
 
-    for (const std::string& entry : ignore)
-        input_set.erase(entry);
+    for(const std::string& entry : ignore) input_set.erase(entry);
 
-    std::erase_if(objects, [&input_set](const object::info& entry) {return !input_set.contains(entry.path.string());});
+    std::erase_if(objects, [&input_set](const object::info& entry) { return !input_set.contains(entry.path.string()); });
 
     std::unordered_set<std::string_view> objects_set;
     objects_set.reserve(input.size());
-    for (const object::info& entry : objects)
-        objects_set.insert(entry.path.string());
+    for(const object::info& entry : objects) objects_set.insert(entry.path.string());
 
-try {
-    std::filesystem::recursive_directory_iterator iterator(working_dir);
-    for (const std::filesystem::directory_entry& entry : iterator) {
-        std::filesystem::path relative = entry.path().lexically_relative(working_dir);
-        if (!input_set.contains(relative.string()))
-            continue;
-        if (!objects_set.contains(relative.string()))
-            std::filesystem::remove_all(entry.path());
+    try {
+        std::filesystem::recursive_directory_iterator iterator(working_dir);
+        for(const std::filesystem::directory_entry& entry : iterator) {
+            std::filesystem::path relative = entry.path().lexically_relative(working_dir);
+            if(!input_set.contains(relative.string())) continue;
+            if(!objects_set.contains(relative.string())) std::filesystem::remove_all(entry.path());
+        }
+    } catch(const std::filesystem::filesystem_error& error) {
+        error_message_creator("Directory iteration failure", error_message);
+        return;
     }
-}   
-catch(const std::filesystem::filesystem_error& error) {
-    error_message_creator("Directory iteration failure", error_message);
-    return;
-}
 
-    for (object::info& object : objects) {
+    for(object::info& object : objects) {
         std::filesystem::create_directories(object.path);
-        if (object.type == object::type::blob) { 
+        if(object.type == object::type::blob) {
             std::string buffer = io::content(object_dir / object.id, 1, error_message);
-            size_t pos = buffer.find('\n');
+            size_t      pos    = buffer.find('\n');
             io::file(working_dir / object.path, std::ios::binary, buffer.data() + pos + 1, buffer.size() - pos - 1, 0, error_message);
         }
     }

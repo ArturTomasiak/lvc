@@ -5,8 +5,8 @@ void repository::storage_template(std::filesystem::path directory_root, StorageB
     switch(option) {
         case HYBRID:
             io::file(directory_root, std::ios::binary, DEFAULT_HYBRID_STORAGE, DEFAULT_HYBRID_STORAGE_LENGTH, 0, error_message);
-        case CENTRALIZED: 
+        case CENTRALIZED:
             io::file(directory_root, std::ios::binary, "0", 1, 0, error_message);
-        default: ;
+        default:;
     }
 }
