@@ -1,6 +1,5 @@
 #include <core.hpp>
 #include <lvc.hpp>
-#include <unordered_map>
 
 extern "C" LVC_API void lvc_create(LvcCreateInput input, char** error_message) noexcept {
     *error_message            = 0;
@@ -23,7 +22,7 @@ extern "C" LVC_API void lvc_create(LvcCreateInput input, char** error_message) n
     if(*error_message) return;
 }
 
-extern "C" LVC_API void lvc_workspace(const char* lvc, const char* category_name, const char* workspace_name, char** error_mesÆsage) noexcept {
+extern "C" LVC_API void lvc_workspace(const char* lvc, const char* category_name, const char* workspace_name, char** error_message) noexcept {
     *error_message = 0;
     workspace::create(lvc, category_name, workspace_name, error_message);
 }
