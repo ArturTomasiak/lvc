@@ -5,26 +5,40 @@ extern "C" LVC_API void lvc_create(LvcCreateInput input, char** error_message) n
     *error_message            = 0;
     std::filesystem::path lvc = input.location;
     lvc /= ".lvc";
-    std::filesystem::path workspace_dir = lvc / NAME_WORKSPACE;
+    if(std::filesystem::is_directory(lvc)) {
+        error_message_creator("Repository already exists", error_message);
+        return;
+    }
     if(input.clone_repository) repository::clone(input.location, input.clone_repository, input.clone_versioning, error_message);
     if(input.clone_versioning) return;
     repository::create(lvc, error_message);
     if(*error_message) return;
     repository::rename(lvc, input.repository_name, error_message);
     if(*error_message) return;
-    category::create(workspace_dir, input.category_name, error_message);
+    category::create(lvc, input.category_name, error_message);
     if(*error_message) return;
-    workspace::create(workspace_dir, input.category_name, input.workspace_name, error_message);
+    workspace::create(lvc, input.category_name, input.workspace_name, 0, error_message);
     if(*error_message) return;
-    workspace::_goto(lvc, input.workspace_name, error_message);
+    io::file(lvc / NAME_CURRENT, std::ios::binary, input.workspace_name, strlen(input.workspace_name), 0, error_message);
     if(*error_message) return;
     workspace::_default(lvc, input.workspace_name, error_message);
     if(*error_message) return;
 }
 
-extern "C" LVC_API void lvc_workspace(const char* lvc, const char* category_name, const char* workspace_name, char** error_message) noexcept {
+extern "C" LVC_API char*   lvc_current(const char* lvc, char** error_message) noexcept {
+    std::filesystem::path lvc_path = lvc;
+    std::string current = io::content(lvc_path / NAME_CURRENT, 0, error_message);
+    char* out = (char*)malloc(current.size() + 1);
+    memcpy(out, current.data(), current.size());
+    out[current.size()] = '\0';
+    return out;
+
+}
+
+extern "C" LVC_API void
+lvc_workspace(const char* lvc, const char* category_name, const char* workspace_name, LvcBool clone_working, char** error_message) noexcept {
     *error_message = 0;
-    workspace::create(lvc, category_name, workspace_name, error_message);
+    workspace::create(lvc, category_name, workspace_name, clone_working, error_message);
 }
 
 extern "C" LVC_API void lvc_category(const char* lvc, const char* category_name, char** error_message) noexcept {

@@ -48,10 +48,8 @@ void version::prepare(std::filesystem::path lvc, std::vector<std::string> input_
 
     std::string buffer;
 
-    for(std::string& path : current) {
-        const std::filesystem::path object = object_dir / path;
+    for(std::string& path : current)
         buffer += path + "\n";
-    }
 
     io::file(prepare_dir, std::ios::binary, buffer.data(), buffer.size(), 0, error_message);
 

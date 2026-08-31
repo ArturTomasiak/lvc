@@ -14,6 +14,7 @@ bool lvc::prepare(int argc, char* argv[]) {
 
     char** prepared_files;
     lvc_prepare(lvc.c_str(), argc, argv, &error_message);
+    if (error_message)  return 0;
 
     char** prepared_files_copy = prepared_files;
 

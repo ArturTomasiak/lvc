@@ -195,3 +195,31 @@ void version::create(std::filesystem::path lvc, std::string message, std::string
     bool            deleted = std::filesystem::remove(prepare_path, error);
     if(!deleted || error) error_message_creator("Prepare reset failed", error_message);
 }
+
+void version::create_tmp(std::filesystem::path& lvc, std::filesystem::path& operation, char** error_message) {
+    std::filesystem::path working_dir   = lvc.parent_path();
+    std::filesystem::path object_dir    = operation / NAME_OBJECT;
+
+    std::filesystem::create_directories(object_dir);
+
+    std::vector<std::string> status;
+    try {
+        std::filesystem::recursive_directory_iterator iterator(working_dir);
+        for(const std::filesystem::directory_entry& entry : iterator)
+            if(std::filesystem::is_regular_file(entry.path())) status.emplace_back(entry.path().lexically_relative(working_dir));
+    } catch(const std::filesystem::filesystem_error& error) {
+        error_message_creator("Directory iteration failure", error_message);
+        return;
+    }
+
+    std::string root_id;
+    std::string new_root_id = build(object_dir, working_dir, root_id, status, error_message);
+
+    const std::string nl     = "\n";
+    std::string       buffer = new_root_id + nl + "tmp snapshot" + nl + "lvc";
+
+    std::string id;
+    object::create(object_dir, TYPE_VERSION, buffer, id, error_message);
+    id += "\n";
+    io::file(operation / NAME_TMP, std::ios::binary, id.data(), id.size(), 0, error_message);
+}

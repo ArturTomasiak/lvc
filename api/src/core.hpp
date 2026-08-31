@@ -6,7 +6,7 @@
 #include <unordered_set>
 
 namespace category {
-    void create(std::filesystem::path workspace_dir, std::string name, char** error_message);
+    void create(std::filesystem::path lvc, std::string name, char** error_message);
     void rename(const std::filesystem::path& working_dir, const char* category_name, const char* new_name, char** error_message);
     bool exists(std::filesystem::path workspace_dir, std::string name);
 }
@@ -33,6 +33,7 @@ namespace repository {
 
 namespace version {
     void create(std::filesystem::path lvc, std::string message, std::string author, std::string inserted_workspace, char** error_message);
+    void create_tmp(std::filesystem::path& lvc, std::filesystem::path& operation, char** error_message);
     void prepare(std::filesystem::path lvc, std::vector<std::string> input, char*** prepared, char** error_message);
     void prepare_reset(std::filesystem::path lvc, char** error_message);
     void revert(std::filesystem::path lvc, std::string version_id, std::vector<std::string>& input_raw, char** error_message);
@@ -56,12 +57,12 @@ namespace version {
 }
 
 namespace workspace {
-    void create(std::filesystem::path workspace_dir, std::string category_name, std::string workspace_name, char** error_message);
+    void create(std::filesystem::path lvc, std::string category_name, std::string workspace_name, bool clone_working, char** error_message);
     bool exists(std::filesystem::path workspace_dir, std::string name, char** error_message);
     bool exists(std::filesystem::path workspace_dir, std::string name, std::string& path, char** error_message);
     bool is_inactive(const std::filesystem::path& workspace_dir, std::string name);
     bool is_inactive(std::filesystem::path workspace);
-    void _goto(std::filesystem::path lvc, const char* workspace_name, char** error_message);
+    void _goto(std::filesystem::path lvc, std::string workspace_name, char** error_message);
     void _default(std::filesystem::path lvc, const char* workspace_name, char** error_message);
 
     void

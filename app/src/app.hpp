@@ -25,4 +25,7 @@ namespace lvc {
     bool _goto(int argc, char* argv[]);
     bool move(int argc, char* argv[]);
     bool revert(int argc, char* argv[]);
+    bool category(int argc, char* argv[]);
+    bool workspace(int argc, char* argv[]);
+    bool current(int argc, char* argv[]);
 }

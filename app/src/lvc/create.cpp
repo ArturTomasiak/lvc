@@ -13,7 +13,7 @@ static std::string ask_line(const std::string& question, bool allow_empty) {
 static bool ask_local() {
     std::string answer;
     while(true) {
-        answer = ask_line("Local or server repository? L/R ", 0);
+        answer = ask_line("Local or server repository? L/R: ", 0);
         answer = std::tolower(answer[0]);
         if(answer == "l") return 1;
         if(answer == "r") return 0;
@@ -42,12 +42,12 @@ static StorageBehaviour ask_storage() {
 }
 
 static void ask_clone(std::string& clone, bool& clone_versioning) {
-    clone = ask_line("Clone repository path/link (leave empty to start from scratch) ", 1);
+    clone = ask_line("Clone repository path/link (leave empty to start from scratch): ", 1);
     if(clone.empty()) return;
 
     std::string answer;
     while(true) {
-        answer = ask_line("Clone the .lvc folder as well? Y/N ", 0);
+        answer = ask_line("Clone the .lvc folder as well? Y/N: ", 0);
         answer = std::tolower(answer[0]);
         if(answer == "y") {
             clone_versioning = 1;
@@ -78,9 +78,9 @@ bool lvc::create(int argc, char* argv[]) {
     ask_clone(clone, input.clone_versioning);
     if(input.clone_versioning) goto skip_verioning_questions;
 
-    repository_name = ask_line("Repository name ", 0);
-    category_name   = ask_line("Create default workspace’s category name ", 0);
-    workspace_name  = ask_line("Create default workspace name ", 0);
+    repository_name = ask_line("Repository name: ", 0);
+    category_name   = ask_line("Create default workspace’s category name: ", 0);
+    workspace_name  = ask_line("Create default workspace name: ", 0);
 
 skip_verioning_questions:
     input.location         = location.c_str();

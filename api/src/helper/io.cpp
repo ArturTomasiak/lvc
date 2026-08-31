@@ -28,7 +28,6 @@ void io::file(std::filesystem::path path, std::ios_base::openmode flags, const c
         file.write(deflated, deflated_length);
         free(deflated);
     }
-
     else
         file.write(content, length);
 
