@@ -14,8 +14,7 @@ bool lvc::prepare(int argc, char* argv[]) {
     if (argc == 3 && !std::strcmp(argv[2], "reset"))
         return call_reset(lvc);
 
-    char** prepared_files;
-    lvc_prepare(lvc.c_str(), argc, argv, &error_message);
+    char** prepared_files = lvc_prepare(lvc.c_str(), argc, argv, &error_message);
     if (error_message)
         return 0;
 

@@ -45,13 +45,13 @@ std::vector<std::string> version::status(std::filesystem::path& lvc, std::string
     const std::filesystem::path workspace_dir  = lvc / NAME_WORKSPACE;
     const std::filesystem::path prepare_dir    = workspace_dir / NAME_LOCAL / workspace_name / NAME_PREPARE;
 
-    std::vector<std::string>             status = io::content_lines(prepare_dir, 0, error_message);
+    std::vector<std::string>        status = io::content_lines(prepare_dir, 0, error_message);
     std::unordered_set<std::string> status_set;
     status_set.reserve(status.size());
     for (const std::string& entry : status)
         status_set.insert(entry);
 
-    std::filesystem::path                object_dir = lvc / NAME_OBJECT;
+    std::filesystem::path           object_dir = lvc / NAME_OBJECT;
     std::unordered_set<std::string> unmodified;
     unmodified.reserve(status.size());
     std::vector<std::string> version_content = io::content_lines(object_dir / latest_version, 1, error_message);
