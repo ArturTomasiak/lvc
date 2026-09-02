@@ -89,18 +89,18 @@ namespace operation {
 }
 
 inline void free_charpp(char** arr) {
-    if(!arr) return;
-    for(size_t i = 0; arr[i]; i++) free(arr[i]);
+    if (!arr) return;
+    for (size_t i = 0; arr[i]; i++) free(arr[i]);
     free(arr);
 }
 
 inline char** strvector_to_charpp(const std::vector<std::string>& vector) {
     char** result = (char**)calloc((vector.size() + 1), sizeof(char*));
-    if(result) {
+    if (result) {
         char** copy = result;
-        for(std::string_view str : vector) {
+        for (std::string_view str : vector) {
             *copy = (char*)malloc(str.size() + 1);
-            if(!copy) {
+            if (!copy) {
                 free_charpp(result);
                 return 0;
             }
@@ -115,13 +115,13 @@ inline char** strvector_to_charpp(const std::vector<std::string>& vector) {
 
 inline size_t charplen(const char* str) {
     size_t len = 0;
-    while(*str++) len++;
+    while (*str++) len++;
     return len;
 }
 
 inline bool charpcmp(const char* str1, const char* str2) {
-    while(*str1 && *str2)
-        if(*str1++ != *str2++) return 0;
+    while (*str1 && *str2)
+        if (*str1++ != *str2++) return 0;
     return *str1 == *str2;
 }
 

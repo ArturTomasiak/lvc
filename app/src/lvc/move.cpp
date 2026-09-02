@@ -2,9 +2,9 @@
 
 bool lvc::move(int argc, char* argv[]) {
     std::filesystem::path lvc;
-    if(!helper::find_repository(lvc)) return 0;
+    if (!helper::find_repository(lvc)) return 0;
 
-    if(argc < 5) {
+    if (argc < 5) {
         helper::error("Missing arguments, syntax: lvc move <workspace_name> "
                       "<previous_category> <category>");
         return 0;

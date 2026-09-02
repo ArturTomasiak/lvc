@@ -8,11 +8,11 @@ std::filesystem::path workspace_path(const std::filesystem::path& workspace_dir,
     std::filesystem::recursive_directory_iterator       iterator(workspace_dir, options, error);
     const std::filesystem::recursive_directory_iterator end;
 
-    if(error) return result;
+    if (error) return result;
 
-    while(iterator != end) {
+    while (iterator != end) {
         error.clear();
-        if(!error && iterator->is_regular_file(error)) {
+        if (!error && iterator->is_regular_file(error)) {
             result = iterator->path();
             return result;
         }

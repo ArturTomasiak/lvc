@@ -10,11 +10,11 @@ static constexpr uint32_t k[64] = {
 
 static void process_chunk(const uint8_t* chunk, uint32_t state[8]) {
     uint32_t w[64];
-    for(uint8_t i = 0; i < 16; i++) {
+    for (uint8_t i = 0; i < 16; i++) {
         uint8_t offset = i * 4;
         w[i] = ((uint32_t)chunk[offset] << 24) | ((uint32_t)chunk[offset + 1] << 16) | ((uint32_t)chunk[offset + 2] << 8) | ((uint32_t)chunk[offset + 3]);
     }
-    for(uint8_t i = 16; i < 64; i++) {
+    for (uint8_t i = 16; i < 64; i++) {
         uint32_t s0 = std::rotr(w[i - 15], 7) ^ std::rotr(w[i - 15], 18) ^ (w[i - 15] >> 3);
 
         uint32_t s1 = std::rotr(w[i - 2], 17) ^ std::rotr(w[i - 2], 19) ^ (w[i - 2] >> 10);
@@ -31,7 +31,7 @@ static void process_chunk(const uint8_t* chunk, uint32_t state[8]) {
     uint32_t g = state[6];
     uint32_t h = state[7];
 
-    for(uint8_t i = 0; i < 64; i++) {
+    for (uint8_t i = 0; i < 64; i++) {
         const uint32_t S1    = std::rotr(e, 6) ^ std::rotr(e, 11) ^ std::rotr(e, 25);
         const uint32_t ch    = g ^ (e & (f ^ g));
         const uint32_t temp1 = h + S1 + ch + k[i] + w[i];
@@ -59,11 +59,11 @@ static void process_chunk(const uint8_t* chunk, uint32_t state[8]) {
 }
 
 void sha256(const char* in, size_t in_len, char out[65]) {
-    if(!out || (!in && in_len)) return;
+    if (!out || (!in && in_len)) return;
     size_t  bit_len   = in_len << 3;
     size_t  remainder = in_len % 64;
     uint8_t padding[128];
-    if(remainder) memcpy(padding, in + in_len - remainder, remainder);
+    if (remainder) memcpy(padding, in + in_len - remainder, remainder);
     padding[remainder] = 0x80;
 
     size_t       in_chunks      = in_len >> 6;
@@ -72,19 +72,19 @@ void sha256(const char* in, size_t in_len, char out[65]) {
 
     memset(padding + remainder + 1, 0, padding_size - remainder - 1);
 
-    for(int i = 0; i < 8; ++i) padding[((64 * padding_chunks) - 8) + i] = bit_len >> (56 - i * 8);
+    for (int i = 0; i < 8; ++i) padding[((64 * padding_chunks) - 8) + i] = bit_len >> (56 - i * 8);
 
     uint32_t state[8] = {0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19};
 
-    for(size_t i = 0; i < in_chunks; i++) process_chunk((const uint8_t*)in + (i * 64), state);
-    for(size_t i = 0; i < padding_chunks; i++) process_chunk(padding + (i * 64), state);
+    for (size_t i = 0; i < in_chunks; i++) process_chunk((const uint8_t*)in + (i * 64), state);
+    for (size_t i = 0; i < padding_chunks; i++) process_chunk(padding + (i * 64), state);
 
     static constexpr char hex[] = "0123456789abcdef";
 
     size_t output_index = 0;
 
-    for(uint32_t word : state)
-        for(int shift = 28; shift >= 0; shift -= 4) out[output_index++] = hex[(word >> shift) & 0x0f];
+    for (uint32_t word : state)
+        for (int shift = 28; shift >= 0; shift -= 4) out[output_index++] = hex[(word >> shift) & 0x0f];
 
     out[64] = '\0';
 }

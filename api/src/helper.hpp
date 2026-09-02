@@ -40,9 +40,9 @@ namespace io {
 }
 
 inline std::string latest_common_version(const std::vector<std::string>& a, const std::vector<std::string>& b) {
-    for(size_t i = 0; i < a.size(); i++)
-        for(size_t j = 0; j < b.size(); j++)
-            if(a[i] == b[j]) return a[i];
+    for (size_t i = 0; i < a.size(); i++)
+        for (size_t j = 0; j < b.size(); j++)
+            if (a[i] == b[j]) return a[i];
     return "";
 }
 

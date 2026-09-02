@@ -11,7 +11,7 @@ struct SyncArgs {
 
 void insert_conflict(LvcConflict& src, LvcConflictArray& dest, char** error_message) {
     LvcConflict* tmp = (LvcConflict*)realloc(dest.conflict, (dest.length + 1) * sizeof(LvcConflict));
-    if(!tmp) {
+    if (!tmp) {
         error_message_creator("Memory allocation failed", error_message);
         return;
     }
@@ -32,8 +32,8 @@ LvcConflict existing_file(const SyncArgs& args, char** error_message) { return {
 LvcConflict no_common(const SyncArgs& args, char** error_message) { return {}; }
 
 LvcConflict sync(const SyncArgs& args, char** error_message) {
-    if(args.src == nullptr && args.common == nullptr) return new_file(args, error_message);
-    if(args.src && args.common)
+    if (args.src == nullptr && args.common == nullptr) return new_file(args, error_message);
+    if (args.src && args.common)
         return existing_file(args, error_message);
     else
         return no_common(args, error_message);
@@ -66,7 +66,7 @@ LvcConflictArray operation::sync(const std::filesystem::path src_repository, con
     SyncArgs         args = {&src_object_directory, &dest_object_directory, &src_repository, nullptr, nullptr, nullptr};
     LvcConflictArray out  = {0};
 
-    for(object::info& object : dest) {
+    for (object::info& object : dest) {
         args.dest = &object;
 
         std::unordered_map<std::filesystem::path, object::info>::iterator          src_it    = src.find(object.path);
@@ -76,7 +76,7 @@ LvcConflictArray operation::sync(const std::filesystem::path src_repository, con
         args.common = common_it != common.end() ? &common_it->second : nullptr;
 
         LvcConflict conflict = sync(args, error_message);
-        if(conflict.relative_path) insert_conflict(conflict, out, error_message);
+        if (conflict.relative_path) insert_conflict(conflict, out, error_message);
     }
 
     // on success

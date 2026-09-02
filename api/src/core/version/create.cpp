@@ -41,14 +41,14 @@ static std::string tree_builder(TreeRelation& relation, const std::filesystem::p
     std::string name;
 
     type = TYPE_TREE;
-    for(TreeRelation& child : relation.children) {
+    for (TreeRelation& child : relation.children) {
         id   = tree_builder(child, object_dir, error_message);
         name = child.tree.relative.filename();
         tree_content += type + " " + id + " " + name + "\n";
     }
 
     type = TYPE_BLOB;
-    for(VersionObject& object : relation.tree.objects) {
+    for (VersionObject& object : relation.tree.objects) {
         id   = object.id;
         name = object.name;
         tree_content += type + " " + id + " " + name + "\n";
@@ -60,9 +60,9 @@ static std::string tree_builder(TreeRelation& relation, const std::filesystem::p
 
 static void tree_relation_builder(std::vector<Tree>& trees, TreeRelation& tree_relation, std::filesystem::path current) {
     std::vector<Tree>::iterator iterator = trees.begin();
-    while(iterator != trees.end()) {
+    while (iterator != trees.end()) {
         std::filesystem::path tree_parent = iterator->relative.parent_path();
-        if(tree_parent == current) {
+        if (tree_parent == current) {
             tree_relation.children.push_back({std::move(*iterator), {}});
             iterator = trees.erase(iterator);
             tree_relation_builder(trees, tree_relation.children.back(), tree_relation.children.back().tree.relative);
@@ -74,8 +74,8 @@ static void tree_relation_builder(std::vector<Tree>& trees, TreeRelation& tree_r
 
 static TreeRelation tree_relation_init(std::vector<Tree>& trees) {
     TreeRelation tree_relation;
-    for(std::vector<Tree>::iterator iterator = trees.begin(); iterator != trees.end(); iterator++) {
-        if(iterator->relative.empty()) {
+    for (std::vector<Tree>::iterator iterator = trees.begin(); iterator != trees.end(); iterator++) {
+        if (iterator->relative.empty()) {
             tree_relation.tree = std::move(*iterator);
             trees.erase(iterator);
             break;
@@ -91,7 +91,7 @@ static void tree_from_version(
     size_t                   pos;
     Tree                     tree;
     tree.relative = current;
-    for(size_t i = 1; i < tree_content.size(); ++i) {
+    for (size_t i = 1; i < tree_content.size(); ++i) {
         std::string   line = tree_content[i];
         VersionObject object;
         pos         = line.find(' ');
@@ -103,7 +103,7 @@ static void tree_from_version(
         object.id   = line.substr(0, pos);
         object.name = line.substr(pos + 1);
 
-        if(object.type == TYPE_TREE) // tree objects are inserted in tree_builder
+        if (object.type == TYPE_TREE) // tree objects are inserted in tree_builder
             tree_from_version(object_dir, trees, object.id, current / object.name, error_message);
         else
             tree.objects.push_back(object);
@@ -118,32 +118,32 @@ static std::string build(
     trees.emplace_back();
     trees.reserve(PREALLOCATE);
 
-    if(!tree_id.empty()) tree_from_version(object_dir, trees, tree_id, {}, error_message);
+    if (!tree_id.empty()) tree_from_version(object_dir, trees, tree_id, {}, error_message);
 
-    for(std::string path : status) {
+    for (std::string path : status) {
         bool deleted = path.starts_with(PREFIX_DELETED);
-        if(deleted) path.erase(0, strlen(PREFIX_DELETED));
+        if (deleted) path.erase(0, strlen(PREFIX_DELETED));
 
         std::filesystem::path working_path = working_dir / path;
         std::filesystem::path relative     = path;
         relative                           = relative.parent_path();
 
         Tree* tree = nullptr;
-        for(Tree& current_tree : trees)
-            if(current_tree.relative == relative) tree = &current_tree;
-        if(tree == nullptr) continue;
+        for (Tree& current_tree : trees)
+            if (current_tree.relative == relative) tree = &current_tree;
+        if (tree == nullptr) continue;
 
-        if(std::filesystem::is_directory(working_path)) {
-            if(deleted)
+        if (std::filesystem::is_directory(working_path)) {
+            if (deleted)
                 std::erase_if(trees, [&](const Tree& tree) { return tree.relative == path; });
             else
                 trees.emplace_back(Tree{.relative = path});
         }
 
-        else if(std::filesystem::is_regular_file(working_path))
+        else if (std::filesystem::is_regular_file(working_path))
             add_object(working_path, object_dir, tree->objects, error_message);
 
-        else if(deleted)
+        else if (deleted)
             rem_object(path, object_dir, tree->objects);
     }
 
@@ -153,7 +153,7 @@ static std::string build(
 }
 
 void version::create(std::filesystem::path lvc, std::string message, std::string author, std::string inserted_workspace, char** error_message) {
-    if(message.empty()) {
+    if (message.empty()) {
         error_message_creator("No version message recieved", error_message);
         return;
     }
@@ -167,13 +167,13 @@ void version::create(std::filesystem::path lvc, std::string message, std::string
     std::vector<std::string> status         = version::status(lvc, version_id, error_message);
 
     std::filesystem::path prepare_path = workspace_dir / NAME_LOCAL / workspace_name / NAME_PREPARE;
-    if(!std::filesystem::is_regular_file(prepare_path)) {
+    if (!std::filesystem::is_regular_file(prepare_path)) {
         error_message_creator("No files prepared", error_message);
         return;
     }
 
     std::string root_id;
-    if(!version_id.empty()) {
+    if (!version_id.empty()) {
         std::vector<std::string> version_content = io::content_lines(object_dir / version_id, 1, error_message);
         root_id                                  = version_content[VERSION_ROOT_TREE];
     }
@@ -182,32 +182,32 @@ void version::create(std::filesystem::path lvc, std::string message, std::string
 
     const std::string nl     = "\n";
     std::string       buffer = new_root_id + nl + message + nl + author;
-    if(!inserted_workspace.empty()) buffer += nl + inserted_workspace;
+    if (!inserted_workspace.empty()) buffer += nl + inserted_workspace;
 
     std::string id;
     object::create(object_dir, TYPE_VERSION, buffer, id, error_message);
     id += "\n";
 
     io::prefix_file_content(workspace, id.c_str(), id.size(), error_message);
-    if(*error_message) return;
+    if (*error_message) return;
 
     std::error_code error;
     bool            deleted = std::filesystem::remove(prepare_path, error);
-    if(!deleted || error) error_message_creator("Prepare reset failed", error_message);
+    if (!deleted || error) error_message_creator("Prepare reset failed", error_message);
 }
 
 void version::create_tmp(std::filesystem::path& lvc, std::filesystem::path& operation, char** error_message) {
-    std::filesystem::path working_dir   = lvc.parent_path();
-    std::filesystem::path object_dir    = operation / NAME_OBJECT;
+    std::filesystem::path working_dir = lvc.parent_path();
+    std::filesystem::path object_dir  = operation / NAME_OBJECT;
 
     std::filesystem::create_directories(object_dir);
 
     std::vector<std::string> status;
     try {
         std::filesystem::recursive_directory_iterator iterator(working_dir);
-        for(const std::filesystem::directory_entry& entry : iterator)
-            if(std::filesystem::is_regular_file(entry.path())) status.emplace_back(entry.path().lexically_relative(working_dir));
-    } catch(const std::filesystem::filesystem_error& error) {
+        for (const std::filesystem::directory_entry& entry : iterator)
+            if (std::filesystem::is_regular_file(entry.path())) status.emplace_back(entry.path().lexically_relative(working_dir));
+    } catch (const std::filesystem::filesystem_error& error) {
         error_message_creator("Directory iteration failure", error_message);
         return;
     }

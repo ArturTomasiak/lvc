@@ -3,7 +3,7 @@
 void operation::create_folder(const std::filesystem::path& operation_dir, operation::type type_enum, char** error_message) {
     io::dir(operation_dir, error_message);
     std::string type;
-    switch(type_enum) {
+    switch (type_enum) {
         case operation::type::sync:
             type = operation::filename_sync;
             break;

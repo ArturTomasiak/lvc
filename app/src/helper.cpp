@@ -3,13 +3,13 @@
 bool helper::find_repository(std::filesystem::path& out) {
     out = std::filesystem::current_path();
     std::filesystem::path previous;
-    while(true) {
+    while (true) {
         std::filesystem::path lvc = out / ".lvc";
-        if(out == previous) {
+        if (out == previous) {
             helper::error("Not in a valid lvc repository");
             return false;
         }
-        if(std::filesystem::is_directory(lvc)) {
+        if (std::filesystem::is_directory(lvc)) {
             out = std::move(lvc);
             return true;
         }

@@ -8,8 +8,8 @@ std::vector<object::info> workspace::all_objects(std::filesystem::path working_d
         std::filesystem::recursive_directory_iterator iterator(working_directory);
         std::filesystem::recursive_directory_iterator end;
 
-        for(const std::filesystem::directory_entry& entry = *iterator; iterator != end; iterator++) {
-            if(entry.is_directory() && entry.path().filename() == ".lvc") {
+        for (const std::filesystem::directory_entry& entry = *iterator; iterator != end; iterator++) {
+            if (entry.is_directory() && entry.path().filename() == ".lvc") {
                 iterator.disable_recursion_pending();
                 continue;
             }
@@ -27,7 +27,7 @@ std::vector<object::info> workspace::all_objects(std::filesystem::path working_d
             object.id = id;
             out.push_back(std::move(object));
         }
-    } catch(const std::filesystem::filesystem_error& error) {
+    } catch (const std::filesystem::filesystem_error& error) {
         error_message_creator("Directory iteration failure", error_message);
     }
 
