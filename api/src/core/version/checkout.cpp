@@ -9,7 +9,7 @@ std::vector<std::string> version::checkout(std::filesystem::path lvc, char** err
     std::vector<object::info> objects_version     = version::all_objects(lvc / NAME_OBJECT, version, {}, error_message);
     std::vector<object::info> objects_working_dir = workspace::all_objects(working_dir, error_message);
 
-    std::unordered_set<std::string_view> version_ids_and_paths;
+    std::unordered_set<std::string> version_ids_and_paths;
     version_ids_and_paths.reserve(objects_version.size());
     for (const object::info& object : objects_version) {
         version_ids_and_paths.emplace(object.id);

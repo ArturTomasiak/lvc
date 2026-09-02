@@ -83,9 +83,9 @@ void io::prefix_file_content(std::filesystem::path path, const char* content, si
     }
 }
 
-bool io::dir(std::filesystem::path lvc, char** error_message) {
+bool io::dir(std::filesystem::path path, char** error_message) {
     std::error_code error;
-    if (!std::filesystem::create_directory(lvc, error) || error)
+    if (!std::filesystem::create_directory(path, error) || error)
         return 0;
     return 1;
 }
