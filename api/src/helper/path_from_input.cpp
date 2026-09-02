@@ -7,7 +7,7 @@ struct ProcessedInput {
     std::vector<std::string> path_components;
 };
 
-static std::vector<ProcessedInput> process_input(const std::vector<std::string>& inputs, bool& all) {
+static std::vector<ProcessedInput> process_input(const std::vector<std::string>& inputs) {
     std::vector<ProcessedInput> result;
     result.reserve(inputs.size());
     std::string       component;
@@ -171,8 +171,7 @@ std::vector<std::string> path_from_input(
     if (!std::filesystem::is_directory(repository_root, error) || error)
         return {};
 
-    bool                        all       = false;
-    std::vector<ProcessedInput> processed = process_input(inputs, all);
+    std::vector<ProcessedInput> processed = process_input(inputs);
 
     std::vector<ProcessedInput> included;
     std::vector<ProcessedInput> excluded;

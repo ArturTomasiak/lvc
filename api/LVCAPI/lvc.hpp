@@ -11,7 +11,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#define LvcBool int8_t
+#define LVC_BOOL int8_t
 
 #ifdef TEST_PRINTS
 #include <iostream>
@@ -32,12 +32,15 @@
 #endif
 
 #ifdef __cplusplus
+#define LVC_NOEXCEPT noexcept
 extern "C" {
+#else
+#define LVC_NOEXCEPT
 #endif
 typedef enum { DISTRIBUTED = 1, HYBRID = 2, CENTRALIZED = 3 } StorageBehaviour;
 
 typedef struct {
-    LvcBool          local;
+    LVC_BOOL          local;
     StorageBehaviour storage_behaviour;
     const char*      location;
     const char*      server_link;
@@ -45,7 +48,7 @@ typedef struct {
     const char*      category_name;
     const char*      workspace_name;
     const char*      clone_repository;
-    bool             clone_versioning;
+    LVC_BOOL             clone_versioning;
 } LvcCreateInput;
 
 typedef struct {
@@ -72,39 +75,39 @@ typedef struct LvcVersion {
     char        id[65];
 } LvcVersion;
 
-LVC_API void  lvc_create(LvcCreateInput input, char** error_message) noexcept;
-LVC_API char* lvc_current(const char* lvc, char** error_message) noexcept;
+LVC_API void  lvc_create(LvcCreateInput input, char** error_message) LVC_NOEXCEPT;
+LVC_API char* lvc_current(const char* lvc, char** error_message) LVC_NOEXCEPT;
 LVC_API void
-lvc_workspace(const char* lvc, const char* category_name, const char* workspace_name, LvcBool clone_working, char** error_message) noexcept;
-LVC_API void        lvc_category(const char* lvc, const char* category_name, char** error_message) noexcept;
-LVC_API void        lvc_goto(const char* lvc, const char* workspace_name, char** error_message) noexcept;
-LVC_API void        lvc_default(const char* lvc, const char* workspace_name, char** error_message) noexcept;
-LVC_API char**      lvc_checkout(const char* lvc, char** error_message) noexcept;
-LVC_API char**      lvc_status(const char* lvc, char** error_message) noexcept;
-LVC_API char**      lvc_status_all(const char* lvc, char** error_message) noexcept;
-LVC_API char**      lvc_prepare(const char* lvc, int argc, char* argv[], char** error_message) noexcept;
-LVC_API void        lvc_prepare_reset(const char* lvc, char** error_message) noexcept;
-LVC_API void        lvc_version(const char* lvc, const char* message, const char* author, char** error_message) noexcept;
-LVC_API LvcVersion* lvc_history(const char* lvc, const char* workspace, size_t depth, size_t length, bool all, char** error_message) noexcept;
-LVC_API void        lvc_history_free(LvcVersion* version) noexcept;
-LVC_API void        lvc_conflict_manual(const char* lvc, LvcConflictArray* conflicts, char** error_message) noexcept;
-LVC_API void        lvc_conflict_manual_verify(const char* lvc, LvcConflictArray* conflicts, char** error_message) noexcept;
-LVC_API void        lvc_conflict_manual_sync(const char* lvc, LvcConflictArray* conflicts, char** error_message) noexcept;
-LVC_API void        lvc_sync(const char* lvc, const char* tmp_lvc, LvcConflictArray* conflicts, char** error_message) noexcept;
+lvc_workspace(const char* lvc, const char* category_name, const char* workspace_name, LVC_BOOL clone_working, char** error_message) LVC_NOEXCEPT;
+LVC_API void        lvc_category(const char* lvc, const char* category_name, char** error_message) LVC_NOEXCEPT;
+LVC_API void        lvc_goto(const char* lvc, const char* workspace_name, char** error_message) LVC_NOEXCEPT;
+LVC_API void        lvc_default(const char* lvc, const char* workspace_name, char** error_message) LVC_NOEXCEPT;
+LVC_API char**      lvc_checkout(const char* lvc, char** error_message) LVC_NOEXCEPT;
+LVC_API char**      lvc_status(const char* lvc, char** error_message) LVC_NOEXCEPT;
+LVC_API char**      lvc_status_all(const char* lvc, char** error_message) LVC_NOEXCEPT;
+LVC_API char**      lvc_prepare(const char* lvc, int argc, char* argv[], char** error_message) LVC_NOEXCEPT;
+LVC_API void        lvc_prepare_reset(const char* lvc, char** error_message) LVC_NOEXCEPT;
+LVC_API void        lvc_version(const char* lvc, const char* message, const char* author, char** error_message) LVC_NOEXCEPT;
+LVC_API LvcVersion* lvc_history(const char* lvc, const char* workspace, size_t depth, size_t length, LVC_BOOL all, char** error_message) LVC_NOEXCEPT;
+LVC_API void        lvc_history_free(LvcVersion* version) LVC_NOEXCEPT;
+LVC_API void        lvc_conflict_manual(const char* lvc, LvcConflictArray* conflicts, char** error_message) LVC_NOEXCEPT;
+LVC_API void        lvc_conflict_manual_verify(const char* lvc, LvcConflictArray* conflicts, char** error_message) LVC_NOEXCEPT;
+LVC_API void        lvc_conflict_manual_sync(const char* lvc, LvcConflictArray* conflicts, char** error_message) LVC_NOEXCEPT;
+LVC_API void        lvc_sync(const char* lvc, const char* tmp_lvc, LvcConflictArray* conflicts, char** error_message) LVC_NOEXCEPT;
 LVC_API void        lvc_unite(
-           const char* lvc, const char* src_workspace_name, const char* dest_workspace_name, LvcConflictArray* conflicts, char** error_message) noexcept;
+           const char* lvc, const char* src_workspace_name, const char* dest_workspace_name, LvcConflictArray* conflicts, char** error_message) LVC_NOEXCEPT;
 LVC_API void lvc_insert(
-    const char* lvc, const char* src_workspace_name, const char* dest_workspace_name, LvcConflictArray* conflicts, char** error_message) noexcept;
-LVC_API void lvc_revert(const char* lvc, char* version_id, size_t input_count, char** input, char** error_message) noexcept;
-LVC_API void lvc_push_local(const char* lvc, const char* tmp_lvc, char** error_message) noexcept;
-LVC_API void lvc_push_server(const char* lvc, char** error_message) noexcept;
-LVC_API void lvc_rename_category(const char* lvc, const char* category_name, const char* new_name, char** error_message) noexcept;
+    const char* lvc, const char* src_workspace_name, const char* dest_workspace_name, LvcConflictArray* conflicts, char** error_message) LVC_NOEXCEPT;
+LVC_API void lvc_revert(const char* lvc, char* version_id, size_t input_count, char** input, char** error_message) LVC_NOEXCEPT;
+LVC_API void lvc_push_local(const char* lvc, const char* tmp_lvc, char** error_message) LVC_NOEXCEPT;
+LVC_API void lvc_push_server(const char* lvc, char** error_message) LVC_NOEXCEPT;
+LVC_API void lvc_rename_category(const char* lvc, const char* category_name, const char* new_name, char** error_message) LVC_NOEXCEPT;
 LVC_API void
-lvc_move_workspace(const char* lvc, const char* workspace_name, const char* previous_category, const char* category, char** error_message) noexcept;
-LVC_API void    lvc_deactivate(const char* lvc, const char* workspace_name, char** error_message) noexcept;
-LVC_API LvcBool lvc_category_exists(const char* lvc, const char* name, char** error_message) noexcept;
-LVC_API LvcBool lvc_workspace_exists(const char* lvc, const char* name, char** error_message) noexcept;
-LVC_API void    lvc_free_charpp(char** arr) noexcept;
+lvc_move_workspace(const char* lvc, const char* workspace_name, const char* previous_category, const char* category, char** error_message) LVC_NOEXCEPT;
+LVC_API void    lvc_deactivate(const char* lvc, const char* workspace_name, char** error_message) LVC_NOEXCEPT;
+LVC_API LVC_BOOL lvc_category_exists(const char* lvc, const char* name, char** error_message) LVC_NOEXCEPT;
+LVC_API LVC_BOOL lvc_workspace_exists(const char* lvc, const char* name, char** error_message) LVC_NOEXCEPT;
+LVC_API void    lvc_free_charpp(char** arr) LVC_NOEXCEPT;
 #ifdef __cplusplus
 }
 #endif

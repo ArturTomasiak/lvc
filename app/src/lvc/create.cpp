@@ -45,7 +45,7 @@ static StorageBehaviour ask_storage() {
     }
 }
 
-static void ask_clone(std::string& clone, bool& clone_versioning) {
+static void ask_clone(std::string& clone, LVC_BOOL& clone_versioning) {
     clone = ask_line("Clone repository path/link (leave empty to start from scratch): ", 1);
     if (clone.empty())
         return;

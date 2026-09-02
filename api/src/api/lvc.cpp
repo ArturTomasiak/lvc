@@ -43,7 +43,7 @@ extern "C" LVC_API char* lvc_current(const char* lvc, char** error_message) noex
 }
 
 extern "C" LVC_API void
-lvc_workspace(const char* lvc, const char* category_name, const char* workspace_name, LvcBool clone_working, char** error_message) noexcept {
+lvc_workspace(const char* lvc, const char* category_name, const char* workspace_name, LVC_BOOL clone_working, char** error_message) noexcept {
     *error_message = 0;
     workspace::create(lvc, category_name, workspace_name, clone_working, error_message);
 }
@@ -110,7 +110,7 @@ extern "C" LVC_API void lvc_version(const char* lvc, const char* message, const 
 }
 
 extern "C" LVC_API LvcVersion*
-lvc_history(const char* lvc, const char* workspace, size_t depth, size_t length, bool all, char** error_message) noexcept {
+lvc_history(const char* lvc, const char* workspace, size_t depth, size_t length, LVC_BOOL all, char** error_message) noexcept {
     const std::filesystem::path lvc_dir       = lvc;
     const std::filesystem::path object_dir    = lvc_dir / NAME_OBJECT;
     const std::filesystem::path workspace_dir = lvc_dir / NAME_WORKSPACE;
@@ -198,13 +198,13 @@ LVC_API void lvc_deactivate(const char* lvc, const char* workspace_name, char** 
     workspace::deactivate(lvc, workspace_name, error_message);
 }
 
-extern "C" LVC_API LvcBool lvc_category_exists(const char* lvc, const char* name, char** error_message) noexcept {
+extern "C" LVC_API LVC_BOOL lvc_category_exists(const char* lvc, const char* name, char** error_message) noexcept {
     *error_message                 = 0;
     std::filesystem::path lvc_path = lvc;
     return category::exists(lvc_path / NAME_WORKSPACE, name);
 }
 
-extern "C" LVC_API LvcBool lvc_workspace_exists(const char* lvc, const char* name, char** error_message) noexcept {
+extern "C" LVC_API LVC_BOOL lvc_workspace_exists(const char* lvc, const char* name, char** error_message) noexcept {
     *error_message                 = 0;
     std::filesystem::path lvc_path = lvc;
     return workspace::exists(lvc_path / NAME_WORKSPACE, name, error_message);
