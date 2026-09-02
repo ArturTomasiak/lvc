@@ -4,10 +4,8 @@ void workspace::_goto(std::filesystem::path lvc, std::string workspace_name, cha
     std::string           current       = io::content(lvc / NAME_CURRENT, 0, error_message);
     std::filesystem::path workspace_dir = lvc / NAME_WORKSPACE;
     std::filesystem::path working_dir   = lvc.parent_path();
-
     if (!workspace::exists(workspace_dir, workspace_name, error_message)) {
-        std::string workspace_str = workspace_name;
-        error_message_creator("Workspace " + workspace_str + " doesn't exist", error_message);
+        error_message_creator("Workspace " + workspace_name + " doesn't exist", error_message);
     }
     if (*error_message)
         return;
