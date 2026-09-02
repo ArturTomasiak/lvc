@@ -56,7 +56,7 @@ std::vector<std::string> version::status(std::filesystem::path& lvc, std::string
     unmodified.reserve(status.size());
     std::vector<std::string> version_content = io::content_lines(object_dir / latest_version, 1, error_message);
     if (version_content.empty())
-        return {};
+        return status;
     get_unmodified(object_dir, working_dir, unmodified, status_set, version_content[VERSION_ROOT_TREE], "", error_message);
 
     std::erase_if(status, [&](const std::string& path) { return unmodified.contains(path); });
