@@ -27,7 +27,8 @@ struct Command {
 static bool (*command(std::string input))(int argc, char* argv[]) {
     Command commands[] = COMMANDS_ARRAY;
     for (const Command& cmd : commands)
-        if (input == cmd.name) return cmd.function;
+        if (input == cmd.name)
+            return cmd.function;
     helper::error("Invalid argument");
     return 0;
 }

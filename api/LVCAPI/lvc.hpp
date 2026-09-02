@@ -72,9 +72,10 @@ typedef struct LvcVersion {
     char        id[65];
 } LvcVersion;
 
-LVC_API void        lvc_create(LvcCreateInput input, char** error_message) noexcept;
-LVC_API char*       lvc_current(const char* lvc, char** error_message) noexcept;
-LVC_API void        lvc_workspace(const char* lvc, const char* category_name, const char* workspace_name, LvcBool clone_working, char** error_message) noexcept;
+LVC_API void  lvc_create(LvcCreateInput input, char** error_message) noexcept;
+LVC_API char* lvc_current(const char* lvc, char** error_message) noexcept;
+LVC_API void
+lvc_workspace(const char* lvc, const char* category_name, const char* workspace_name, LvcBool clone_working, char** error_message) noexcept;
 LVC_API void        lvc_category(const char* lvc, const char* category_name, char** error_message) noexcept;
 LVC_API void        lvc_goto(const char* lvc, const char* workspace_name, char** error_message) noexcept;
 LVC_API void        lvc_default(const char* lvc, const char* workspace_name, char** error_message) noexcept;
@@ -90,10 +91,10 @@ LVC_API void        lvc_conflict_manual(const char* lvc, LvcConflictArray* confl
 LVC_API void        lvc_conflict_manual_verify(const char* lvc, LvcConflictArray* conflicts, char** error_message) noexcept;
 LVC_API void        lvc_conflict_manual_sync(const char* lvc, LvcConflictArray* conflicts, char** error_message) noexcept;
 LVC_API void        lvc_sync(const char* lvc, const char* tmp_lvc, LvcConflictArray* conflicts, char** error_message) noexcept;
-LVC_API void
-lvc_unite(const char* lvc, const char* src_workspace_name, const char* dest_workspace_name, LvcConflictArray* conflicts, char** error_message) noexcept;
-LVC_API void
-lvc_insert(const char* lvc, const char* src_workspace_name, const char* dest_workspace_name, LvcConflictArray* conflicts, char** error_message) noexcept;
+LVC_API void        lvc_unite(
+           const char* lvc, const char* src_workspace_name, const char* dest_workspace_name, LvcConflictArray* conflicts, char** error_message) noexcept;
+LVC_API void lvc_insert(
+    const char* lvc, const char* src_workspace_name, const char* dest_workspace_name, LvcConflictArray* conflicts, char** error_message) noexcept;
 LVC_API void lvc_revert(const char* lvc, char* version_id, size_t input_count, char** input, char** error_message) noexcept;
 LVC_API void lvc_push_local(const char* lvc, const char* tmp_lvc, char** error_message) noexcept;
 LVC_API void lvc_push_server(const char* lvc, char** error_message) noexcept;

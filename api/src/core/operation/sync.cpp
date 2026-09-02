@@ -32,7 +32,8 @@ LvcConflict existing_file(const SyncArgs& args, char** error_message) { return {
 LvcConflict no_common(const SyncArgs& args, char** error_message) { return {}; }
 
 LvcConflict sync(const SyncArgs& args, char** error_message) {
-    if (args.src == nullptr && args.common == nullptr) return new_file(args, error_message);
+    if (args.src == nullptr && args.common == nullptr)
+        return new_file(args, error_message);
     if (args.src && args.common)
         return existing_file(args, error_message);
     else
@@ -76,7 +77,8 @@ LvcConflictArray operation::sync(const std::filesystem::path src_repository, con
         args.common = common_it != common.end() ? &common_it->second : nullptr;
 
         LvcConflict conflict = sync(args, error_message);
-        if (conflict.relative_path) insert_conflict(conflict, out, error_message);
+        if (conflict.relative_path)
+            insert_conflict(conflict, out, error_message);
     }
 
     // on success

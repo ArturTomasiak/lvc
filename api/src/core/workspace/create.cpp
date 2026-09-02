@@ -14,9 +14,11 @@ void workspace::create(std::filesystem::path lvc, std::string category_name, std
         error_message_creator("Workspace already exists", error_message);
         return;
     }
-    if (*error_message) return;
+    if (*error_message)
+        return;
     io::file(workspace_dir / category_name / workspace_name, std::ios::binary, error_message);
-    if (!clone_working || *error_message) return;
+    if (!clone_working || *error_message)
+        return;
     std::filesystem::path operation = workspace_dir / NAME_LOCAL / workspace_name;
     version::create_tmp(lvc, operation, error_message);
 }

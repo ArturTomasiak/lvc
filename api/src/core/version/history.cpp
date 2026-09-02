@@ -4,18 +4,22 @@ static LvcVersion* history(
     LvcVersion*& allocated, const std::filesystem::path& object_dir, const std::filesystem::path& workspace_dir, const std::string& workspace_name,
     size_t depth, size_t length, size_t& index, char** error_message) {
     std::filesystem::path workspace = workspace_path(workspace_dir, workspace_name);
-    if (!std::filesystem::exists(workspace)) return {};
+    if (!std::filesystem::exists(workspace))
+        return {};
     std::ifstream file(workspace, std::ios::binary);
-    if (!file.is_open()) return {};
+    if (!file.is_open())
+        return {};
 
     std::string line;
     LvcVersion* first_version = nullptr;
     LvcVersion* version       = nullptr;
     bool        first         = 1;
     while (std::getline(file, line)) {
-        if (index == length) return first_version;
+        if (index == length)
+            return first_version;
 
-        if (!line.empty() && line.back() == '\r') line.pop_back();
+        if (!line.empty() && line.back() == '\r')
+            line.pop_back();
 
         std::vector<std::string> version_content = io::content_lines(object_dir / line, 1, error_message);
 
@@ -60,9 +64,11 @@ static LvcVersion* history_all(
     LvcVersion*& allocated, const std::filesystem::path& object_dir, const std::filesystem::path& workspace_dir, const std::string& workspace_name,
     size_t& allocated_size, size_t& index, char** error_message) {
     std::filesystem::path workspace = workspace_path(workspace_dir, workspace_name);
-    if (!std::filesystem::exists(workspace)) return {};
+    if (!std::filesystem::exists(workspace))
+        return {};
     std::ifstream file(workspace, std::ios::binary);
-    if (!file.is_open()) return {};
+    if (!file.is_open())
+        return {};
 
     std::string line;
     LvcVersion* first_version = nullptr;
@@ -72,11 +78,13 @@ static LvcVersion* history_all(
         if (index == allocated_size) {
             allocated_size *= 2;
             LvcVersion* tmp = (LvcVersion*)realloc(allocated, allocated_size * sizeof(LvcVersion));
-            if (!tmp) return first_version;
+            if (!tmp)
+                return first_version;
             allocated = tmp;
         }
 
-        if (!line.empty() && line.back() == '\r') line.pop_back();
+        if (!line.empty() && line.back() == '\r')
+            line.pop_back();
 
         std::vector<std::string> version_content = io::content_lines(object_dir / line, 1, error_message);
 
@@ -120,13 +128,15 @@ LvcVersion* version::history_all(
 void history_free_descriptions(LvcVersion* version) {
     while (version) {
         free(version->description);
-        if (version->nested_versions) history_free_descriptions(version->nested_versions);
+        if (version->nested_versions)
+            history_free_descriptions(version->nested_versions);
         version = version->previous;
     }
 }
 
 void version::history_free(LvcVersion* version) {
-    if (!version) return;
+    if (!version)
+        return;
     history_free_descriptions(version);
     free(version);
 }

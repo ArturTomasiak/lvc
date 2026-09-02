@@ -2,7 +2,8 @@
 
 bool lvc::status(int argc, char* argv[]) {
     std::filesystem::path lvc;
-    if (!helper::find_repository(lvc)) return 0;
+    if (!helper::find_repository(lvc))
+        return 0;
 
     char** status;
 
@@ -15,7 +16,8 @@ bool lvc::status(int argc, char* argv[]) {
 
     if (status && *status) {
         std::cout << "Files prepared and changed since last version\n";
-        while (status && *status) std::cout << *status++ << "\n";
+        while (status && *status)
+            std::cout << *status++ << "\n";
         lvc_free_charpp(status_copy);
     } else
         std::cout << "No difference in prepared files since last version\n";

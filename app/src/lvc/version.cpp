@@ -7,10 +7,12 @@ bool lvc::version(int argc, char* argv[]) {
     }
 
     std::filesystem::path lvc;
-    if (!helper::find_repository(lvc)) return 0;
+    if (!helper::find_repository(lvc))
+        return 0;
 
     size_t allocate = 0;
-    for (size_t i = 2; i < argc; i++) allocate += strlen(argv[i]) + 1;
+    for (size_t i = 2; i < argc; i++)
+        allocate += strlen(argv[i]) + 1;
     char*  description = (char*)malloc(allocate);
     size_t counter     = 0;
     for (size_t i = 2; i < argc; i++) {
@@ -24,7 +26,8 @@ bool lvc::version(int argc, char* argv[]) {
 
     lvc_version(lvc.c_str(), description, "TODO", &error_message);
     free(description);
-    if (error_message) return 0;
+    if (error_message)
+        return 0;
     std::cout << "Successfully created version\n";
     return 1;
 }

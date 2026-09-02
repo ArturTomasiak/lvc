@@ -5,7 +5,8 @@ void workspace::deactivate(std::filesystem::path workspace_dir, const char* work
     std::filesystem::path newp = workspace_dir / NAME_INACTIVE / workspace_name;
     std::error_code       ec;
     std::filesystem::rename(oldp, newp, ec);
-    if (ec) error_message_creator("Failed to deactivate category", error_message);
+    if (ec)
+        error_message_creator("Failed to deactivate category", error_message);
 }
 
 void workspace::activate(std::filesystem::path workspace_dir, const char* workspace_name, const char* category_name, char** error_message) {
@@ -20,5 +21,6 @@ void workspace::activate(std::filesystem::path workspace_dir, const char* worksp
 
     std::error_code ec;
     std::filesystem::rename(oldp, newp, ec);
-    if (ec) error_message_creator("Failed to activate category", error_message);
+    if (ec)
+        error_message_creator("Failed to activate category", error_message);
 }

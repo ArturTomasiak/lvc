@@ -22,7 +22,8 @@ static LvcConflictArray combine_workspaces(
     return out;
 }
 
-void operation::unite(const std::filesystem::path& lvc, const char* src_workspace, const char* dest_workspace, const char* author, char** error_message) {
+void operation::unite(
+    const std::filesystem::path& lvc, const char* src_workspace, const char* dest_workspace, const char* author, char** error_message) {
     std::filesystem::path workspace_dir = lvc / NAME_WORKSPACE;
     if (workspace::is_inactive(src_workspace)) {
         error_message_creator(src_workspace + inactive_error_message, error_message);
@@ -38,7 +39,8 @@ void operation::unite(const std::filesystem::path& lvc, const char* src_workspac
     version::create(lvc, message.c_str(), author, "", error_message);
 }
 
-void operation::insert(const std::filesystem::path& lvc, const char* src_workspace, const char* dest_workspace, const char* author, char** error_message) {
+void operation::insert(
+    const std::filesystem::path& lvc, const char* src_workspace, const char* dest_workspace, const char* author, char** error_message) {
     std::filesystem::path workspace_dir = lvc / NAME_WORKSPACE;
     if (workspace::is_inactive(src_workspace)) {
         error_message_creator(src_workspace + inactive_error_message, error_message);

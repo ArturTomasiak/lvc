@@ -10,14 +10,16 @@ version::deleted_since(std::filesystem::path object_dir, std::filesystem::path w
 
     try {
         std::filesystem::recursive_directory_iterator iterator(working_directory);
-        for (const std::filesystem::directory_entry& entry : iterator) working_files.insert(entry.path().lexically_relative(working_directory));
+        for (const std::filesystem::directory_entry& entry : iterator)
+            working_files.insert(entry.path().lexically_relative(working_directory));
     } catch (const std::filesystem::filesystem_error& error) {
         error_message_creator("Directory iteration failure", error_message);
         return {};
     }
 
     for (const object::info& object : version)
-        if (!object.path.empty() && !working_files.contains(object.path)) out.push_back(object.path);
+        if (!object.path.empty() && !working_files.contains(object.path))
+            out.push_back(object.path);
 
     return out;
 }

@@ -19,16 +19,20 @@ static void get_all_paths(
         object.id        = object.id.substr(0, position);
         object.path      = current / name;
 
-        if (type == TYPE_TREE) get_all_paths(object_folder, out, object.id, object.path, ignore, error_message);
-        if (!ignore.contains(object.path.string())) out.push_back(object);
+        if (type == TYPE_TREE)
+            get_all_paths(object_folder, out, object.id, object.path, ignore, error_message);
+        if (!ignore.contains(object.path.string()))
+            out.push_back(object);
     }
 }
 
 std::vector<object::info>
 version::all_objects(std::filesystem::path object_dir, std::string id, std::unordered_set<std::string_view> ignore, char** error_message) {
-    if (id.empty()) return {};
+    if (id.empty())
+        return {};
     std::vector<std::string> version_content = io::content_lines(object_dir / id, 1, error_message);
-    if (version_content.empty()) return {};
+    if (version_content.empty())
+        return {};
     std::vector<object::info> out;
     out.reserve(PREALLOCATE);
     get_all_paths(object_dir, out, version_content[VERSION_ROOT_TREE], "", ignore, error_message);
@@ -54,16 +58,20 @@ static void map_get_all_paths(
         object.id        = object.id.substr(0, position);
         object.path      = current / name;
 
-        if (type == TYPE_TREE) map_get_all_paths(object_folder, out, object.id, object.path, ignore, error_message);
-        if (!ignore.contains(object.path.string())) out.insert({object.path, object});
+        if (type == TYPE_TREE)
+            map_get_all_paths(object_folder, out, object.id, object.path, ignore, error_message);
+        if (!ignore.contains(object.path.string()))
+            out.insert({object.path, object});
     }
 }
 
 std::unordered_map<std::filesystem::path, object::info>
 version::map_all_objects(std::filesystem::path object_dir, std::string id, std::unordered_set<std::string_view> ignore, char** error_message) {
-    if (id.empty()) return {};
+    if (id.empty())
+        return {};
     std::vector<std::string> version_content = io::content_lines(object_dir / id, 1, error_message);
-    if (version_content.empty()) return {};
+    if (version_content.empty())
+        return {};
     std::unordered_map<std::filesystem::path, object::info> out;
     out.reserve(PREALLOCATE);
     map_get_all_paths(object_dir, out, version_content[VERSION_ROOT_TREE], "", ignore, error_message);

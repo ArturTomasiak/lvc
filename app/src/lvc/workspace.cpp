@@ -2,7 +2,8 @@
 
 bool lvc::workspace(int argc, char* argv[]) {
     std::filesystem::path lvc;
-    if (!helper::find_repository(lvc)) return 0;
+    if (!helper::find_repository(lvc))
+        return 0;
     bool clone_working = 0;
 
     if (argc < 3) {
@@ -23,7 +24,8 @@ bool lvc::workspace(int argc, char* argv[]) {
     }
 
     lvc_workspace(lvc.c_str(), argv[2], argv[3], clone_working, &error_message);
-    if (error_message) return 0;
+    if (error_message)
+        return 0;
 
     std::cout << "Successfully created workspace " << argv[3] << '\n';
     return 1;

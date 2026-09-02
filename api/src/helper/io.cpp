@@ -85,22 +85,26 @@ void io::prefix_file_content(std::filesystem::path path, const char* content, si
 
 bool io::dir(std::filesystem::path lvc, char** error_message) {
     std::error_code error;
-    if (!std::filesystem::create_directory(lvc, error) || error) return 0;
+    if (!std::filesystem::create_directory(lvc, error) || error)
+        return 0;
     return 1;
 }
 
 std::string io::content(std::filesystem::path file_path, bool decompress, char** error_message) {
     std::ifstream file(file_path, std::ios::binary);
     std::string   out;
-    if (!file) return out;
+    if (!file)
+        return out;
     std::ostringstream buffer;
     buffer << file.rdbuf();
-    if (!file.eof() && file.fail()) return out;
+    if (!file.eof() && file.fail())
+        return out;
 
     if (decompress) {
         size_t inflated_len;
         char*  inflated = inflate(buffer.str(), inflated_len);
-        if (inflated) out.assign(inflated, inflated_len);
+        if (inflated)
+            out.assign(inflated, inflated_len);
     } else
         out = buffer.str();
 
@@ -112,7 +116,8 @@ static std::vector<std::string> stream_to_lines(std::istream& stream) {
     result.reserve(PREALLOCATE_SMALL);
     std::string line;
     while (std::getline(stream, line)) {
-        if (!line.empty() && line.back() == '\r') line.pop_back();
+        if (!line.empty() && line.back() == '\r')
+            line.pop_back();
         result.push_back(line);
     }
     return result;
@@ -122,25 +127,30 @@ std::string io::content_first_line(std::filesystem::path file_path, char** error
     std::string result;
 
     std::ifstream file(file_path, std::ios::binary);
-    if (!file.is_open()) return result;
+    if (!file.is_open())
+        return result;
 
     std::getline(file, result);
-    if (!result.empty() && result.back() == '\r') result.pop_back();
+    if (!result.empty() && result.back() == '\r')
+        result.pop_back();
     return result;
 }
 
 std::vector<std::string> io::content_lines(std::filesystem::path file_path, bool decompress, char** error_message) {
-    if (!std::filesystem::exists(file_path)) return {};
+    if (!std::filesystem::exists(file_path))
+        return {};
     if (decompress) {
         std::string decompressed = io::content(file_path, decompress, error_message);
-        if (decompressed.empty()) return {};
+        if (decompressed.empty())
+            return {};
 
         std::istringstream stream(std::move(decompressed));
 
         return stream_to_lines(stream);
     } else {
         std::ifstream file(file_path, std::ios::binary);
-        if (!file.is_open()) return {};
+        if (!file.is_open())
+            return {};
 
         return stream_to_lines(file);
     }

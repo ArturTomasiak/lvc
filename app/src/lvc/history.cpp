@@ -8,7 +8,8 @@
 static void print_history(LvcVersion* version, std::string prefix = "") {
     while (version) {
         std::cout << prefix << version->id << " " << version->description << "\n";
-        if (version->nested_versions) print_history(version->nested_versions, prefix + "   ");
+        if (version->nested_versions)
+            print_history(version->nested_versions, prefix + "   ");
         version = version->previous;
     }
 }
@@ -20,7 +21,8 @@ bool lvc::history(int argc, char* argv[]) {
     }
 
     std::filesystem::path lvc;
-    if (!helper::find_repository(lvc)) return 0;
+    if (!helper::find_repository(lvc))
+        return 0;
 
     bool   all    = 0;
     size_t depth  = 1;

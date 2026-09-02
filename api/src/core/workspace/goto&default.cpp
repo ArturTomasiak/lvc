@@ -9,7 +9,8 @@ void workspace::_goto(std::filesystem::path lvc, std::string workspace_name, cha
         std::string workspace_str = workspace_name;
         error_message_creator("Workspace " + workspace_str + " doesn't exist", error_message);
     }
-    if (*error_message) return;
+    if (*error_message)
+        return;
     std::filesystem::path src_operation  = workspace_dir / NAME_LOCAL / current / NAME_OPERATION;
     std::filesystem::path dest_operation = workspace_dir / NAME_LOCAL / workspace_name / NAME_OPERATION;
 
@@ -33,9 +34,11 @@ void workspace::_goto(std::filesystem::path lvc, std::string workspace_name, cha
     std::vector<std::string>             ignore     = path_from_input(working_dir, ignore_raw, version_id, 0, error_message);
     std::unordered_set<std::string_view> ignore_set;
     ignore_set.reserve(ignore.size());
-    for (const std::string& entry : ignore) ignore_set.insert(entry);
+    for (const std::string& entry : ignore)
+        ignore_set.insert(entry);
 
-    if (*error_message) return;
+    if (*error_message)
+        return;
 
     std::vector<std::filesystem::path> remove_paths;
 
@@ -60,11 +63,9 @@ void workspace::_goto(std::filesystem::path lvc, std::string workspace_name, cha
         return;
     }
 
-    std::sort(remove_paths.begin(), remove_paths.end(), 
-    [](const std::filesystem::path& a, const std::filesystem::path& b) {
-            return std::distance(a.begin(), a.end()) >
-                   std::distance(b.begin(), b.end());
-        });
+    std::sort(remove_paths.begin(), remove_paths.end(), [](const std::filesystem::path& a, const std::filesystem::path& b) {
+        return std::distance(a.begin(), a.end()) > std::distance(b.begin(), b.end());
+    });
 
     for (const std::filesystem::path& path : remove_paths)
         if (std::filesystem::is_regular_file(path) || std::filesystem::is_empty(path))
@@ -77,8 +78,7 @@ void workspace::_goto(std::filesystem::path lvc, std::string workspace_name, cha
             std::string buffer = io::content(object_dir / object.id, 1, error_message);
             size_t      pos    = buffer.find('\n');
             io::file(working_dir / path, std::ios::binary, buffer.data() + pos + 1, buffer.size() - pos - 1, 0, error_message);
-        }
-        else
+        } else
             std::filesystem::create_directories(path);
     }
 
@@ -92,7 +92,8 @@ void workspace::_default(std::filesystem::path lvc, const char* workspace_name, 
         std::string workspace_str = workspace_name;
         error_message_creator("Workspace " + workspace_str + " doesn't exist", error_message);
     }
-    if (*error_message) return;
+    if (*error_message)
+        return;
 
     if (workspace::is_inactive(workspace_dir, workspace_name)) {
         error_message_creator("Cannot make inactive workspace default", error_message);

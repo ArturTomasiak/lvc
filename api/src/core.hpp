@@ -43,13 +43,14 @@ namespace version {
     std::vector<std::string> status_all(std::filesystem::path lvc, char** error_message);
 
     LvcVersion* history(
-        const std::filesystem::path object_dir, const std::filesystem::path workspace_dir, const std::string workspace_name, size_t depth, size_t length,
-        char** error_message);
-    LvcVersion*
-         history_all(const std::filesystem::path object_dir, const std::filesystem::path workspace_dir, const std::string workspace_name, char** error_message);
+        const std::filesystem::path object_dir, const std::filesystem::path workspace_dir, const std::string workspace_name, size_t depth,
+        size_t length, char** error_message);
+    LvcVersion* history_all(
+        const std::filesystem::path object_dir, const std::filesystem::path workspace_dir, const std::string workspace_name, char** error_message);
     void history_free(LvcVersion* version);
 
-    std::vector<object::info> all_objects(std::filesystem::path object_dir, std::string id, std::unordered_set<std::string_view> ignore, char** error_message);
+    std::vector<object::info>
+    all_objects(std::filesystem::path object_dir, std::string id, std::unordered_set<std::string_view> ignore, char** error_message);
     std::unordered_map<std::filesystem::path, object::info>
     map_all_objects(std::filesystem::path object_dir, std::string id, std::unordered_set<std::string_view> ignore, char** error_message);
     std::vector<std::filesystem::path>
@@ -65,8 +66,8 @@ namespace workspace {
     void _goto(std::filesystem::path lvc, std::string workspace_name, char** error_message);
     void _default(std::filesystem::path lvc, const char* workspace_name, char** error_message);
 
-    void
-    move_categories(std::filesystem::path workspace_dir, const char* workspace_name, const char* previous_category, const char* category, char** error_message);
+    void move_categories(
+        std::filesystem::path workspace_dir, const char* workspace_name, const char* previous_category, const char* category, char** error_message);
     void activate(std::filesystem::path workspace_dir, const char* workspace_name, const char* category_name, char** error_message);
     void deactivate(std::filesystem::path workspace_dir, const char* workspace_name, char** error_message);
 
@@ -83,14 +84,16 @@ namespace operation {
     void             create_folder(const std::filesystem::path& operation_dir, operation::type type, char** error_message);
     operation::type  ongoing(const std::filesystem::path& operation_dir, char** error_message);
     LvcConflictArray sync(const std::filesystem::path src_repository, const std::filesystem::path dest_repository, char** error_message);
-    void             insert(const std::filesystem::path& lvc, const char* src_workspace, const char* dest_workspace, const char* author, char** error_message);
-    void             unite(const std::filesystem::path& lvc, const char* src_workspace, const char* dest_workspace, const char* author, char** error_message);
-    void             push(const std::filesystem::path& src_repository, const std::filesystem::path& dest_repository, char** error_message);
+    void insert(const std::filesystem::path& lvc, const char* src_workspace, const char* dest_workspace, const char* author, char** error_message);
+    void unite(const std::filesystem::path& lvc, const char* src_workspace, const char* dest_workspace, const char* author, char** error_message);
+    void push(const std::filesystem::path& src_repository, const std::filesystem::path& dest_repository, char** error_message);
 }
 
 inline void free_charpp(char** arr) {
-    if (!arr) return;
-    for (size_t i = 0; arr[i]; i++) free(arr[i]);
+    if (!arr)
+        return;
+    for (size_t i = 0; arr[i]; i++)
+        free(arr[i]);
     free(arr);
 }
 
@@ -115,13 +118,15 @@ inline char** strvector_to_charpp(const std::vector<std::string>& vector) {
 
 inline size_t charplen(const char* str) {
     size_t len = 0;
-    while (*str++) len++;
+    while (*str++)
+        len++;
     return len;
 }
 
 inline bool charpcmp(const char* str1, const char* str2) {
     while (*str1 && *str2)
-        if (*str1++ != *str2++) return 0;
+        if (*str1++ != *str2++)
+            return 0;
     return *str1 == *str2;
 }
 

@@ -20,7 +20,8 @@ std::vector<std::string> version::checkout(std::filesystem::path lvc, char** err
     result.reserve(objects_working_dir.size());
 
     for (const object::info& object : objects_working_dir) {
-        if (!version_ids_and_paths.contains(object.id) || !version_ids_and_paths.contains(object.path.string())) result.push_back(std::move(object.path));
+        if (!version_ids_and_paths.contains(object.id) || !version_ids_and_paths.contains(object.path.string()))
+            result.push_back(std::move(object.path));
     }
 
     return result;
