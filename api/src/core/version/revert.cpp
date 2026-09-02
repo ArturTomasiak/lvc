@@ -35,9 +35,9 @@ void version::revert(std::filesystem::path lvc, std::string version_id, std::vec
 
     std::erase_if(objects, [&input_set](const object::info& entry) { return !input_set.contains(entry.path.string()); });
 
-    std::unordered_set<std::string_view> objects_set;
+    std::unordered_set<std::string> objects_set;
     objects_set.reserve(input.size());
-    for (const object::info& entry : objects) objects_set.insert(entry.path.string());
+    for (const object::info& entry : objects) objects_set.insert(entry.path);
 
     try {
         std::filesystem::recursive_directory_iterator iterator(working_dir);
@@ -52,7 +52,6 @@ void version::revert(std::filesystem::path lvc, std::string version_id, std::vec
     }
 
     for (object::info& object : objects) {
-        std::filesystem::create_directories(object.path);
         if (object.type == object::type::blob) {
             std::string buffer = io::content(object_dir / object.id, 1, error_message);
             size_t      pos    = buffer.find('\n');

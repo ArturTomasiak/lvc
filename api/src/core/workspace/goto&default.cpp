@@ -35,24 +35,51 @@ void workspace::_goto(std::filesystem::path lvc, std::string workspace_name, cha
     ignore_set.reserve(ignore.size());
     for (const std::string& entry : ignore) ignore_set.insert(entry);
 
+    if (*error_message) return;
+
+    std::vector<std::filesystem::path> remove_paths;
+
     try {
         std::filesystem::recursive_directory_iterator iterator(working_dir);
         for (const std::filesystem::directory_entry& entry : iterator) {
+            if (entry.is_directory() && entry.path().filename() == ".lvc") {
+                iterator.disable_recursion_pending();
+                continue;
+            }
             std::filesystem::path relative = entry.path().lexically_relative(working_dir);
-            if (!ignore_set.contains(relative.string())) std::filesystem::remove_all(entry.path());
+            if (ignore_set.contains(relative.string())) {
+                if (entry.is_directory())
+                    iterator.disable_recursion_pending();
+
+                continue;
+            }
+            remove_paths.push_back(entry.path());
         }
     } catch (const std::filesystem::filesystem_error& error) {
         error_message_creator("Directory iteration failure", error_message);
         return;
     }
 
+    std::sort(remove_paths.begin(), remove_paths.end(), 
+    [](const std::filesystem::path& a, const std::filesystem::path& b) {
+            return std::distance(a.begin(), a.end()) >
+                   std::distance(b.begin(), b.end());
+        });
+
+    for (const std::filesystem::path& path : remove_paths)
+        if (std::filesystem::is_regular_file(path) || std::filesystem::is_empty(path))
+            std::filesystem::remove(path);
+
     for (object::info& object : objects) {
-        std::filesystem::create_directories(object.path);
+        std::filesystem::path path = working_dir / object.path;
+        std::filesystem::create_directories(path.parent_path());
         if (object.type == object::type::blob) {
             std::string buffer = io::content(object_dir / object.id, 1, error_message);
             size_t      pos    = buffer.find('\n');
-            io::file(working_dir / object.path, std::ios::binary, buffer.data() + pos + 1, buffer.size() - pos - 1, 0, error_message);
+            io::file(working_dir / path, std::ios::binary, buffer.data() + pos + 1, buffer.size() - pos - 1, 0, error_message);
         }
+        else
+            std::filesystem::create_directories(path);
     }
 
     io::file(lvc / NAME_CURRENT, std::ios::binary, workspace_name.c_str(), workspace_name.size(), 0, error_message);
