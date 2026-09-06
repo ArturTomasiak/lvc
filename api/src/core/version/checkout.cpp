@@ -4,9 +4,10 @@ std::vector<std::string> version::checkout(std::filesystem::path lvc, char** err
     std::string           workspace_name = io::content(lvc / NAME_CURRENT, 0, error_message);
     std::filesystem::path workspace      = workspace_path(lvc / NAME_WORKSPACE, workspace_name);
     std::filesystem::path working_dir    = lvc.parent_path();
+    std::filesystem::path object_dir = lvc / NAME_OBJECT;
     std::string           version        = io::content_first_line(workspace, error_message);
 
-    std::vector<object::info> objects_version     = version::all_objects(lvc / NAME_OBJECT, version, {}, error_message);
+    std::vector<object::info> objects_version     = version::all_objects(object_dir, version, {}, error_message);
     std::vector<object::info> objects_working_dir = workspace::all_objects(working_dir, error_message);
 
     std::unordered_set<std::string> version_ids_and_paths;

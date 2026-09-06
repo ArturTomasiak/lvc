@@ -1,5 +1,22 @@
 #include <core.hpp>
 
+static bool changed_since_ver(std::filesystem::path& object_dir, std::filesystem::path& working_dir, std::string& version, char** error_message) {
+    std::vector<object::info> objects_version     = version::all_objects(object_dir, version, {}, error_message);
+    std::vector<object::info> objects_working_dir = workspace::all_objects(working_dir, error_message);
+
+    std::unordered_set<std::string> version_ids_and_paths;
+    version_ids_and_paths.reserve(objects_version.size());
+    for (const object::info& object : objects_version) {
+        version_ids_and_paths.emplace(object.id);
+        version_ids_and_paths.emplace(object.path.string());
+    }
+
+    for (const object::info& object : objects_working_dir)
+        if (!version_ids_and_paths.contains(object.id) || !version_ids_and_paths.contains(object.path.string()))
+            return true;
+    return false;
+}
+
 void workspace::_goto(std::filesystem::path lvc, std::string workspace_name, char** error_message) {
     std::string           current       = io::content(lvc / NAME_CURRENT, 0, error_message);
     std::filesystem::path workspace_dir = lvc / NAME_WORKSPACE;
@@ -13,6 +30,7 @@ void workspace::_goto(std::filesystem::path lvc, std::string workspace_name, cha
     std::filesystem::path src_operation  = workspace_dir / NAME_LOCAL / current / NAME_OPERATION;
     std::filesystem::path dest_operation = workspace_dir / NAME_LOCAL / workspace_name / NAME_OPERATION;
 
+    
     version::create_tmp(lvc, src_operation, error_message);
 
     std::string               version_id;
@@ -82,22 +100,4 @@ void workspace::_goto(std::filesystem::path lvc, std::string workspace_name, cha
     }
 
     io::file(lvc / NAME_CURRENT, std::ios::binary, workspace_name.c_str(), workspace_name.size(), 0, error_message);
-}
-
-void workspace::_default(std::filesystem::path lvc, const char* workspace_name, char** error_message) {
-    std::filesystem::path workspace_dir = lvc / NAME_WORKSPACE;
-
-    if (!workspace::exists(workspace_dir, workspace_name, error_message)) {
-        std::string workspace_str = workspace_name;
-        error_message_creator("Workspace " + workspace_str + " doesn't exist", error_message);
-    }
-    if (*error_message)
-        return;
-
-    if (workspace::is_inactive(workspace_dir, workspace_name)) {
-        error_message_creator("Cannot make inactive workspace default", error_message);
-        return;
-    }
-
-    io::file(lvc / NAME_DEFAULT, std::ios::binary, workspace_name, charplen(workspace_name), 0, error_message);
 }

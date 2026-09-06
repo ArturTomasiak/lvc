@@ -214,9 +214,13 @@ void version::create_tmp(std::filesystem::path& lvc, std::filesystem::path& oper
     std::vector<std::string> status;
     try {
         std::filesystem::recursive_directory_iterator iterator(working_dir);
-        for (const std::filesystem::directory_entry& entry : iterator)
-            if (std::filesystem::is_regular_file(entry.path()))
-                status.emplace_back(entry.path().lexically_relative(working_dir));
+        for (const std::filesystem::directory_entry& entry : iterator) {
+            if (entry.is_directory() && entry.path().filename() == ".lvc") {
+                iterator.disable_recursion_pending();
+                continue;
+            }
+            status.emplace_back(entry.path().lexically_relative(working_dir));
+        }
     } catch (const std::filesystem::filesystem_error& error) {
         error_message_creator("Directory iteration failure", error_message);
         return;
@@ -230,6 +234,5 @@ void version::create_tmp(std::filesystem::path& lvc, std::filesystem::path& oper
 
     std::string id;
     object::create(object_dir, TYPE_VERSION, buffer, id, error_message);
-    id += "\n";
     io::file(operation / NAME_TMP, std::ios::binary, id.data(), id.size(), 0, error_message);
 }

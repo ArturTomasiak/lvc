@@ -27,7 +27,7 @@ static void get_all_paths(
 }
 
 std::vector<object::info>
-version::all_objects(std::filesystem::path object_dir, std::string id, std::unordered_set<std::string_view> ignore, char** error_message) {
+version::all_objects(const std::filesystem::path& object_dir, const std::string& id, std::unordered_set<std::string_view> ignore, char** error_message) {
     if (id.empty())
         return {};
     std::vector<std::string> version_content = io::content_lines(object_dir / id, 1, error_message);
@@ -66,7 +66,7 @@ static void map_get_all_paths(
 }
 
 std::unordered_map<std::filesystem::path, object::info>
-version::map_all_objects(std::filesystem::path object_dir, std::string id, std::unordered_set<std::string_view> ignore, char** error_message) {
+version::map_all_objects(const std::filesystem::path& object_dir, const std::string& id, std::unordered_set<std::string_view> ignore, char** error_message) {
     if (id.empty())
         return {};
     std::vector<std::string> version_content = io::content_lines(object_dir / id, 1, error_message);

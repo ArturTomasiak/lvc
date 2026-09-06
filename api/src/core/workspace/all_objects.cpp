@@ -1,6 +1,6 @@
 #include <core.hpp>
 
-std::vector<object::info> workspace::all_objects(std::filesystem::path working_directory, char** error_message) {
+std::vector<object::info> workspace::all_objects(const std::filesystem::path& working_directory, char** error_message) {
     std::vector<object::info> out;
     out.reserve(PREALLOCATE);
 

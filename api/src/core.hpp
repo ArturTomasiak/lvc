@@ -50,9 +50,9 @@ namespace version {
     void history_free(LvcVersion* version);
 
     std::vector<object::info>
-    all_objects(std::filesystem::path object_dir, std::string id, std::unordered_set<std::string_view> ignore, char** error_message);
+    all_objects(const std::filesystem::path& object_dir, const std::string& id, std::unordered_set<std::string_view> ignore, char** error_message);
     std::unordered_map<std::filesystem::path, object::info>
-    map_all_objects(std::filesystem::path object_dir, std::string id, std::unordered_set<std::string_view> ignore, char** error_message);
+    map_all_objects(const std::filesystem::path& object_dir, const std::string& id, std::unordered_set<std::string_view> ignore, char** error_message);
     std::vector<std::filesystem::path>
     deleted_since(std::filesystem::path object_dir, std::filesystem::path working_directory, std::string id, char** error_message);
 }
@@ -71,7 +71,7 @@ namespace workspace {
     void activate(std::filesystem::path workspace_dir, const char* workspace_name, const char* category_name, char** error_message);
     void deactivate(std::filesystem::path workspace_dir, const char* workspace_name, char** error_message);
 
-    std::vector<object::info> all_objects(std::filesystem::path working_directory, char** error_message);
+    std::vector<object::info> all_objects(const std::filesystem::path& working_directory, char** error_message);
 }
 
 namespace operation {
