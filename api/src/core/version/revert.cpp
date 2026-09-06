@@ -4,16 +4,14 @@
 // directory to the state of the version_id. Does not touch files specified by
 // lvc.ignore.
 
-void version::revert(std::filesystem::path lvc, std::string version_id, std::vector<std::string>& input_raw, char** error_message) {
-    std::filesystem::path working_dir = lvc.parent_path();
-    std::filesystem::path object_dir  = lvc / NAME_OBJECT;
-    if (!std::filesystem::is_regular_file(object_dir / version_id)) {
+void version::revert(Paths& paths, std::string version_id, std::vector<std::string>& input_raw, char** error_message) {
+    if (!std::filesystem::is_regular_file(paths.object / version_id)) {
         error_message_creator("Invalid version ID " + version_id, error_message);
         return;
     }
 
-    std::vector<std::string> ignore_raw = io::content_lines(working_dir / NAME_IGNORE, 0, error_message);
-    std::vector<std::string> ignore     = path_from_input(working_dir, ignore_raw, version_id, 0, error_message);
+    std::vector<std::string> ignore_raw = io::content_lines(paths.ignore, 0, error_message);
+    std::vector<std::string> ignore     = path_from_input(paths.root, ignore_raw, version_id, 0, error_message);
     if (*error_message)
         return;
 
@@ -22,12 +20,12 @@ void version::revert(std::filesystem::path lvc, std::string version_id, std::vec
     for (const std::string& entry : ignore)
         ignore_set.insert(entry);
 
-    std::vector<object::info> objects = version::all_objects(object_dir, version_id, ignore_set, error_message);
+    std::vector<object::info> objects = version::all_objects(paths.object, version_id, ignore_set, error_message);
 
     if (input_raw.empty())
         input_raw.push_back("/");
 
-    std::vector<std::string> input = path_from_input(working_dir, input_raw, version_id, 0, error_message);
+    std::vector<std::string> input = path_from_input(paths.object, input_raw, version_id, 0, error_message);
     if (*error_message)
         return;
 
@@ -39,7 +37,8 @@ void version::revert(std::filesystem::path lvc, std::string version_id, std::vec
     for (const std::string& entry : ignore)
         input_set.erase(entry);
 
-    std::erase_if(objects, [&input_set](const object::info& entry) { return !input_set.contains(entry.path.string()); });
+    std::erase_if(
+        objects, [&input_set](const object::info& entry) { return !input_set.contains(entry.path.string()); });
 
     std::unordered_set<std::string> objects_set;
     objects_set.reserve(input.size());
@@ -47,9 +46,9 @@ void version::revert(std::filesystem::path lvc, std::string version_id, std::vec
         objects_set.insert(entry.path);
 
     try {
-        std::filesystem::recursive_directory_iterator iterator(working_dir);
+        std::filesystem::recursive_directory_iterator iterator(paths.root);
         for (const std::filesystem::directory_entry& entry : iterator) {
-            std::filesystem::path relative = entry.path().lexically_relative(working_dir);
+            std::filesystem::path relative = entry.path().lexically_relative(paths.root);
             if (!input_set.contains(relative.string()))
                 continue;
             if (!objects_set.contains(relative.string()))
@@ -62,9 +61,11 @@ void version::revert(std::filesystem::path lvc, std::string version_id, std::vec
 
     for (object::info& object : objects) {
         if (object.type == object::type::blob) {
-            std::string buffer = io::content(object_dir / object.id, 1, error_message);
+            std::string buffer = io::content(paths.object / object.id, 1, error_message);
             size_t      pos    = buffer.find('\n');
-            io::file(working_dir / object.path, std::ios::binary, buffer.data() + pos + 1, buffer.size() - pos - 1, 0, error_message);
+            io::file(
+                paths.root / object.path, std::ios::binary, buffer.data() + pos + 1, buffer.size() - pos - 1, 0,
+                error_message);
         }
     }
 }

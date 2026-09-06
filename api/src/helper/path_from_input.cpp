@@ -70,8 +70,9 @@ static bool match_glob(std::string_view pattern, std::string_view text) {
     return pattern_pos == pattern.size();
 }
 
-static bool
-matches_target(const ProcessedInput& rule, const std::vector<std::string>& target, size_t target_component_count, bool target_is_directory) {
+static bool matches_target(
+    const ProcessedInput& rule, const std::vector<std::string>& target, size_t target_component_count,
+    bool target_is_directory) {
     const size_t pattern_count = rule.path_components.size();
     if (pattern_count == 0) {
         return target_is_directory && target_component_count == 0;
@@ -105,20 +106,22 @@ static bool rule_selects_file(const ProcessedInput& rule, const std::vector<std:
 }
 
 static void iterate(
-    const std::filesystem::path& relative_path, std::vector<std::string>& result, const std::vector<ProcessedInput>& included,
-    const std::vector<ProcessedInput>& excluded, bool prefix_deleted) {
+    const std::filesystem::path& relative_path, std::vector<std::string>& result,
+    const std::vector<ProcessedInput>& included, const std::vector<ProcessedInput>& excluded, bool prefix_deleted) {
     std::vector<std::string> components;
     components.reserve(PREALLOCATE_SMALL);
 
     for (const std::filesystem::path& component : relative_path)
         components.push_back(component.generic_string());
 
-    const bool included_match =
-        std::any_of(included.begin(), included.end(), [&](const ProcessedInput& rule) { return rule_selects_file(rule, components); });
+    const bool included_match = std::any_of(included.begin(), included.end(), [&](const ProcessedInput& rule) {
+        return rule_selects_file(rule, components);
+    });
 
     if (included_match) {
-        bool excluded_match =
-            std::any_of(excluded.begin(), excluded.end(), [&](const ProcessedInput& rule) { return rule_selects_file(rule, components); });
+        bool excluded_match = std::any_of(excluded.begin(), excluded.end(), [&](const ProcessedInput& rule) {
+            return rule_selects_file(rule, components);
+        });
 
         if (!excluded_match) {
             std::string out;
@@ -131,7 +134,7 @@ static void iterate(
 }
 
 static std::vector<std::string> path_from_processed_input(
-    std::filesystem::path repository_root, const std::vector<ProcessedInput>& included, const std::vector<ProcessedInput>& excluded,
+    Paths& paths, const std::vector<ProcessedInput>& included, const std::vector<ProcessedInput>& excluded,
     const std::string& version_id, bool prefix_deleted, char** error_message) {
     std::vector<std::string> result;
 
@@ -141,9 +144,9 @@ static std::vector<std::string> path_from_processed_input(
     result.reserve(PREALLOCATE);
 
     try {
-        std::filesystem::recursive_directory_iterator iterator(repository_root);
+        std::filesystem::recursive_directory_iterator iterator(paths.root);
         for (const std::filesystem::directory_entry& entry : iterator) {
-            const std::filesystem::path relative_path = entry.path().lexically_relative(repository_root);
+            const std::filesystem::path relative_path = entry.path().lexically_relative(paths.root);
             iterate(relative_path, result, included, excluded, 0);
         }
     } catch (const std::filesystem::filesystem_error& error) {
@@ -152,8 +155,7 @@ static std::vector<std::string> path_from_processed_input(
     }
 
     if (!version_id.empty()) {
-        std::vector<std::filesystem::path> deleted =
-            version::deleted_since(repository_root / ".lvc" / NAME_OBJECT, repository_root, version_id, error_message);
+        std::vector<std::filesystem::path> deleted = version::deleted_since(paths, version_id, error_message);
         if (*error_message)
             return {};
         for (const std::filesystem::path& path : deleted)
@@ -164,13 +166,8 @@ static std::vector<std::string> path_from_processed_input(
 }
 
 std::vector<std::string> path_from_input(
-    std::filesystem::path repository_root, const std::vector<std::string>& inputs, const std::string version_id, bool prefix_deleted,
+    Paths& paths, const std::vector<std::string>& inputs, const std::string version_id, bool prefix_deleted,
     char** error_message) {
-    repository_root = repository_root.lexically_normal();
-    std::error_code error;
-    if (!std::filesystem::is_directory(repository_root, error) || error)
-        return {};
-
     std::vector<ProcessedInput> processed = process_input(inputs);
 
     std::vector<ProcessedInput> included;
@@ -182,7 +179,8 @@ std::vector<std::string> path_from_input(
 
     excluded.push_back({1, 1, 1, {".lvc"}});
 
-    std::vector<std::string> result = path_from_processed_input(repository_root, included, excluded, version_id, prefix_deleted, error_message);
+    std::vector<std::string> result =
+        path_from_processed_input(paths, included, excluded, version_id, prefix_deleted, error_message);
 
     return result;
 }

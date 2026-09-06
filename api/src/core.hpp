@@ -5,10 +5,47 @@
 #include <unordered_map>
 #include <unordered_set>
 
+struct Paths {
+    const std::filesystem::path lvc;
+    const std::filesystem::path root;
+    const std::filesystem::path object;
+    const std::filesystem::path workspace;
+    const std::filesystem::path current;
+    const std::filesystem::path storage;
+    const std::filesystem::path ignore;
+    const std::filesystem::path local;
+    Paths(const char* lvc_c_str)
+        : lvc(lvc_c_str),
+          root(lvc.parent_path()),
+          object(lvc / NAME_OBJECT),
+          workspace(lvc),
+          current(lvc / NAME_CURRENT),
+          storage(root / NAME_STORAGE),
+          ignore(root / NAME_IGNORE),
+          local(workspace / NAME_LOCAL) {};
+};
+
 namespace category {
-    void create(std::filesystem::path lvc, std::string name, char** error_message);
-    void rename(const std::filesystem::path& working_dir, const char* category_name, const char* new_name, char** error_message);
-    bool exists(std::filesystem::path workspace_dir, std::string name);
+    void create(Paths& paths, std::string name, char** error_message);
+    void rename(Paths& paths, const char* category_name, const char* new_name, char** error_message);
+    bool exists(Paths& paths, std::string name);
+}
+
+namespace operation {
+    inline constexpr char filename_sync[]   = "sync";
+    inline constexpr char filename_unite[]  = "unite";
+    inline constexpr char filename_insert[] = "insert";
+
+    enum class type : uint8_t { none, sync, unite, insert };
+
+    void create_folder(const std::filesystem::path& operation, operation::type type_enum, char** error_message);
+    operation::type  ongoing(Paths& paths, std::string& workspace_name, char** error_message);
+    LvcConflictArray sync(Paths& src_paths, Paths& dest_paths, char** error_message);
+    void             insert(
+                    Paths& paths, std::string src_workspace, std::string dest_workspace, const char* author, char** error_message);
+    void unite(
+        Paths& paths, std::string src_workspace, std::string dest_workspace, const char* author, char** error_message);
+    void push(Paths& src_paths, Paths& dest_paths, char** error_message);
 }
 
 namespace object {
@@ -20,73 +57,61 @@ namespace object {
         std::filesystem::path path;
     };
 
-    void create(const std::filesystem::path& object_dir, const std::string& type, std::string& content, std::string& out_id, char** error_message);
-    bool exists(std::filesystem::path object_dir, char id[65]);
+    void create(
+        const std::filesystem::path& object, const std::string& type, std::string& content, std::string& out_id,
+        char** error_message);
+    bool exists(Paths& paths, char id[65]);
 }
 
 namespace repository {
-    void create(std::filesystem::path lvc, char** error_message);
-    void clone(std::filesystem::path working_dir, std::string path, bool clone_versioning, char** error_message);
-    void rename(std::filesystem::path lvc, const char* name, char** error_message);
-    void storage_template(std::filesystem::path directory_root, StorageBehaviour option, char** error_message);
+    void create(Paths& paths, char** error_message);
+    void clone(Paths& paths, std::string path, bool clone_versioning, char** error_message);
+    void rename(Paths& paths, const char* name, char** error_message);
+    void storage_template(Paths& paths, StorageBehaviour option, char** error_message);
 }
 
 namespace version {
-    void create(std::filesystem::path lvc, std::string message, std::string author, std::string inserted_workspace, char** error_message);
-    void create_tmp(std::filesystem::path& lvc, std::filesystem::path& operation, char** error_message);
-    void prepare(std::filesystem::path lvc, std::vector<std::string> input, char*** prepared, char** error_message);
-    void prepare_reset(std::filesystem::path lvc, char** error_message);
-    void revert(std::filesystem::path lvc, std::string version_id, std::vector<std::string>& input_raw, char** error_message);
+    void
+    create(Paths& paths, std::string message, std::string author, std::string inserted_workspace, char** error_message);
+    void create_tmp(Paths& paths, std::filesystem::path& operation, char** error_message);
+    void prepare(Paths& paths, std::vector<std::string> input, char*** prepared, char** error_message);
+    void prepare_reset(Paths& paths, char** error_message);
+    void revert(Paths& paths, std::string version_id, std::vector<std::string>& input_raw, char** error_message);
 
-    std::vector<std::string> checkout(std::filesystem::path lvc, char** error_message);
-    std::vector<std::string> status(std::filesystem::path& lvc, std::string& latest_version, char** error_message);
-    std::vector<std::string> status_all(std::filesystem::path lvc, char** error_message);
+    std::vector<std::string> checkout(Paths& paths, char** error_message);
+    std::vector<std::string> status(Paths& paths, std::string& latest_version, char** error_message);
+    std::vector<std::string> status_all(Paths& paths, char** error_message);
 
-    LvcVersion* history(
-        const std::filesystem::path object_dir, const std::filesystem::path workspace_dir, const std::string workspace_name, size_t depth,
-        size_t length, char** error_message);
-    LvcVersion* history_all(
-        const std::filesystem::path object_dir, const std::filesystem::path workspace_dir, const std::string workspace_name, char** error_message);
-    void history_free(LvcVersion* version);
+    LvcVersion*
+    history(Paths& paths, const std::string workspace_name, size_t depth, size_t length, char** error_message);
+    LvcVersion* history_all(Paths& paths, const std::string workspace_name, char** error_message);
+    void        history_free(LvcVersion* version);
 
-    std::vector<object::info>
-    all_objects(const std::filesystem::path& object_dir, const std::string& id, std::unordered_set<std::string_view> ignore, char** error_message);
-    std::unordered_map<std::filesystem::path, object::info>
-    map_all_objects(const std::filesystem::path& object_dir, const std::string& id, std::unordered_set<std::string_view> ignore, char** error_message);
-    std::vector<std::filesystem::path>
-    deleted_since(std::filesystem::path object_dir, std::filesystem::path working_directory, std::string id, char** error_message);
+    std::vector<object::info> all_objects(
+        const std::filesystem::path& object, const std::string& id, std::unordered_set<std::string_view> ignore,
+        char** error_message);
+    std::unordered_map<std::filesystem::path, object::info> map_all_objects(
+        Paths& paths, const std::string& id, std::unordered_set<std::string_view> ignore, char** error_message);
+    std::vector<std::filesystem::path> deleted_since(Paths& paths, std::string id, char** error_message);
 }
 
 namespace workspace {
-    void create(std::filesystem::path lvc, std::string category_name, std::string workspace_name, bool clone_working, char** error_message);
-    bool exists(std::filesystem::path workspace_dir, std::string name, char** error_message);
-    bool exists(std::filesystem::path workspace_dir, std::string name, std::string& path, char** error_message);
-    bool is_inactive(const std::filesystem::path& workspace_dir, std::string name);
-    bool is_inactive(std::filesystem::path workspace);
-    void _goto(std::filesystem::path lvc, std::string workspace_name, char** error_message);
-    void _default(std::filesystem::path lvc, const char* workspace_name, char** error_message);
+    void create(
+        Paths& paths, std::string category_name, std::string workspace_name, bool clone_working, char** error_message);
+    bool exists(Paths& paths, std::string name, char** error_message);
+    bool exists(Paths& paths, std::string name, std::string& path, char** error_message);
+    bool is_inactive(Paths& paths, std::string name);
+    bool is_inactive(const std::filesystem::path& workspace);
+    void _goto(Paths& paths, std::string workspace_name, char** error_message);
+    void _default(Paths& paths, const char* workspace_name, char** error_message);
 
     void move_categories(
-        std::filesystem::path workspace_dir, const char* workspace_name, const char* previous_category, const char* category, char** error_message);
-    void activate(std::filesystem::path workspace_dir, const char* workspace_name, const char* category_name, char** error_message);
-    void deactivate(std::filesystem::path workspace_dir, const char* workspace_name, char** error_message);
+        Paths& paths, const char* workspace_name, const char* previous_category, const char* category,
+        char** error_message);
+    void activate(Paths& paths, const char* workspace_name, const char* category_name, char** error_message);
+    void deactivate(Paths& paths, const char* workspace_name, char** error_message);
 
-    std::vector<object::info> all_objects(const std::filesystem::path& working_directory, char** error_message);
-}
-
-namespace operation {
-    inline constexpr char filename_sync[]   = "sync";
-    inline constexpr char filename_unite[]  = "unite";
-    inline constexpr char filename_insert[] = "insert";
-
-    enum class type : uint8_t { none, sync, unite, insert };
-
-    void             create_folder(const std::filesystem::path& operation_dir, operation::type type, char** error_message);
-    operation::type  ongoing(const std::filesystem::path& operation_dir, char** error_message);
-    LvcConflictArray sync(const std::filesystem::path src_repository, const std::filesystem::path dest_repository, char** error_message);
-    void insert(const std::filesystem::path& lvc, const char* src_workspace, const char* dest_workspace, const char* author, char** error_message);
-    void unite(const std::filesystem::path& lvc, const char* src_workspace, const char* dest_workspace, const char* author, char** error_message);
-    void push(const std::filesystem::path& src_repository, const std::filesystem::path& dest_repository, char** error_message);
+    std::vector<object::info> all_objects(Paths& paths, char** error_message);
 }
 
 inline void free_charpp(char** arr) {

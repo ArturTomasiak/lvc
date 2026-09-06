@@ -1,5 +1,5 @@
 #include "core.hpp"
 
-void operation::push(const std::filesystem::path& src_repository, const std::filesystem::path& dest_repository, char** error_message) {
+void operation::push(Paths& src_paths, Paths& dest_paths, char** error_message) {
     // TODO
 }

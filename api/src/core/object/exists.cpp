@@ -1,3 +1,3 @@
 #include <core.hpp>
 
-bool object::exists(std::filesystem::path object_dir, char id[65]) { return std::filesystem::is_regular_file(object_dir / id); }
+bool object::exists(Paths& paths, char id[65]) { return std::filesystem::is_regular_file(paths.object / id); }

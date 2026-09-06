@@ -1,11 +1,11 @@
 #include <core.hpp>
 
-std::vector<object::info> workspace::all_objects(const std::filesystem::path& working_directory, char** error_message) {
+std::vector<object::info> workspace::all_objects(Paths& paths, char** error_message) {
     std::vector<object::info> out;
     out.reserve(PREALLOCATE);
 
     try {
-        std::filesystem::recursive_directory_iterator iterator(working_directory);
+        std::filesystem::recursive_directory_iterator iterator(paths.root);
         std::filesystem::recursive_directory_iterator end;
 
         for (const std::filesystem::directory_entry& entry = *iterator; iterator != end; iterator++) {
@@ -15,7 +15,7 @@ std::vector<object::info> workspace::all_objects(const std::filesystem::path& wo
             }
 
             object::info object;
-            object.path = entry.path().lexically_relative(working_directory);
+            object.path = entry.path().lexically_relative(paths.root);
             object.type = std::filesystem::is_regular_file(entry.path()) ? object::type::blob : object::type::tree;
 
             std::string buffer = io::content(entry.path(), 0, error_message);

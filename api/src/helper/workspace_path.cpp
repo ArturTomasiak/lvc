@@ -3,9 +3,9 @@
 std::filesystem::path workspace_path(const std::filesystem::path& workspace_dir, const std::string& workspace_name) {
     std::filesystem::path result;
 
-    std::error_code                                     error;
-    const std::filesystem::directory_options            options = std::filesystem::directory_options::skip_permission_denied;
-    std::filesystem::recursive_directory_iterator       iterator(workspace_dir, options, error);
+    std::error_code                               error;
+    const std::filesystem::directory_options      options = std::filesystem::directory_options::skip_permission_denied;
+    std::filesystem::recursive_directory_iterator iterator(workspace_dir, options, error);
     const std::filesystem::recursive_directory_iterator end;
 
     if (error)

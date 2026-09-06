@@ -19,8 +19,9 @@ struct TreeRelation {
     std::vector<TreeRelation> children;
 };
 
-static void
-add_object(std::filesystem::path& path, const std::filesystem::path& object_dir, std::vector<VersionObject>& objects, char** error_message) {
+static void add_object(
+    std::filesystem::path& path, const std::filesystem::path& object_dir, std::vector<VersionObject>& objects,
+    char** error_message) {
     std::string filename = path.filename();
     std::erase_if(objects, [&](const VersionObject& object) { return object.name == filename; });
     VersionObject object;
@@ -31,7 +32,8 @@ add_object(std::filesystem::path& path, const std::filesystem::path& object_dir,
     objects.push_back(std::move(object));
 }
 
-static void rem_object(std::filesystem::path path, const std::filesystem::path& object_dir, std::vector<VersionObject>& objects) {
+static void
+rem_object(std::filesystem::path path, const std::filesystem::path& object_dir, std::vector<VersionObject>& objects) {
     std::erase_if(objects, [&](const VersionObject& object) { return object.name == path.filename(); });
 }
 
@@ -59,7 +61,8 @@ static std::string tree_builder(TreeRelation& relation, const std::filesystem::p
     return id;
 }
 
-static void tree_relation_builder(std::vector<Tree>& trees, TreeRelation& tree_relation, std::filesystem::path current) {
+static void
+tree_relation_builder(std::vector<Tree>& trees, TreeRelation& tree_relation, std::filesystem::path current) {
     std::vector<Tree>::iterator iterator = trees.begin();
     while (iterator != trees.end()) {
         std::filesystem::path tree_parent = iterator->relative.parent_path();
@@ -87,8 +90,8 @@ static TreeRelation tree_relation_init(std::vector<Tree>& trees) {
 }
 
 static void tree_from_version(
-    const std::filesystem::path& object_dir, std::vector<Tree>& trees, const std::string& tree_id, std::filesystem::path current,
-    char** error_message) {
+    const std::filesystem::path& object_dir, std::vector<Tree>& trees, const std::string& tree_id,
+    std::filesystem::path current, char** error_message) {
     std::vector<std::string> tree_content = io::content_lines(object_dir / tree_id, 1, error_message);
     size_t                   pos;
     Tree                     tree;
@@ -158,21 +161,18 @@ static std::string build(
     return tree_builder(tree_relation, object_dir, error_message);
 }
 
-void version::create(std::filesystem::path lvc, std::string message, std::string author, std::string inserted_workspace, char** error_message) {
+void version::create(
+    Paths& paths, std::string message, std::string author, std::string inserted_workspace, char** error_message) {
     if (message.empty()) {
         error_message_creator("No version message recieved", error_message);
         return;
     }
-
-    std::filesystem::path    working_dir    = lvc.parent_path();
-    std::filesystem::path    workspace_dir  = lvc / NAME_WORKSPACE;
-    std::filesystem::path    object_dir     = lvc / NAME_OBJECT;
-    std::string              workspace_name = io::content(lvc / NAME_CURRENT, 0, error_message);
-    std::filesystem::path    workspace      = workspace_path(workspace_dir, workspace_name);
+    std::string              workspace_name = io::content(paths.current, 0, error_message);
+    std::filesystem::path    workspace      = workspace_path(paths.workspace, workspace_name);
     std::string              version_id     = io::content_first_line(workspace, error_message);
-    std::vector<std::string> status         = version::status(lvc, version_id, error_message);
+    std::vector<std::string> status         = version::status(paths, version_id, error_message);
 
-    std::filesystem::path prepare_path = workspace_dir / NAME_LOCAL / workspace_name / NAME_PREPARE;
+    std::filesystem::path prepare_path = paths.local / workspace_name / NAME_PREPARE;
     if (!std::filesystem::is_regular_file(prepare_path)) {
         error_message_creator("No files prepared", error_message);
         return;
@@ -180,11 +180,11 @@ void version::create(std::filesystem::path lvc, std::string message, std::string
 
     std::string root_id;
     if (!version_id.empty()) {
-        std::vector<std::string> version_content = io::content_lines(object_dir / version_id, 1, error_message);
+        std::vector<std::string> version_content = io::content_lines(paths.object / version_id, 1, error_message);
         root_id                                  = version_content[VERSION_ROOT_TREE];
     }
 
-    std::string new_root_id = build(object_dir, working_dir, root_id, status, error_message);
+    std::string new_root_id = build(paths.object, paths.root, root_id, status, error_message);
 
     const std::string nl     = "\n";
     std::string       buffer = new_root_id + nl + message + nl + author;
@@ -192,7 +192,7 @@ void version::create(std::filesystem::path lvc, std::string message, std::string
         buffer += nl + inserted_workspace;
 
     std::string id;
-    object::create(object_dir, TYPE_VERSION, buffer, id, error_message);
+    object::create(paths.object, TYPE_VERSION, buffer, id, error_message);
     id += "\n";
 
     io::prefix_file_content(workspace, id.c_str(), id.size(), error_message);
@@ -205,21 +205,20 @@ void version::create(std::filesystem::path lvc, std::string message, std::string
         error_message_creator("Prepare reset failed", error_message);
 }
 
-void version::create_tmp(std::filesystem::path& lvc, std::filesystem::path& operation, char** error_message) {
-    std::filesystem::path working_dir = lvc.parent_path();
-    std::filesystem::path object_dir  = operation / NAME_OBJECT;
+void version::create_tmp(Paths& paths, std::filesystem::path& operation, char** error_message) {
+    std::filesystem::path object_dir = operation / NAME_OBJECT;
 
     std::filesystem::create_directories(object_dir);
 
     std::vector<std::string> status;
     try {
-        std::filesystem::recursive_directory_iterator iterator(working_dir);
+        std::filesystem::recursive_directory_iterator iterator(paths.root);
         for (const std::filesystem::directory_entry& entry : iterator) {
             if (entry.is_directory() && entry.path().filename() == ".lvc") {
                 iterator.disable_recursion_pending();
                 continue;
             }
-            status.emplace_back(entry.path().lexically_relative(working_dir));
+            status.emplace_back(entry.path().lexically_relative(paths.root));
         }
     } catch (const std::filesystem::filesystem_error& error) {
         error_message_creator("Directory iteration failure", error_message);
@@ -227,7 +226,7 @@ void version::create_tmp(std::filesystem::path& lvc, std::filesystem::path& oper
     }
 
     std::string root_id;
-    std::string new_root_id = build(object_dir, working_dir, root_id, status, error_message);
+    std::string new_root_id = build(object_dir, paths.root, root_id, status, error_message);
 
     const std::string nl     = "\n";
     std::string       buffer = new_root_id + nl + "tmp snapshot" + nl + "lvc";

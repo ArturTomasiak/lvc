@@ -1,6 +1,3 @@
 #include <core.hpp>
 
-bool category::exists(std::filesystem::path workspace_dir, std::string name) {
-    workspace_dir /= name;
-    return std::filesystem::is_directory(workspace_dir);
-}
+bool category::exists(Paths& paths, std::string name) { return std::filesystem::is_directory(paths.workspace / name); }

@@ -1,14 +1,12 @@
 #include <core.hpp>
 
-std::vector<std::string> version::checkout(std::filesystem::path lvc, char** error_message) {
-    std::string           workspace_name = io::content(lvc / NAME_CURRENT, 0, error_message);
-    std::filesystem::path workspace      = workspace_path(lvc / NAME_WORKSPACE, workspace_name);
-    std::filesystem::path working_dir    = lvc.parent_path();
-    std::filesystem::path object_dir = lvc / NAME_OBJECT;
+std::vector<std::string> version::checkout(Paths& paths, char** error_message) {
+    std::string           workspace_name = io::content(paths.current, 0, error_message);
+    std::filesystem::path workspace      = workspace_path(paths.workspace, workspace_name);
     std::string           version        = io::content_first_line(workspace, error_message);
 
-    std::vector<object::info> objects_version     = version::all_objects(object_dir, version, {}, error_message);
-    std::vector<object::info> objects_working_dir = workspace::all_objects(working_dir, error_message);
+    std::vector<object::info> objects_version     = version::all_objects(paths.object, version, {}, error_message);
+    std::vector<object::info> objects_working_dir = workspace::all_objects(paths, error_message);
 
     std::unordered_set<std::string> version_ids_and_paths;
     version_ids_and_paths.reserve(objects_version.size());

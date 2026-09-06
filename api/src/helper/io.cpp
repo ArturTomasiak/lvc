@@ -10,7 +10,9 @@ void io::file(std::filesystem::path path, std::ios_base::openmode flags, char** 
     file.close();
 }
 
-void io::file(std::filesystem::path path, std::ios_base::openmode flags, const char* content, size_t length, bool compress, char** error_message) {
+void io::file(
+    std::filesystem::path path, std::ios_base::openmode flags, const char* content, size_t length, bool compress,
+    char** error_message) {
     std::filesystem::create_directories(path.parent_path());
     std::ofstream file(path, flags);
     if (!file) {

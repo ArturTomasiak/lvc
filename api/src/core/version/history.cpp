@@ -1,9 +1,9 @@
 #include "core.hpp"
 
 static LvcVersion* history(
-    LvcVersion*& allocated, const std::filesystem::path& object_dir, const std::filesystem::path& workspace_dir, const std::string& workspace_name,
-    size_t depth, size_t length, size_t& index, char** error_message) {
-    std::filesystem::path workspace = workspace_path(workspace_dir, workspace_name);
+    LvcVersion*& allocated, Paths& paths, const std::string& workspace_name, size_t depth, size_t length, size_t& index,
+    char** error_message) {
+    std::filesystem::path workspace = workspace_path(paths.workspace, workspace_name);
     if (!std::filesystem::exists(workspace))
         return {};
     std::ifstream file(workspace, std::ios::binary);
@@ -21,7 +21,7 @@ static LvcVersion* history(
         if (!line.empty() && line.back() == '\r')
             line.pop_back();
 
-        std::vector<std::string> version_content = io::content_lines(object_dir / line, 1, error_message);
+        std::vector<std::string> version_content = io::content_lines(paths.object / line, 1, error_message);
 
         if (version_content.size() <= VERSION_AUTHOR || line.size() != 64) {
             continue;
@@ -46,24 +46,23 @@ static LvcVersion* history(
         memcpy(version->description, version_content[VERSION_MESSAGE].c_str(), desc_size + 1);
         if (depth && version_content.size() - 1 >= VERSION_WORKSPACE)
             version->nested_versions =
-                history(allocated, object_dir, workspace_dir, version_content[VERSION_WORKSPACE], depth - 1, length, index, error_message);
+                history(allocated, paths, version_content[VERSION_WORKSPACE], depth - 1, length, index, error_message);
     }
 
     return first_version;
 }
 
-LvcVersion* version::history(
-    const std::filesystem::path object_dir, const std::filesystem::path workspace_dir, const std::string workspace_name, size_t depth, size_t length,
-    char** error_message) {
+LvcVersion*
+version::history(Paths& paths, const std::string workspace_name, size_t depth, size_t length, char** error_message) {
     LvcVersion* allocated = (LvcVersion*)malloc(length * sizeof(LvcVersion));
     size_t      index     = 0;
-    return history(allocated, object_dir, workspace_dir, workspace_name, depth, length, index, error_message);
+    return history(allocated, paths, workspace_name, depth, length, index, error_message);
 }
 
 static LvcVersion* history_all(
-    LvcVersion*& allocated, const std::filesystem::path& object_dir, const std::filesystem::path& workspace_dir, const std::string& workspace_name,
-    size_t& allocated_size, size_t& index, char** error_message) {
-    std::filesystem::path workspace = workspace_path(workspace_dir, workspace_name);
+    LvcVersion*& allocated, Paths& paths, const std::string& workspace_name, size_t& allocated_size, size_t& index,
+    char** error_message) {
+    std::filesystem::path workspace = workspace_path(paths.workspace, workspace_name);
     if (!std::filesystem::exists(workspace))
         return {};
     std::ifstream file(workspace, std::ios::binary);
@@ -86,7 +85,7 @@ static LvcVersion* history_all(
         if (!line.empty() && line.back() == '\r')
             line.pop_back();
 
-        std::vector<std::string> version_content = io::content_lines(object_dir / line, 1, error_message);
+        std::vector<std::string> version_content = io::content_lines(paths.object / line, 1, error_message);
 
         if (version_content.size() <= VERSION_AUTHOR || line.size() != 64) {
             continue;
@@ -111,18 +110,17 @@ static LvcVersion* history_all(
         memcpy(version->description, version_content[VERSION_MESSAGE].c_str(), desc_size + 1);
         if (version_content.size() >= VERSION_WORKSPACE)
             version->nested_versions =
-                history_all(allocated, object_dir, workspace_dir, version_content[VERSION_WORKSPACE], allocated_size, index, error_message);
+                history_all(allocated, paths, version_content[VERSION_WORKSPACE], allocated_size, index, error_message);
     }
 
     return first_version;
 }
 
-LvcVersion* version::history_all(
-    const std::filesystem::path object_dir, const std::filesystem::path workspace_dir, const std::string workspace_name, char** error_message) {
+LvcVersion* version::history_all(Paths& paths, const std::string workspace_name, char** error_message) {
     size_t      allocated_size = 50;
     size_t      index          = 0;
     LvcVersion* allocated      = (LvcVersion*)malloc(allocated_size * sizeof(LvcVersion));
-    return history_all(allocated, object_dir, workspace_dir, workspace_name, allocated_size, index, error_message);
+    return history_all(allocated, paths, workspace_name, allocated_size, index, error_message);
 }
 
 void history_free_descriptions(LvcVersion* version) {

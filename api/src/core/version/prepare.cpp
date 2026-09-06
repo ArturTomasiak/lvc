@@ -1,35 +1,31 @@
 #include <core.hpp>
 
-void version::prepare_reset(std::filesystem::path lvc, char** error_message) {
-    const std::string           workspace_name = io::content(lvc / NAME_CURRENT, 0, error_message);
-    const std::filesystem::path workspace_dir  = lvc / NAME_WORKSPACE;
-    const std::filesystem::path prepare_dir    = workspace_dir / NAME_LOCAL / workspace_name / NAME_PREPARE;
+void version::prepare_reset(Paths& paths, char** error_message) {
+    const std::string           workspace_name = io::content(paths.current, 0, error_message);
+    const std::filesystem::path prepare_dir    = paths.local / workspace_name / NAME_PREPARE;
     std::error_code             error;
     bool                        deleted = std::filesystem::remove(prepare_dir, error);
     if (!deleted || error)
         error_message_creator("Could not reset prepare", error_message);
 }
 
-void version::prepare(std::filesystem::path lvc, std::vector<std::string> input_raw, char*** prepared, char** error_message) {
+void version::prepare(Paths& paths, std::vector<std::string> input_raw, char*** prepared, char** error_message) {
     if (input_raw.empty()) {
         error_message_creator("No input recieved", error_message);
         return;
     }
 
-    const std::string           workspace_name = io::content(lvc / NAME_CURRENT, 0, error_message);
-    const std::filesystem::path workspace_dir  = lvc / NAME_WORKSPACE;
-    const std::filesystem::path workspace      = workspace_path(workspace_dir, workspace_name);
-    const std::filesystem::path object_dir     = lvc / NAME_OBJECT;
-    const std::filesystem::path working_dir    = lvc.parent_path();
-    const std::filesystem::path prepare_dir    = workspace_dir / NAME_LOCAL / workspace_name / NAME_PREPARE;
+    const std::string           workspace_name = io::content(paths.current, 0, error_message);
+    const std::filesystem::path workspace      = workspace_path(paths.workspace, workspace_name);
+    const std::filesystem::path prepare_dir    = paths.local / workspace_name / NAME_PREPARE;
     const std::string           version_id     = io::content_first_line(workspace, error_message);
 
-    std::vector<std::string> ignore_raw = io::content_lines(working_dir / NAME_IGNORE, 0, error_message);
-    std::vector<std::string> ignore     = path_from_input(working_dir, ignore_raw, version_id, 1, error_message);
+    std::vector<std::string> ignore_raw = io::content_lines(paths.ignore, 0, error_message);
+    std::vector<std::string> ignore     = path_from_input(paths.root, ignore_raw, version_id, 1, error_message);
     if (*error_message)
         return;
 
-    std::vector<std::string> input = path_from_input(working_dir, input_raw, version_id, 1, error_message);
+    std::vector<std::string> input = path_from_input(paths.root, input_raw, version_id, 1, error_message);
     if (*error_message)
         return;
     if (input.empty())
