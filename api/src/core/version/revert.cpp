@@ -11,7 +11,7 @@ void version::revert(Paths& paths, std::string version_id, std::vector<std::stri
     }
 
     std::vector<std::string> ignore_raw = io::content_lines(paths.ignore, 0, error_message);
-    std::vector<std::string> ignore     = path_from_input(paths.root, ignore_raw, version_id, 0, error_message);
+    std::vector<std::string> ignore     = paths.from_input(ignore_raw, version_id, 0, error_message);
     if (*error_message)
         return;
 
@@ -25,7 +25,7 @@ void version::revert(Paths& paths, std::string version_id, std::vector<std::stri
     if (input_raw.empty())
         input_raw.push_back("/");
 
-    std::vector<std::string> input = path_from_input(paths.object, input_raw, version_id, 0, error_message);
+    std::vector<std::string> input = paths.from_input(input_raw, version_id, 0, error_message);
     if (*error_message)
         return;
 

@@ -23,6 +23,9 @@ struct Paths {
           storage(root / NAME_STORAGE),
           ignore(root / NAME_IGNORE),
           local(workspace / NAME_LOCAL) {};
+    std::vector<std::string> from_input(
+        const std::vector<std::string>& inputs, const std::string version_id, bool prefix_deleted,
+        char** error_message);
 };
 
 namespace category {

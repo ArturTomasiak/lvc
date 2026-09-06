@@ -165,9 +165,8 @@ static std::vector<std::string> path_from_processed_input(
     return result;
 }
 
-std::vector<std::string> path_from_input(
-    Paths& paths, const std::vector<std::string>& inputs, const std::string version_id, bool prefix_deleted,
-    char** error_message) {
+std::vector<std::string> Paths::from_input(
+    const std::vector<std::string>& inputs, const std::string version_id, bool prefix_deleted, char** error_message) {
     std::vector<ProcessedInput> processed = process_input(inputs);
 
     std::vector<ProcessedInput> included;
@@ -180,7 +179,7 @@ std::vector<std::string> path_from_input(
     excluded.push_back({1, 1, 1, {".lvc"}});
 
     std::vector<std::string> result =
-        path_from_processed_input(paths, included, excluded, version_id, prefix_deleted, error_message);
+        path_from_processed_input(*this, included, excluded, version_id, prefix_deleted, error_message);
 
     return result;
 }

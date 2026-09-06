@@ -21,11 +21,11 @@ void version::prepare(Paths& paths, std::vector<std::string> input_raw, char*** 
     const std::string           version_id     = io::content_first_line(workspace, error_message);
 
     std::vector<std::string> ignore_raw = io::content_lines(paths.ignore, 0, error_message);
-    std::vector<std::string> ignore     = path_from_input(paths.root, ignore_raw, version_id, 1, error_message);
+    std::vector<std::string> ignore     = paths.from_input(ignore_raw, version_id, 1, error_message);
     if (*error_message)
         return;
 
-    std::vector<std::string> input = path_from_input(paths.root, input_raw, version_id, 1, error_message);
+    std::vector<std::string> input = paths.from_input(input_raw, version_id, 1, error_message);
     if (*error_message)
         return;
     if (input.empty())

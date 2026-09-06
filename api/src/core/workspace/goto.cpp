@@ -45,7 +45,7 @@ void workspace::_goto(Paths& paths, std::string workspace_name, char** error_mes
     }
 
     std::vector<std::string>             ignore_raw = io::content_lines(paths.ignore, 0, error_message);
-    std::vector<std::string>             ignore = path_from_input(paths.root, ignore_raw, version_id, 0, error_message);
+    std::vector<std::string>             ignore     = paths.from_input(ignore_raw, version_id, 0, error_message);
     std::unordered_set<std::string_view> ignore_set;
     ignore_set.reserve(ignore.size());
     for (const std::string& entry : ignore)
