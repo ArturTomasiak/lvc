@@ -19,6 +19,12 @@ void workspace::create(
     io::file(paths.workspace / category_name / workspace_name, std::ios::binary, error_message);
     if (!clone_working || *error_message)
         return;
-    std::filesystem::path operation = paths.local / workspace_name;
-    version::create_tmp(paths, operation, error_message);
+    std::filesystem::path                operation  = paths.local / workspace_name;
+    std::vector<std::string>             ignore_raw = io::content_lines(paths.ignore, 0, error_message);
+    std::vector<std::string>             ignore     = paths.from_input(ignore_raw, {}, 0, error_message);
+    std::unordered_set<std::string_view> ignore_set;
+    ignore_set.reserve(ignore.size());
+    for (const std::string& entry : ignore)
+        ignore_set.insert(entry);
+    version::create_tmp(paths, operation, ignore_set, error_message);
 }

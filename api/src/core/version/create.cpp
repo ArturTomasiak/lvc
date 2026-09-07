@@ -205,7 +205,9 @@ void version::create(
         error_message_creator("Prepare reset failed", error_message);
 }
 
-void version::create_tmp(Paths& paths, std::filesystem::path& operation, char** error_message) {
+void version::create_tmp(
+    Paths& paths, std::filesystem::path& operation, std::unordered_set<std::string_view>& ignore,
+    char** error_message) {
     std::filesystem::path object_dir = operation / NAME_OBJECT;
 
     std::filesystem::create_directories(object_dir);
@@ -218,7 +220,14 @@ void version::create_tmp(Paths& paths, std::filesystem::path& operation, char** 
                 iterator.disable_recursion_pending();
                 continue;
             }
-            status.emplace_back(entry.path().lexically_relative(paths.root));
+            std::filesystem::path relative = entry.path().lexically_relative(paths.root);
+            if (ignore.contains(relative.string())) {
+                if (entry.is_directory())
+                    iterator.disable_recursion_pending();
+
+                continue;
+            }
+            status.emplace_back(relative);
         }
     } catch (const std::filesystem::filesystem_error& error) {
         error_message_creator("Directory iteration failure", error_message);

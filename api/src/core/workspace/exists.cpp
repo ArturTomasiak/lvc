@@ -13,7 +13,7 @@ bool workspace::exists(Paths& paths, std::string name, char** error_message) {
     return false;
 }
 
-bool workspace::exists(Paths& paths, std::string name, std::string& path, char** error_message) {
+bool workspace::exists(Paths& paths, std::string name, std::filesystem::path& path, char** error_message) {
     try {
         std::filesystem::recursive_directory_iterator iterator(
             paths.workspace, std::filesystem::directory_options::skip_permission_denied);

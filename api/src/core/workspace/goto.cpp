@@ -17,8 +17,9 @@ static bool changed_since_ver(Paths& paths, std::vector<object::info>& objects_v
 }
 
 void workspace::_goto(Paths& paths, std::string workspace_name, char** error_message) {
-    std::string current = io::content(paths.current, 0, error_message);
-    if (!workspace::exists(paths, workspace_name, error_message))
+    std::string           current = io::content(paths.current, 0, error_message);
+    std::filesystem::path workspace;
+    if (!workspace::exists(paths, workspace_name, workspace, error_message))
         error_message_creator("Workspace " + workspace_name + " doesn't exist", error_message);
     if (*error_message)
         return;
@@ -26,14 +27,21 @@ void workspace::_goto(Paths& paths, std::string workspace_name, char** error_mes
         error_message_creator("Current workspace is already " + workspace_name, error_message);
     std::filesystem::path src_operation  = paths.local / current;
     std::filesystem::path dest_operation = paths.local / workspace_name;
-    std::string version_id = io::content_first_line(workspace_path(paths.workspace, workspace_name), error_message);
+    std::string           version_id     = io::content_first_line(workspace, error_message);
 
     std::vector<object::info> objects = version::all_objects(paths.object, version_id, {}, error_message);
 
     std::filesystem::path tmp = dest_operation / NAME_TMP;
 
+    std::vector<std::string>             ignore_raw = io::content_lines(paths.ignore, 0, error_message);
+    std::vector<std::string>             ignore     = paths.from_input(ignore_raw, version_id, 0, error_message);
+    std::unordered_set<std::string_view> ignore_set;
+    ignore_set.reserve(ignore.size());
+    for (const std::string& entry : ignore)
+        ignore_set.insert(entry);
+
     if (version_id.empty() || changed_since_ver(paths, objects, error_message))
-        version::create_tmp(paths, src_operation, error_message);
+        version::create_tmp(paths, src_operation, ignore_set, error_message);
 
     std::filesystem::path object_dir;
     if (std::filesystem::is_regular_file(tmp)) {
@@ -43,13 +51,6 @@ void workspace::_goto(Paths& paths, std::string workspace_name, char** error_mes
     } else {
         object_dir = paths.object;
     }
-
-    std::vector<std::string>             ignore_raw = io::content_lines(paths.ignore, 0, error_message);
-    std::vector<std::string>             ignore     = paths.from_input(ignore_raw, version_id, 0, error_message);
-    std::unordered_set<std::string_view> ignore_set;
-    ignore_set.reserve(ignore.size());
-    for (const std::string& entry : ignore)
-        ignore_set.insert(entry);
 
     if (*error_message)
         return;

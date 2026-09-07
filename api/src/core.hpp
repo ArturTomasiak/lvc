@@ -76,7 +76,9 @@ namespace repository {
 namespace version {
     void
     create(Paths& paths, std::string message, std::string author, std::string inserted_workspace, char** error_message);
-    void create_tmp(Paths& paths, std::filesystem::path& operation, char** error_message);
+    void create_tmp(
+        Paths& paths, std::filesystem::path& operation, std::unordered_set<std::string_view>& ignore,
+        char** error_message);
     void prepare(Paths& paths, std::vector<std::string> input, char*** prepared, char** error_message);
     void prepare_reset(Paths& paths, char** error_message);
     void revert(Paths& paths, std::string version_id, std::vector<std::string>& input_raw, char** error_message);
@@ -102,7 +104,7 @@ namespace workspace {
     void create(
         Paths& paths, std::string category_name, std::string workspace_name, bool clone_working, char** error_message);
     bool exists(Paths& paths, std::string name, char** error_message);
-    bool exists(Paths& paths, std::string name, std::string& path, char** error_message);
+    bool exists(Paths& paths, std::string name, std::filesystem::path& path, char** error_message);
     bool is_inactive(Paths& paths, std::string name);
     bool is_inactive(const std::filesystem::path& workspace);
     void _goto(Paths& paths, std::string workspace_name, char** error_message);
