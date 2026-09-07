@@ -18,7 +18,7 @@ struct Paths {
         : lvc(lvc_c_str),
           root(lvc.parent_path()),
           object(lvc / NAME_OBJECT),
-          workspace(lvc),
+          workspace(lvc / NAME_WORKSPACE),
           current(lvc / NAME_CURRENT),
           storage(root / NAME_STORAGE),
           ignore(root / NAME_IGNORE),
