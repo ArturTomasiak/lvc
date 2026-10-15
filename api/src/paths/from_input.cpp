@@ -1,4 +1,8 @@
 #include <core.hpp>
+#include <helper.hpp>
+#include <paths.hpp>
+
+#include <algorithm>
 
 struct ProcessedInput {
     bool                     root      = false;
@@ -133,9 +137,9 @@ static void iterate(
     }
 }
 
-static std::vector<std::string> path_from_processed_input(
+static std::vector<std::string> resolve_processed(
     Paths& paths, const std::vector<ProcessedInput>& included, const std::vector<ProcessedInput>& excluded,
-    const std::string& version_id, bool prefix_deleted, char** error_message) {
+    const std::string& version_id, bool prefix_deleted, bool include_folders, char** error_message) {
     std::vector<std::string> result;
 
     if (included.empty())
@@ -147,6 +151,9 @@ static std::vector<std::string> path_from_processed_input(
         std::filesystem::recursive_directory_iterator iterator(paths.root);
         for (const std::filesystem::directory_entry& entry : iterator) {
             const std::filesystem::path relative_path = entry.path().lexically_relative(paths.root);
+            if (!include_folders)
+                if (std::filesystem::is_directory(entry))
+                    continue;
             iterate(relative_path, result, included, excluded, 0);
         }
     } catch (const std::filesystem::filesystem_error& error) {
@@ -158,15 +165,20 @@ static std::vector<std::string> path_from_processed_input(
         std::vector<std::filesystem::path> deleted = version::deleted_since(paths, version_id, error_message);
         if (*error_message)
             return {};
-        for (const std::filesystem::path& path : deleted)
+        for (const std::filesystem::path& path : deleted) {
+            if (!include_folders)
+                if (std::filesystem::is_directory(path))
+                    continue;
             iterate(path, result, included, excluded, prefix_deleted);
+        }
     }
 
     return result;
 }
 
-std::vector<std::string> Paths::from_input(
-    const std::vector<std::string>& inputs, const std::string version_id, bool prefix_deleted, char** error_message) {
+std::vector<std::string> Paths::resolve(
+    const std::vector<std::string>& inputs, const std::string version_id, bool prefix_deleted, bool include_folders,
+    char** error_message) {
     std::vector<ProcessedInput> processed = process_input(inputs);
 
     std::vector<ProcessedInput> included;
@@ -178,8 +190,8 @@ std::vector<std::string> Paths::from_input(
 
     excluded.push_back({1, 1, 1, {".lvc"}});
 
-    std::vector<std::string> result =
-        path_from_processed_input(*this, included, excluded, version_id, prefix_deleted, error_message);
+    std::vector<std::string> result = resolve_processed(
+        *this, included, excluded, version_id, prefix_deleted, include_folders, error_message);
 
     return result;
 }

@@ -3,7 +3,7 @@ Language: Cpp
 AlignAfterOpenBracket: AlwaysBreak
 AlignConsecutiveAssignments: Consecutive
 AlignConsecutiveDeclarations: Consecutive
-AlignEscapedNewlines: Left
+AlignEscapedNewlines: Right
 AlignOperands: true
 AlignTrailingComments: true
 AlwaysBreakAfterDefinitionReturnType: None
@@ -66,6 +66,5 @@ SpaceBeforeParensOptions:
   AfterIfMacros: false
 AlignConsecutiveMacros: Consecutive
 AlignConsecutiveBitFields: Consecutive
-AlignArrayOfStructures: Left
 FixNamespaceComments: false
 SeparateDefinitionBlocks: Always

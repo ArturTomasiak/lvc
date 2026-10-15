@@ -2,7 +2,7 @@
 
 void workspace::deactivate(Paths& paths, const char* workspace_name, char** error_message) {
     std::filesystem::path oldp = workspace_path(paths.workspace, workspace_name);
-    std::filesystem::path newp = paths.workspace / NAME_INACTIVE / workspace_name;
+    std::filesystem::path newp = paths.workspace / workspacename_inactive / workspace_name;
     std::error_code       ec;
     std::filesystem::rename(oldp, newp, ec);
     if (ec)
@@ -16,7 +16,7 @@ void workspace::activate(Paths& paths, const char* workspace_name, const char* c
         error_message_creator("Category does not exist", error_message);
         return;
     }
-    std::filesystem::path oldp = paths.workspace / NAME_INACTIVE / workspace_name;
+    std::filesystem::path oldp = paths.workspace / workspacename_inactive / workspace_name;
     std::filesystem::path newp = paths.workspace / category_name / workspace_name;
 
     std::error_code ec;

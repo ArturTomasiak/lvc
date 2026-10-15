@@ -172,7 +172,7 @@ void version::create(
     std::string              version_id     = io::content_first_line(workspace, error_message);
     std::vector<std::string> status         = version::status(paths, version_id, error_message);
 
-    std::filesystem::path prepare_path = paths.local / workspace_name / NAME_PREPARE;
+    std::filesystem::path prepare_path = paths.local / workspace_name / filename_prepare;
     if (!std::filesystem::is_regular_file(prepare_path)) {
         error_message_creator("No files prepared", error_message);
         return;
@@ -208,7 +208,7 @@ void version::create(
 void version::create_tmp(
     Paths& paths, std::filesystem::path& operation, std::unordered_set<std::string_view>& ignore,
     char** error_message) {
-    std::filesystem::path object_dir = operation / NAME_OBJECT;
+    std::filesystem::path object_dir = operation / foldername_object;
 
     std::filesystem::create_directories(object_dir);
 
@@ -242,5 +242,5 @@ void version::create_tmp(
 
     std::string id;
     object::create(object_dir, TYPE_VERSION, buffer, id, error_message);
-    io::file(operation / NAME_TMP, std::ios::binary, id.data(), id.size(), 0, error_message);
+    io::file(operation / filename_tmp, std::ios::binary | std::ios::trunc, id.data(), id.size(), 0, error_message);
 }

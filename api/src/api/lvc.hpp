@@ -52,20 +52,8 @@ typedef struct {
 } LvcCreateInput;
 
 typedef struct {
-    size_t      line_start;
-    size_t      line_end;
-    const char* content;
-} LvcDiff;
-
-typedef struct {
-    LvcDiff     a;
-    LvcDiff     b;
-    const char* relative_path;
-} LvcConflict;
-
-typedef struct {
-    size_t       length;
-    LvcConflict* conflict;
+    char** paths;
+    size_t len;
 } LvcConflictArray;
 
 typedef struct LvcVersion {
@@ -74,6 +62,17 @@ typedef struct LvcVersion {
     char*       description;
     char        id[65];
 } LvcVersion;
+
+typedef struct {
+    char** workspaces;
+    char*  name;
+    size_t workspaces_len;
+} LvcCategory;
+
+typedef struct {
+    LvcCategory* category;
+    size_t       len;
+} LvcCategoryList;
 
 LVC_API void  lvc_create(LvcCreateInput input, char** error_message) LVC_NOEXCEPT;
 LVC_API char* lvc_current(const char* lvc, char** error_message) LVC_NOEXCEPT;
@@ -92,19 +91,15 @@ LVC_API void   lvc_version(const char* lvc, const char* message, const char* aut
 LVC_API LvcVersion* lvc_history(
     const char* lvc, const char* workspace, size_t depth, size_t length, LVC_BOOL all,
     char** error_message) LVC_NOEXCEPT;
-LVC_API void lvc_history_free(LvcVersion* version) LVC_NOEXCEPT;
-LVC_API void lvc_conflict_manual(const char* lvc, LvcConflictArray* conflicts, char** error_message) LVC_NOEXCEPT;
-LVC_API void
-lvc_conflict_manual_verify(const char* lvc, LvcConflictArray* conflicts, char** error_message) LVC_NOEXCEPT;
-LVC_API void lvc_conflict_manual_sync(const char* lvc, LvcConflictArray* conflicts, char** error_message) LVC_NOEXCEPT;
-LVC_API void
-lvc_sync(const char* lvc, const char* tmp_lvc, LvcConflictArray* conflicts, char** error_message) LVC_NOEXCEPT;
-LVC_API void lvc_unite(
-    const char* lvc, const char* src_workspace_name, const char* dest_workspace_name, LvcConflictArray* conflicts,
+LVC_API void              lvc_history_free(LvcVersion* version) LVC_NOEXCEPT;
+LVC_API void              lvc_terminal_conflict_solver(const char* lvc, char** error_message) LVC_NOEXCEPT;
+LVC_API void              lvc_diff(const char* lvc, int argc, char* argv[], char** error_message) LVC_NOEXCEPT;
+LVC_API LvcConflictArray* lvc_sync(const char* src_lvc, const char* dest_lvc, char** error_message) LVC_NOEXCEPT;
+LVC_API LvcConflictArray* lvc_unite(
+    const char* lvc, const char* src_workspace_name, const char* dest_workspace_name,
     char** error_message) LVC_NOEXCEPT;
-LVC_API void lvc_insert(
-    const char* lvc, const char* src_workspace_name, const char* dest_workspace_name, LvcConflictArray* conflicts,
-    char** error_message) LVC_NOEXCEPT;
+LVC_API LvcConflictArray*
+lvc_insert(const char* lvc, const char* src_workspace_name, const char* author, char** error_message) LVC_NOEXCEPT;
 LVC_API void
 lvc_revert(const char* lvc, char* version_id, size_t input_count, char** input, char** error_message) LVC_NOEXCEPT;
 LVC_API void lvc_push_local(const char* lvc, const char* tmp_lvc, char** error_message) LVC_NOEXCEPT;
@@ -128,20 +123,6 @@ LVC_API void     lvc_free_charpp(char** arr) LVC_NOEXCEPT;
 #define VERSION_MESSAGE   2
 #define VERSION_AUTHOR    3
 #define VERSION_WORKSPACE 4
-
-// file/folder name defines
-#define NAME_WORKSPACE "workspace"
-#define NAME_INACTIVE  "inactive"
-#define NAME_OBJECT    "object"
-#define NAME_STATUS    "status"
-#define NAME_DEFAULT   "default"
-#define NAME_CURRENT   "current"
-#define NAME_PREPARE   "prepare"
-#define NAME_NAME      "name"
-#define NAME_IGNORE    "lvc.ignore"
-#define NAME_STORAGE   "lvc.storage"
-#define NAME_LOCAL     "local"
-#define NAME_TMP       "tmp"
 
 // type string defines
 #define TYPE_VERSION "version"

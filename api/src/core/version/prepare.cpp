@@ -2,7 +2,7 @@
 
 void version::prepare_reset(Paths& paths, char** error_message) {
     const std::string           workspace_name = io::content(paths.current, 0, error_message);
-    const std::filesystem::path prepare_dir    = paths.local / workspace_name / NAME_PREPARE;
+    const std::filesystem::path prepare_dir    = paths.local / workspace_name / filename_prepare;
     std::error_code             error;
     bool                        deleted = std::filesystem::remove(prepare_dir, error);
     if (!deleted || error)
@@ -17,15 +17,15 @@ void version::prepare(Paths& paths, std::vector<std::string> input_raw, char*** 
 
     const std::string           workspace_name = io::content(paths.current, 0, error_message);
     const std::filesystem::path workspace      = workspace_path(paths.workspace, workspace_name);
-    const std::filesystem::path prepare_dir    = paths.local / workspace_name / NAME_PREPARE;
+    const std::filesystem::path prepare_dir    = paths.local / workspace_name / filename_prepare;
     const std::string           version_id     = io::content_first_line(workspace, error_message);
 
     std::vector<std::string> ignore_raw = io::content_lines(paths.ignore, 0, error_message);
-    std::vector<std::string> ignore     = paths.from_input(ignore_raw, version_id, 1, error_message);
+    std::vector<std::string> ignore     = paths.resolve(ignore_raw, version_id, 1, 1, error_message);
     if (*error_message)
         return;
 
-    std::vector<std::string> input = paths.from_input(input_raw, version_id, 1, error_message);
+    std::vector<std::string> input = paths.resolve(input_raw, version_id, 1, 1, error_message);
     if (*error_message)
         return;
     if (input.empty())
@@ -54,7 +54,7 @@ void version::prepare(Paths& paths, std::vector<std::string> input_raw, char*** 
     for (std::string& path : current)
         buffer += path + "\n";
 
-    io::file(prepare_dir, std::ios::binary, buffer.data(), buffer.size(), 0, error_message);
+    io::file(prepare_dir, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 0, error_message);
 
     if (prepared)
         *prepared = strvector_to_charpp(current);

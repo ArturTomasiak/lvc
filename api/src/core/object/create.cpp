@@ -16,5 +16,5 @@ void object::create(
     if (std::filesystem::is_regular_file(object / id))
         return;
 
-    io::file(object / out_id, std::ios::binary, content.data(), content.size(), 1, error_message);
+    io::file(object / out_id, std::ios::binary | std::ios::trunc, content.data(), content.size(), 1, error_message);
 }

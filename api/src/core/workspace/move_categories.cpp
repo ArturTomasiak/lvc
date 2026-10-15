@@ -7,7 +7,8 @@ static void category_exists_error(std::string category_name, char** error_messag
 void workspace::move_categories(
     Paths& paths, const char* workspace_name, const char* previous_category, const char* category,
     char** error_message) {
-    if (charpcmp(previous_category, NAME_INACTIVE) || charpcmp(category, NAME_INACTIVE))
+    if (charpcmp(previous_category, workspacename_inactive.c_str()) ||
+        charpcmp(category, workspacename_inactive.c_str()))
         error_message_creator("Moving to and from inactive is forbidden", error_message);
     else if (!category::exists(paths, previous_category))
         category_exists_error(previous_category, error_message);

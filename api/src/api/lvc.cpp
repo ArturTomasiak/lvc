@@ -26,7 +26,9 @@ extern "C" LVC_API void lvc_create(LvcCreateInput input, char** error_message) n
     workspace::create(paths, input.category_name, input.workspace_name, 0, error_message);
     if (*error_message)
         return;
-    io::file(paths.current, std::ios::binary, input.workspace_name, strlen(input.workspace_name), 0, error_message);
+    io::file(
+        paths.current, std::ios::binary | std::ios::trunc, input.workspace_name, strlen(input.workspace_name), 0,
+        error_message);
     if (*error_message)
         return;
     workspace::_default(paths, input.workspace_name, error_message);
@@ -139,48 +141,70 @@ extern "C" LVC_API LvcVersion* lvc_history(
 
 extern "C" LVC_API void lvc_history_free(LvcVersion* version) noexcept { version::history_free(version); }
 
-extern "C" LVC_API void
-lvc_conflict_manual(const char* lvc, LvcConflictArray* conflicts, char** error_message) noexcept {
+extern "C" LVC_API void lvc_terminal_conflict_solver(const char* lvc, char** error_message) noexcept {
     // TODO
     Paths paths(lvc);
     *error_message = 0;
 }
 
-extern "C" LVC_API void
-lvc_conflict_manual_verify(const char* lvc, LvcConflictArray* conflicts, char** error_message) noexcept {
-    // TODO
+extern "C" LVC_API void lvc_diff(const char* lvc, int argc, char* argv[], char** error_message) noexcept {
     Paths paths(lvc);
+
+    const std::string           workspace_name = io::content(paths.current, 0, error_message);
+    const std::filesystem::path workspace      = workspace_path(paths.workspace, workspace_name);
+    const std::string           version_id     = io::content_first_line(workspace, error_message);
+
+    std::vector<std::string> raw_input;
+    raw_input.reserve(argc - 2);
+    for (size_t i = 2; i < argc; i++)
+        raw_input.push_back(argv[i]);
+
+    std::vector<std::string> input = paths.resolve(raw_input, version_id, 1, 0, error_message);
+
+    std::unordered_map<std::filesystem::path, object::info> version =
+        version::map_all_objects(paths, version_id, {}, error_message);
+
+    for (std::string& path : input) {
+        bool                                                              deleted = path.starts_with(PREFIX_DELETED);
+        std::unordered_map<std::filesystem::path, object::info>::iterator it      = version.find(path);
+        if (deleted) {
+            path.erase(0, strlen(PREFIX_DELETED));
+            std::cout << "Deleted " + path + "\n";
+        } else if (it == version.end()) {
+            std::cout << "Created " + path + "\n";
+        } else {
+            object::info&            info = it->second;
+            std::vector<std::string> base = io::content_lines(paths.object / info.id, 1, error_message);
+            base.erase(base.begin());
+            const std::vector<std::string> side = io::content_lines(path, 0, error_message);
+            print_diff(base, side, path);
+        }
+    }
     *error_message = 0;
 }
 
-extern "C" LVC_API void
-lvc_conflict_manual_sync(const char* lvc, LvcConflictArray* conflicts, char** error_message) noexcept {
+extern "C" LVC_API LvcConflictArray* lvc_sync(const char* lvc, const char* tmp_lvc, char** error_message) noexcept {
     // TODO
     Paths paths(lvc);
     *error_message = 0;
+    return NULL;
 }
 
-extern "C" LVC_API void
-lvc_sync(const char* lvc, const char* tmp_lvc, LvcConflictArray* conflicts, char** error_message) noexcept {
+extern "C" LVC_API LvcConflictArray* lvc_unite(
+    const char* lvc, const char* src_workspace_name, const char* dest_workspace_name, char** error_message) noexcept {
     // TODO
     Paths paths(lvc);
     *error_message = 0;
+    return NULL;
 }
 
-extern "C" LVC_API void lvc_unite(
-    const char* lvc, const char* src_workspace_name, const char* dest_workspace_name, LvcConflictArray* conflicts,
-    char** error_message) noexcept {
-    // TODO
+extern "C" LVC_API LvcConflictArray*
+lvc_insert(const char* lvc, const char* src_workspace_name, const char* author, char** error_message) noexcept {
     Paths paths(lvc);
-    *error_message = 0;
-}
-
-extern "C" LVC_API void lvc_insert(
-    const char* lvc, const char* src_workspace_name, const char* dest_workspace_name, LvcConflictArray* conflicts,
-    char** error_message) noexcept {
-    // TODO
-    Paths paths(lvc);
-    *error_message = 0;
+    *error_message                              = 0;
+    const std::string dest_workspace_name       = io::content(paths.current, 0, error_message);
+    const std::string src_workspace_name_string = src_workspace_name;
+    return operation::insert(paths, src_workspace_name_string, dest_workspace_name, author, error_message);
 }
 
 extern "C" LVC_API void
@@ -191,7 +215,7 @@ lvc_revert(const char* lvc, char* version_id, size_t input_count, char** input, 
     input_vector.reserve(input_count);
     for (size_t i = 0; i < input_count; i++)
         input_vector.push_back(input[i]);
-    version::revert(paths, version_id, input_vector, error_message);
+    operation::revert(paths, version_id, input_vector, error_message);
 }
 
 extern "C" LVC_API void lvc_push_local(const char* lvc, const char* tmp_lvc, char** error_message) noexcept {

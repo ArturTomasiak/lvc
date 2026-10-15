@@ -7,22 +7,16 @@ struct Command {
     bool (*function)(int argc, char* argv[]);
 };
 
-#define COMMANDS_ARRAY                                                                          \
-    {                                                                                           \
-        {"create",    lvc::create   }, \
-        {"version",   lvc::version  }, \
-        {"history",   lvc::history  },     \
-        {"prepare",   lvc::prepare  }, \
-        {"checkout",  lvc::checkout }, \
-        {"status",    lvc::status   },       \
-        {"default",   lvc::_default }, \
-        {"goto",      lvc::_goto    }, \
-        {"move",      lvc::move     },           \
-        {"revert",    lvc::revert   }, \
-        {"category",  lvc::category }, \
-        {"workspace", lvc::workspace}, \
-        {"current",   lvc::current  },                                                              \
-}
+// TODO list all categories, list all workspaces
+#define COMMANDS_ARRAY                                                                                                 \
+    {                                                                                                                  \
+        {"create", lvc::create}, {"version", lvc::version}, {"history", lvc::history}, {"prepare", lvc::prepare},      \
+            {"checkout", lvc::checkout}, {"status", lvc::status}, {"default", lvc::_default}, {"goto", lvc::_goto},    \
+            {"move", lvc::move}, {"revert", lvc::revert}, {"category", lvc::category}, {"workspace", lvc::workspace},  \
+            {"diff", lvc::diff}, {"current", lvc::current}, {"insert", lvc::insert}, {                                 \
+            "list", lvc::list                                                                                          \
+        }                                                                                                              \
+    }
 
 static bool (*command(std::string input))(int argc, char* argv[]) {
     Command commands[] = COMMANDS_ARRAY;

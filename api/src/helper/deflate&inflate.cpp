@@ -1,4 +1,5 @@
 #include <helper.hpp>
+#include <zlib.h>
 
 char* deflate(const char* in, size_t in_len, size_t& out_len) {
     if (!in || !in_len)

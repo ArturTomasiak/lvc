@@ -4,14 +4,14 @@
 // directory to the state of the version_id. Does not touch files specified by
 // lvc.ignore.
 
-void version::revert(Paths& paths, std::string version_id, std::vector<std::string>& input_raw, char** error_message) {
+void operation::revert(Paths& paths, std::string version_id, std::vector<std::string>& input_raw, char** error_message) {
     if (!std::filesystem::is_regular_file(paths.object / version_id)) {
         error_message_creator("Invalid version ID " + version_id, error_message);
         return;
     }
 
     std::vector<std::string> ignore_raw = io::content_lines(paths.ignore, 0, error_message);
-    std::vector<std::string> ignore     = paths.from_input(ignore_raw, version_id, 0, error_message);
+    std::vector<std::string> ignore     = paths.resolve(ignore_raw, version_id, 0, 1, error_message);
     if (*error_message)
         return;
 
@@ -25,7 +25,7 @@ void version::revert(Paths& paths, std::string version_id, std::vector<std::stri
     if (input_raw.empty())
         input_raw.push_back("/");
 
-    std::vector<std::string> input = paths.from_input(input_raw, version_id, 0, error_message);
+    std::vector<std::string> input = paths.resolve(input_raw, version_id, 0, 1, error_message);
     if (*error_message)
         return;
 
@@ -64,8 +64,8 @@ void version::revert(Paths& paths, std::string version_id, std::vector<std::stri
             std::string buffer = io::content(paths.object / object.id, 1, error_message);
             size_t      pos    = buffer.find('\n');
             io::file(
-                paths.root / object.path, std::ios::binary, buffer.data() + pos + 1, buffer.size() - pos - 1, 0,
-                error_message);
+                paths.root / object.path, std::ios::binary | std::ios::trunc, buffer.data() + pos + 1,
+                buffer.size() - pos - 1, 0, error_message);
         }
     }
 }

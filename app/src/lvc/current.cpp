@@ -9,7 +9,7 @@ bool lvc::current(int argc, char* argv[]) {
     if (error_message)
         return 0;
 
-    std::cout << "Current workspace " << name << '\n';
+    std::cout << "Current workspace: " << name << '\n';
     free(name);
     return 1;
 }

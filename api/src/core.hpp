@@ -1,52 +1,47 @@
 #pragma once
 #include <algorithm>
-#include <helper.hpp>
-#include <lvc.hpp>
 #include <unordered_map>
 #include <unordered_set>
 
-struct Paths {
-    const std::filesystem::path lvc;
-    const std::filesystem::path root;
-    const std::filesystem::path object;
-    const std::filesystem::path workspace;
-    const std::filesystem::path current;
-    const std::filesystem::path storage;
-    const std::filesystem::path ignore;
-    const std::filesystem::path local;
-    Paths(const char* lvc_c_str)
-        : lvc(lvc_c_str),
-          root(lvc.parent_path()),
-          object(lvc / NAME_OBJECT),
-          workspace(lvc / NAME_WORKSPACE),
-          current(lvc / NAME_CURRENT),
-          storage(root / NAME_STORAGE),
-          ignore(root / NAME_IGNORE),
-          local(workspace / NAME_LOCAL) {};
-    std::vector<std::string> from_input(
-        const std::vector<std::string>& inputs, const std::string version_id, bool prefix_deleted,
-        char** error_message);
-};
+#include <diff.hpp>
+#include <helper.hpp>
+#include <lvc.hpp>
+#include <paths.hpp>
 
 namespace category {
-    void create(Paths& paths, std::string name, char** error_message);
-    void rename(Paths& paths, const char* category_name, const char* new_name, char** error_message);
-    bool exists(Paths& paths, std::string name);
+    void            create(Paths& paths, std::string name, char** error_message);
+    void            rename(Paths& paths, const char* category_name, const char* new_name, char** error_message);
+    bool            exists(Paths& paths, std::string name);
+    LvcCategoryList list(Paths& paths, char** error_message);
+    void            free_category_list(LvcCategoryList& list);
 }
 
 namespace operation {
-    inline constexpr char filename_sync[]   = "sync";
-    inline constexpr char filename_unite[]  = "unite";
-    inline constexpr char filename_insert[] = "insert";
-
     enum class type : uint8_t { none, sync, unite, insert };
 
-    void create_folder(const std::filesystem::path& operation, operation::type type_enum, char** error_message);
-    operation::type  ongoing(Paths& paths, std::string& workspace_name, char** error_message);
-    LvcConflictArray sync(Paths& src_paths, Paths& dest_paths, char** error_message);
-    void             insert(
-                    Paths& paths, std::string src_workspace, std::string dest_workspace, const char* author, char** error_message);
-    void unite(
+    inline std::string type_to_string(operation::type type) {
+        if (type == operation::type::sync)
+            return "sync";
+        if (type == operation::type::insert)
+            return "insert";
+        if (type == operation::type::unite)
+            return "unite";
+        return "";
+    }
+
+    void create(
+        Paths& paths, const std::string& workspace_name, operation::type type_enum, std::vector<MergeResult>& merge,
+        char** error_message);
+    bool conflicts_handled(Paths& paths, const std::string& workspace_name, char** error_message);
+    operation::type
+    ongoing(Paths& paths, const std::string& workspace_name, std::string& operation_str, char** error_message);
+
+    void revert(Paths& paths, std::string version_id, std::vector<std::string>& input_raw, char** error_message);
+    LvcConflictArray* sync(Paths& src_paths, Paths& dest_paths, char** error_message);
+    LvcConflictArray* insert(
+        Paths& paths, const std::string& src_workspace_name, const std::string& dest_workspace_name, const char* author,
+        char** error_message);
+    LvcConflictArray* unite(
         Paths& paths, std::string src_workspace, std::string dest_workspace, const char* author, char** error_message);
     void push(Paths& src_paths, Paths& dest_paths, char** error_message);
 }
@@ -81,7 +76,6 @@ namespace version {
         char** error_message);
     void prepare(Paths& paths, std::vector<std::string> input, char*** prepared, char** error_message);
     void prepare_reset(Paths& paths, char** error_message);
-    void revert(Paths& paths, std::string version_id, std::vector<std::string>& input_raw, char** error_message);
 
     std::vector<std::string> checkout(Paths& paths, char** error_message);
     std::vector<std::string> status(Paths& paths, std::string& latest_version, char** error_message);
@@ -105,7 +99,7 @@ namespace workspace {
         Paths& paths, std::string category_name, std::string workspace_name, bool clone_working, char** error_message);
     bool exists(Paths& paths, std::string name, char** error_message);
     bool exists(Paths& paths, std::string name, std::filesystem::path& path, char** error_message);
-    bool is_inactive(Paths& paths, std::string name);
+    bool is_inactive(Paths& paths, const std::string& name, std::filesystem::path& workspace);
     bool is_inactive(const std::filesystem::path& workspace);
     void _goto(Paths& paths, std::string workspace_name, char** error_message);
     void _default(Paths& paths, const char* workspace_name, char** error_message);
@@ -117,6 +111,7 @@ namespace workspace {
     void deactivate(Paths& paths, const char* workspace_name, char** error_message);
 
     std::vector<object::info> all_objects(Paths& paths, char** error_message);
+    bool changed_since_ver(Paths& paths, std::vector<object::info>& objects_version, char** error_message);
 }
 
 inline void free_charpp(char** arr) {
@@ -159,6 +154,8 @@ inline bool charpcmp(const char* str1, const char* str2) {
             return 0;
     return *str1 == *str2;
 }
+
+inline constexpr std::string IS_INACTIVE_STRING = " is inactive";
 
 inline constexpr char DEFAULT_HYBRID_STORAGE[] =
     R"LVC(# Format: <size in MB> <extension>

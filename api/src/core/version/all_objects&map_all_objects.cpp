@@ -19,7 +19,7 @@ static void get_all_paths(
         object.id        = object.id.substr(0, position);
         object.path      = current / name;
 
-        if (type == TYPE_TREE)
+        if (object.type == object::type::tree)
             get_all_paths(object_folder, out, object.id, object.path, ignore, error_message);
         if (!ignore.contains(object.path.string()))
             out.push_back(object);
@@ -60,7 +60,7 @@ static void map_get_all_paths(
         object.id        = object.id.substr(0, position);
         object.path      = current / name;
 
-        if (type == TYPE_TREE)
+        if (object.type == object::type::tree)
             map_get_all_paths(object_folder, out, object.id, object.path, ignore, error_message);
         if (!ignore.contains(object.path.string()))
             out.insert({object.path, object});

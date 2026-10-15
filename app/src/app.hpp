@@ -27,5 +27,8 @@ namespace lvc {
     bool revert(int argc, char* argv[]);
     bool category(int argc, char* argv[]);
     bool workspace(int argc, char* argv[]);
+    bool diff(int argc, char* argv[]);
     bool current(int argc, char* argv[]);
+    bool list(int argc, char* argv[]);
+    bool insert(int argc, char* argv[]);
 }
