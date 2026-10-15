@@ -10,7 +10,7 @@ bool lvc::revert(int argc, char* argv[]) {
         return 0;
     }
 
-    if (!std::filesystem::is_regular_file(lvc / foldername_object / argv[2])) {
+    if (!lvc_version_exists(lvc.c_str(), argv[2])) {
         std::string id = argv[2];
         helper::error("Invalid version id " + id);
         return 0;

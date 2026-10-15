@@ -190,8 +190,8 @@ std::vector<std::string> Paths::resolve(
 
     excluded.push_back({1, 1, 1, {".lvc"}});
 
-    std::vector<std::string> result = resolve_processed(
-        *this, included, excluded, version_id, prefix_deleted, include_folders, error_message);
+    std::vector<std::string> result =
+        resolve_processed(*this, included, excluded, version_id, prefix_deleted, include_folders, error_message);
 
     return result;
 }

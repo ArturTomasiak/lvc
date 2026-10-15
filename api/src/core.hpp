@@ -9,11 +9,12 @@
 #include <paths.hpp>
 
 namespace category {
-    void            create(Paths& paths, std::string name, char** error_message);
-    void            rename(Paths& paths, const char* category_name, const char* new_name, char** error_message);
-    bool            exists(Paths& paths, std::string name);
-    LvcCategoryList list(Paths& paths, char** error_message);
-    void            free_category_list(LvcCategoryList& list);
+    void             create(Paths& paths, std::string name, char** error_message);
+    void             rename(Paths& paths, const char* category_name, const char* new_name, char** error_message);
+    bool             exists(Paths& paths, std::string name);
+    LvcCategoryList* list(Paths& paths, char** error_message);
+    void             free_category_list(LvcCategoryList* list);
+    void             free_category_list(LvcCategoryList& list);
 }
 
 namespace operation {

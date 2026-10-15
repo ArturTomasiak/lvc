@@ -88,9 +88,11 @@ LVC_API char** lvc_status_all(const char* lvc, char** error_message) LVC_NOEXCEP
 LVC_API char** lvc_prepare(const char* lvc, int argc, char* argv[], char** error_message) LVC_NOEXCEPT;
 LVC_API void   lvc_prepare_reset(const char* lvc, char** error_message) LVC_NOEXCEPT;
 LVC_API void   lvc_version(const char* lvc, const char* message, const char* author, char** error_message) LVC_NOEXCEPT;
-LVC_API LvcVersion* lvc_history(
-    const char* lvc, const char* workspace, size_t depth, size_t length, LVC_BOOL all,
-    char** error_message) LVC_NOEXCEPT;
+LVC_API LvcCategoryList* lvc_category_list(const char* lvc, char** error_message) LVC_NOEXCEPT;
+LVC_API void             lvc_category_list_free(LvcCategoryList* list) LVC_NOEXCEPT;
+LVC_API LvcVersion*      lvc_history(
+         const char* lvc, const char* workspace, size_t depth, size_t length, LVC_BOOL all,
+         char** error_message) LVC_NOEXCEPT;
 LVC_API void              lvc_history_free(LvcVersion* version) LVC_NOEXCEPT;
 LVC_API void              lvc_terminal_conflict_solver(const char* lvc, char** error_message) LVC_NOEXCEPT;
 LVC_API void              lvc_diff(const char* lvc, int argc, char* argv[], char** error_message) LVC_NOEXCEPT;
@@ -110,6 +112,7 @@ LVC_API void lvc_move_workspace(
     const char* lvc, const char* workspace_name, const char* previous_category, const char* category,
     char** error_message) LVC_NOEXCEPT;
 LVC_API void     lvc_deactivate(const char* lvc, const char* workspace_name, char** error_message) LVC_NOEXCEPT;
+LVC_API LVC_BOOL lvc_version_exists(const char* lvc, const char* id) LVC_NOEXCEPT;
 LVC_API LVC_BOOL lvc_category_exists(const char* lvc, const char* name, char** error_message) LVC_NOEXCEPT;
 LVC_API LVC_BOOL lvc_workspace_exists(const char* lvc, const char* name, char** error_message) LVC_NOEXCEPT;
 LVC_API void     lvc_free_charpp(char** arr) LVC_NOEXCEPT;

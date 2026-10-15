@@ -124,6 +124,13 @@ lvc_version(const char* lvc, const char* message, const char* author, char** err
     version::create(paths, message, author, "", error_message);
 }
 
+extern "C" LVC_API LvcCategoryList* lvc_category_list(const char* lvc, char** error_message) noexcept {
+    Paths paths(lvc);
+    return category::list(paths, error_message);
+}
+
+extern "C" LVC_API void lvc_category_list_free(LvcCategoryList* list) noexcept { category::free_category_list(list); }
+
 extern "C" LVC_API LvcVersion* lvc_history(
     const char* lvc, const char* workspace, size_t depth, size_t length, LVC_BOOL all, char** error_message) noexcept {
     Paths paths(lvc);
@@ -230,14 +237,14 @@ extern "C" LVC_API void lvc_push_server(const char* lvc, char** error_message) n
     *error_message = 0;
 }
 
-LVC_API void
+extern "C" LVC_API void
 lvc_rename_category(const char* lvc, const char* category_name, const char* new_name, char** error_message) noexcept {
     Paths paths(lvc);
     *error_message = 0;
     category::rename(paths, category_name, new_name, error_message);
 }
 
-LVC_API void lvc_move_workspace(
+extern "C" LVC_API void lvc_move_workspace(
     const char* lvc, const char* workspace_name, const char* previous_category, const char* category,
     char** error_message) noexcept {
     Paths paths(lvc);
@@ -245,10 +252,15 @@ LVC_API void lvc_move_workspace(
     workspace::move_categories(paths, workspace_name, previous_category, category, error_message);
 }
 
-LVC_API void lvc_deactivate(const char* lvc, const char* workspace_name, char** error_message) noexcept {
+extern "C" LVC_API void lvc_deactivate(const char* lvc, const char* workspace_name, char** error_message) noexcept {
     Paths paths(lvc);
     *error_message = 0;
     workspace::deactivate(paths, workspace_name, error_message);
+}
+
+extern "C" LVC_API LVC_BOOL lvc_version_exists(const char* lvc, const char* id) noexcept {
+    std::filesystem::path lvc_path = lvc;
+    return std::filesystem::is_regular_file(lvc_path / foldername_object / id);
 }
 
 extern "C" LVC_API LVC_BOOL lvc_category_exists(const char* lvc, const char* name, char** error_message) noexcept {

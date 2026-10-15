@@ -4,7 +4,8 @@
 // directory to the state of the version_id. Does not touch files specified by
 // lvc.ignore.
 
-void operation::revert(Paths& paths, std::string version_id, std::vector<std::string>& input_raw, char** error_message) {
+void operation::revert(
+    Paths& paths, std::string version_id, std::vector<std::string>& input_raw, char** error_message) {
     if (!std::filesystem::is_regular_file(paths.object / version_id)) {
         error_message_creator("Invalid version ID " + version_id, error_message);
         return;

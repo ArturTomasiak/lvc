@@ -5,21 +5,23 @@ bool lvc::list(int argc, char* argv[]) {
     if (!helper::find_repository(lvc))
         return 0;
 
-    char** status;
+    LvcCategoryList* list = lvc_category_list(lvc.c_str(), &error_message);
 
-    if (argc == 3 && !std::strcmp(argv[2], "all"))
-        status = lvc_status_all(lvc.c_str(), &error_message);
-    else
-        status = lvc_status(lvc.c_str(), &error_message);
+    if (error_message) {
+        if (list != nullptr)
+            lvc_category_list_free(list);
+        return false;
+    }
 
-    char** status_copy = status;
+    for (size_t i = 0; i < list->len; i++) {
+        LvcCategory* category = &list->category[i];
+        std::cout << category->name << '\n';
+        for (size_t i = 0; i < category->workspaces_len; i++) {
+            std::cout << category->name << "/" << category->workspaces[i] << '\n';
+        }
+    }
 
-    if (status && *status) {
-        std::cout << "Files prepared and changed since last version\n";
-        while (status && *status)
-            std::cout << *status++ << "\n";
-        lvc_free_charpp(status_copy);
-    } else
-        std::cout << "No difference in prepared files since last version\n";
-    return 1;
+    lvc_category_list_free(list);
+
+    return true;
 }
