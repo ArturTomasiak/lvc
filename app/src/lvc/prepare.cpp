@@ -26,6 +26,6 @@ bool lvc::prepare(int argc, char* argv[]) {
             std::cout << *prepared_files++ << '\n';
         lvc_free_charpp(prepared_files_copy);
     } else
-        std::cout << "No files were prepared";
+        std::cout << "No files were prepared\n";
     return 1;
 }

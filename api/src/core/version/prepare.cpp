@@ -49,8 +49,16 @@ void version::prepare(Paths& paths, std::vector<std::string> input_raw, char*** 
 
     std::erase_if(current, [&ignore_entries](const std::string& entry) { return ignore_entries.contains(entry); });
 
-    std::string buffer;
+    std::unordered_set<std::string> version = version::all_ids(paths, version_id, ignore_entries, error_message);
+    std::erase_if(current, [&version, &paths, &error_message](const std::string& entry) {
+        std::string buffer = io::content(paths.root / entry, 0, error_message);
+        insert_pattern(buffer, TYPE_BLOB);
+        char id[65];
+        sha256(buffer.c_str(), buffer.size(), id);
+        return version.contains(id);
+    });
 
+    std::string buffer;
     for (std::string& path : current)
         buffer += path + "\n";
 

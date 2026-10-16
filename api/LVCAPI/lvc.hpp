@@ -77,7 +77,7 @@ typedef struct {
 LVC_API void  lvc_create(LvcCreateInput input, char** error_message) LVC_NOEXCEPT;
 LVC_API char* lvc_current(const char* lvc, char** error_message) LVC_NOEXCEPT;
 LVC_API void  lvc_workspace(
-     const char* lvc, const char* category_name, const char* workspace_name, LVC_BOOL clone_working,
+     const char* lvc, const char* category_name, const char* workspace_name, LVC_BOOL clean,
      char** error_message) LVC_NOEXCEPT;
 LVC_API void   lvc_category(const char* lvc, const char* category_name, char** error_message) LVC_NOEXCEPT;
 LVC_API void   lvc_goto(const char* lvc, const char* workspace_name, char** error_message) LVC_NOEXCEPT;

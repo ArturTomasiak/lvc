@@ -47,11 +47,11 @@ extern "C" LVC_API char* lvc_current(const char* lvc, char** error_message) noex
 }
 
 extern "C" LVC_API void lvc_workspace(
-    const char* lvc, const char* category_name, const char* workspace_name, LVC_BOOL clone_working,
+    const char* lvc, const char* category_name, const char* workspace_name, LVC_BOOL clean,
     char** error_message) noexcept {
     Paths paths(lvc);
     *error_message = 0;
-    workspace::create(paths, category_name, workspace_name, clone_working, error_message);
+    workspace::create(paths, category_name, workspace_name, clean, error_message);
 }
 
 extern "C" LVC_API void lvc_category(const char* lvc, const char* category_name, char** error_message) noexcept {

@@ -4,7 +4,7 @@ bool lvc::workspace(int argc, char* argv[]) {
     std::filesystem::path lvc;
     if (!helper::find_repository(lvc))
         return 0;
-    bool clone_working = 0;
+    bool clean = 0;
 
     if (argc < 3) {
         helper::error("No arguments");
@@ -17,13 +17,13 @@ bool lvc::workspace(int argc, char* argv[]) {
     }
 
     if (argc == 5) {
-        if (!strcmp(argv[4], "copy"))
-            clone_working = 1;
+        if (!strcmp(argv[4], "clean"))
+            clean = 1;
         else
             helper::error("Invalid argument" + std::string(argv[4]));
     }
 
-    lvc_workspace(lvc.c_str(), argv[2], argv[3], clone_working, &error_message);
+    lvc_workspace(lvc.c_str(), argv[2], argv[3], clean, &error_message);
     if (error_message)
         return 0;
 

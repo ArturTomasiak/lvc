@@ -108,7 +108,7 @@ LvcConflictArray* operation::insert(
             size_t path_len = charplen(merge.path.c_str());
             out->paths[i]   = (char*)malloc(path_len + 1);
             memcpy(out->paths[i], merge.path.c_str(), path_len + 1);
-            std::cout << "Merge conflict: " << merge.path.c_str();
+            std::cout << "Merge conflict: " << merge.path.c_str() << '\n';
         }
         std::cout << "Retry once conflicts are handled";
         return out;

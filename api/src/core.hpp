@@ -87,6 +87,8 @@ namespace version {
     LvcVersion* history_all(Paths& paths, const std::string workspace_name, char** error_message);
     void        history_free(LvcVersion* version);
 
+    std::unordered_set<std::string>
+    all_ids(Paths& paths, const std::string& id, std::unordered_set<std::string_view> ignore, char** error_message);
     std::vector<object::info> all_objects(
         const std::filesystem::path& object, const std::string& id, std::unordered_set<std::string_view> ignore,
         char** error_message);
@@ -96,8 +98,7 @@ namespace version {
 }
 
 namespace workspace {
-    void create(
-        Paths& paths, std::string category_name, std::string workspace_name, bool clone_working, char** error_message);
+    void create(Paths& paths, std::string category_name, std::string workspace_name, bool clean, char** error_message);
     bool exists(Paths& paths, std::string name, char** error_message);
     bool exists(Paths& paths, std::string name, std::filesystem::path& path, char** error_message);
     bool is_inactive(Paths& paths, const std::string& name, std::filesystem::path& workspace);

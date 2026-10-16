@@ -2,7 +2,7 @@
 
 bool lvc::list(int argc, char* argv[]) {
     std::filesystem::path lvc;
-     bool all = true;
+    bool                  all = true;
     if (!helper::find_repository(lvc))
         return 0;
 
