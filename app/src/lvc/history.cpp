@@ -24,7 +24,8 @@ bool lvc::history(int argc, char* argv[]) {
     size_t length = 50;
 
     if (argc < 3) {
-        LvcVersion* version = lvc_history(lvc.c_str(), lvc_current(lvc.c_str(), &error_message), depth, length, all, &error_message);
+        LvcVersion* version =
+            lvc_history(lvc.c_str(), lvc_current(lvc.c_str(), &error_message), depth, length, all, &error_message);
         print_history(version);
         lvc_history_free(version);
         return 1;

@@ -1,7 +1,7 @@
 #include "core.hpp"
 
 void operation::create(
-    Paths& paths, const std::string& workspace_name, operation::type type_enum, std::vector<MergeResult>& merge,
+    Paths& paths, const std::string& workspace_name, operation::type type_enum, LvcConflictArray* conflicts,
     char** error_message) {
     const std::filesystem::path operation = paths.local / workspace_name / foldername_operation;
     io::dir(operation, error_message);
@@ -21,11 +21,11 @@ void operation::create(
             break;
     }
     io::file(operation / type, std::ios::binary | std::ios::trunc, error_message);
-    if (merge.empty())
+    if (conflicts->len == 0)
         return;
     std::string buffer;
-    for (MergeResult& entry : merge) {
-        buffer += entry.path;
+    for (size_t i = 0; i < conflicts->len; i++) {
+        buffer += conflicts->paths[i];
         buffer += '\n';
     }
     io::file(

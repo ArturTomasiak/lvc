@@ -1,6 +1,7 @@
 #pragma once
 #include <cstddef>
 #include <filesystem>
+#include <paths.hpp>
 #include <string>
 #include <vector>
 
@@ -36,17 +37,6 @@ struct Scratch {
     }
 };
 
-struct Conflict {
-    size_t begin, end;
-    Lines  ours, theirs;
-};
-
-struct MergeResult {
-    Lines                 lines;
-    std::vector<Conflict> conflicts;
-    std::filesystem::path path;
-};
-
 std::vector<Edit> diff(const Lines& base, const Lines& side);
 void              print_diff(const Lines& base, const Lines& side, std::string path);
-MergeResult       merge(const Lines& base, const Lines& ours, const Lines& theirs, const std::filesystem::path& path);
+bool              merge(const std::filesystem::path path, const Lines& base, const Lines& ours, const Lines& theirs);

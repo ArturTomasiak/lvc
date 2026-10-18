@@ -1,6 +1,7 @@
 #include <diff.hpp>
 
 #include <algorithm>
+#include <fstream>
 #include <iostream>
 #include <limits>
 #include <utility>
@@ -224,16 +225,18 @@ static bool interacts(const Edit& a, const Edit& b) {
     return std::max(a.base_begin, b.base_begin) < std::min(a.base_end, b.base_end);
 }
 
-void emit_unchanged_base(const size_t& until, size_t& base_position, const Lines& base, MergeResult& result) {
+static void emit_unchanged_base(const size_t& until, size_t& base_position, const Lines& base, std::ofstream& out) {
     if (base_position < until)
-        result.lines.insert(result.lines.end(), base.begin() + base_position, base.begin() + until);
+        for (size_t i = base_position; i < until; ++i)
+            out << base[i] << '\n';
     base_position = until;
 }
 
-MergeResult merge(const Lines& base, const Lines& ours, const Lines& theirs, const std::filesystem::path& path) {
-    const std::vector<Edit> ours_edits    = diff(base, ours);
-    const std::vector<Edit> theirs_edits  = diff(base, theirs);
-    MergeResult             result        = {.path = path};
+bool merge(const std::filesystem::path path, const Lines& base, const Lines& ours, const Lines& theirs) {
+    const std::vector<Edit> ours_edits   = diff(base, ours);
+    const std::vector<Edit> theirs_edits = diff(base, theirs);
+    bool                    conflict     = false;
+    std::ofstream           out(path, std::ios::binary | std::ios::trunc | std::ios::out);
     size_t                  oi            = 0;
     size_t                  ti            = 0;
     size_t                  base_position = 0;
@@ -243,8 +246,9 @@ MergeResult merge(const Lines& base, const Lines& ours, const Lines& theirs, con
             (oi < ours_edits.size() && ours_edits[oi].base_begin < theirs_edits[ti].base_begin);
         if (ours_starts_first && (ti == theirs_edits.size() || !interacts(ours_edits[oi], theirs_edits[ti]))) {
             const Edit& edit = ours_edits[oi];
-            emit_unchanged_base(edit.base_begin, base_position, base, result);
-            result.lines.insert(result.lines.end(), ours.begin() + edit.side_begin, ours.begin() + edit.side_end);
+            emit_unchanged_base(edit.base_begin, base_position, base, out);
+            for (size_t i = edit.side_begin; i < edit.side_end; i++)
+                out << ours[i] << '\n';
             base_position = edit.base_end;
             oi++;
             continue;
@@ -254,8 +258,9 @@ MergeResult merge(const Lines& base, const Lines& ours, const Lines& theirs, con
             (ti < theirs_edits.size() && theirs_edits[ti].base_begin < ours_edits[oi].base_begin);
         if (theirs_starts_first && (oi == ours_edits.size() || !interacts(ours_edits[oi], theirs_edits[ti]))) {
             const Edit& edit = theirs_edits[ti];
-            emit_unchanged_base(edit.base_begin, base_position, base, result);
-            result.lines.insert(result.lines.end(), theirs.begin() + edit.side_begin, theirs.begin() + edit.side_end);
+            emit_unchanged_base(edit.base_begin, base_position, base, out);
+            for (size_t i = edit.side_begin; i < edit.side_end; i++)
+                out << theirs[i] << '\n';
             base_position = edit.base_end;
             ti++;
             continue;
@@ -263,13 +268,14 @@ MergeResult merge(const Lines& base, const Lines& ours, const Lines& theirs, con
         if (oi < ours_edits.size() && ti < theirs_edits.size() && !interacts(ours_edits[oi], theirs_edits[ti])) {
             if (ours_edits[oi].base_begin == ours_edits[oi].base_end) {
                 const Edit& edit = ours_edits[oi++];
-                emit_unchanged_base(edit.base_begin, base_position, base, result);
-                result.lines.insert(result.lines.end(), ours.begin() + edit.side_begin, ours.begin() + edit.side_end);
+                emit_unchanged_base(edit.base_begin, base_position, base, out);
+                for (size_t i = edit.side_begin; i < edit.side_end; i++)
+                    out << ours[i] << '\n';
             } else {
                 const Edit& edit = theirs_edits[ti++];
-                emit_unchanged_base(edit.base_begin, base_position, base, result);
-                result.lines.insert(
-                    result.lines.end(), theirs.begin() + edit.side_begin, theirs.begin() + edit.side_end);
+                emit_unchanged_base(edit.base_begin, base_position, base, out);
+                for (size_t i = edit.side_begin; i < edit.side_end; i++)
+                    out << theirs[i] << '\n';
             }
             continue;
         }
@@ -299,21 +305,25 @@ MergeResult merge(const Lines& base, const Lines& ours, const Lines& theirs, con
                 expanded = true;
             }
         }
-        emit_unchanged_base(region_begin, base_position, base, result);
+        emit_unchanged_base(region_begin, base_position, base, out);
         Lines ours_version = materialize_region(base, ours, ours_edits, ours_begin, oi, region_begin, region_end);
         Lines theirs_version =
             materialize_region(base, theirs, theirs_edits, theirs_begin, ti, region_begin, region_end);
         if (ours_version == theirs_version) {
-            result.lines.insert(result.lines.end(), ours_version.begin(), ours_version.end());
+            for (std::string& line : ours_version)
+                out << line << '\n';
         } else {
-            result.conflicts.push_back({region_begin, region_end, ours_version, theirs_version});
-            result.lines.push_back(ours_label);
-            result.lines.insert(result.lines.end(), ours_version.begin(), ours_version.end());
-            result.lines.push_back(theirs_label);
-            result.lines.insert(result.lines.end(), theirs_version.begin(), theirs_version.end());
+            conflict = true;
+            out << ours_label << '\n';
+            for (std::string& line : ours_version)
+                out << line << '\n';
+            out << theirs_label << '\n';
+            for (std::string& line : theirs_version)
+                out << line << '\n';
         }
         base_position = region_end;
     }
-    emit_unchanged_base(base.size(), base_position, base, result);
-    return result;
+    emit_unchanged_base(base.size(), base_position, base, out);
+    out.close();
+    return conflict;
 }

@@ -1,5 +1,3 @@
 #include <test.hpp>
 
-void test::merge() {
-    
-}
+void test::merge() {}

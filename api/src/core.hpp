@@ -31,7 +31,7 @@ namespace operation {
     }
 
     void create(
-        Paths& paths, const std::string& workspace_name, operation::type type_enum, std::vector<MergeResult>& merge,
+        Paths& paths, const std::string& workspace_name, operation::type type_enum, LvcConflictArray* conflicts,
         char** error_message);
     bool conflicts_handled(Paths& paths, const std::string& workspace_name, char** error_message);
     operation::type
