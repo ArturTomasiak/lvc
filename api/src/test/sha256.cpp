@@ -8,12 +8,11 @@ struct Expected {
 static bool compare(const Expected& expected) {
     char output[65];
     sha256(expected.input.data(), expected.input.size(), output);
-    if (strcmp(output, expected.output.c_str()))
-        return true;
-    return false;
+    return strcmp(output, expected.output.c_str()) == 0;
 }
 
-void test::sha256() {
+bool test::sha256() {
+    bool                        out   = true;
     const std::vector<Expected> tests = {
         // 1-8: Case sensitivity, whitespace, special characters, empty
         {"", "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},
@@ -34,7 +33,10 @@ void test::sha256() {
         {std::string(9999, 'a'), "5e239d7f94d775403bb340918f842229d6fa59b49759998c64bb198296edc1bc"},
     };
     for (const Expected& expected : tests) {
-        if (compare(expected) == false)
+        if (compare(expected) == false) {
             std::cout << "SHA256 TEST FAILURE: " << expected.input << '\n';
+            out = false;
+        }
     }
+    return out;
 }

@@ -9,8 +9,8 @@ static void existance_conflict(
     file << ours_label << '\n';
     if (!ours)
         file << buffer << '\n';
-    size_t len = charplen(dest.c_str());
-    out->paths = (char**)realloc(out, (out->len + 1) * sizeof(char*));
+    size_t len           = charplen(dest.c_str());
+    out->paths           = (char**)realloc(out, (out->len + 1) * sizeof(char*));
     out->paths[out->len] = (char*)malloc(len + 1);
     memcpy(out->paths[out->len], dest.c_str(), len + 1);
     out->len++;
@@ -34,13 +34,13 @@ LvcConflictArray* operation::insert(
         return out;
     }
 
-    const Lines       src_versions  = io::content_lines(src_workspace, 0, error_message);
-    const Lines       dest_versions = io::content_lines(dest_workspace, 0, error_message);
-    const std::string src_id        = src_versions[0];
-    const std::string dest_id       = dest_versions[0];
-    std::string                                                     common_id     = src_versions.front();
-    bool                                                            common_exists = false;
-    operation::type           type = operation::ongoing(paths, src_workspace_name, operation, error_message);
+    const Lines               src_versions  = io::content_lines(src_workspace, 0, error_message);
+    const Lines               dest_versions = io::content_lines(dest_workspace, 0, error_message);
+    const std::string         src_id        = src_versions[0];
+    const std::string         dest_id       = dest_versions[0];
+    std::string               common_id     = src_versions.front();
+    bool                      common_exists = false;
+    operation::type           type          = operation::ongoing(paths, src_workspace_name, operation, error_message);
     std::vector<object::info> src_objects;
     std::unordered_map<std::filesystem::path, object::info> dest_objects;
     std::unordered_map<std::filesystem::path, object::info> common_objects;
@@ -98,13 +98,13 @@ LvcConflictArray* operation::insert(
         Lines common;
         if (common_info != nullptr || common_exists == true)
             common = io::content_lines(paths.object / common_info->id, 1, error_message);
-        const Lines src = io::content_lines(paths.object / src_info.id, 1, error_message);
-        const Lines dest   = io::content_lines(paths.object / dest_info->id, 1, error_message);
+        const Lines src  = io::content_lines(paths.object / src_info.id, 1, error_message);
+        const Lines dest = io::content_lines(paths.object / dest_info->id, 1, error_message);
 
         bool conflict = merge(paths.root / src_info.path, common, src, dest);
         if (conflict) {
-            size_t len = charplen(src_info.path.c_str());
-            out->paths = (char**)realloc(out, (out->len + 1) * sizeof(char*));
+            size_t len           = charplen(src_info.path.c_str());
+            out->paths           = (char**)realloc(out, (out->len + 1) * sizeof(char*));
             out->paths[out->len] = (char*)malloc(len + 1);
             memcpy(out->paths[out->len], src_info.path.c_str(), len + 1);
             out->len++;

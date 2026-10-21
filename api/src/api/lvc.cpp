@@ -1,5 +1,7 @@
+#include <chrono>
 #include <core.hpp>
 #include <lvc.hpp>
+#include <test.hpp>
 
 extern "C" LVC_API void lvc_create(LvcCreateInput input, char** error_message) noexcept {
     *error_message            = 0;
@@ -82,12 +84,13 @@ extern "C" LVC_API char** lvc_checkout(const char* lvc, char** error_message) no
 extern "C" LVC_API char** lvc_status(const char* lvc, char** error_message) noexcept {
     Paths paths(lvc);
     *error_message                       = 0;
-    std::string           workspace_name = io::content(paths.current, 0, error_message);
-    std::filesystem::path workspace      = workspace_path(paths.workspace, workspace_name);
-    std::string           version_id     = io::content_first_line(workspace, error_message);
+    const std::string           workspace_name = io::content(paths.current, 0, error_message);
+    const std::filesystem::path workspace      = workspace_path(paths.workspace, workspace_name);
+    const std::filesystem::path prepare        = prepare_path(paths, workspace);
+    const std::string           version_id     = io::content_first_line(workspace, error_message);
     if (*error_message)
         return 0;
-    std::vector<std::string> status = version::status(paths, version_id, error_message);
+    std::vector<std::string> status = version::status(paths, prepare, version_id, error_message);
     return strvector_to_charpp(status);
 }
 
@@ -276,3 +279,15 @@ extern "C" LVC_API LVC_BOOL lvc_workspace_exists(const char* lvc, const char* na
 }
 
 extern "C" LVC_API void lvc_free_charpp(char** arr) noexcept { free_charpp(arr); }
+
+extern "C" LVC_API void lvc_run_tests() noexcept {
+    const auto start  = std::chrono::steady_clock::now();
+    bool       diff   = test::diff();
+    bool       merge  = test::merge();
+    bool       sha256 = test::sha256();
+    if (diff && merge && sha256) {
+        const auto elapsed =
+            std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
+        std::cout << "successfully passed all tests in: " << elapsed << " ms\n";
+    }
+}

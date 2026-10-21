@@ -116,6 +116,7 @@ LVC_API LVC_BOOL lvc_version_exists(const char* lvc, const char* id) LVC_NOEXCEP
 LVC_API LVC_BOOL lvc_category_exists(const char* lvc, const char* name, char** error_message) LVC_NOEXCEPT;
 LVC_API LVC_BOOL lvc_workspace_exists(const char* lvc, const char* name, char** error_message) LVC_NOEXCEPT;
 LVC_API void     lvc_free_charpp(char** arr) LVC_NOEXCEPT;
+LVC_API void     lvc_run_tests() LVC_NOEXCEPT;
 #ifdef __cplusplus
 }
 #endif
@@ -128,9 +129,10 @@ LVC_API void     lvc_free_charpp(char** arr) LVC_NOEXCEPT;
 #define VERSION_WORKSPACE 4
 
 // type string defines
-#define TYPE_VERSION "version"
-#define TYPE_TREE    "tree"
-#define TYPE_BLOB    "blob"
+#define TYPE_VERSION   "version"
+#define TYPE_TREE      "tree"
+#define TYPE_BLOB      "blob"
+#define TYPE_PREPARE   "prepare"
 
 // prefixes
 

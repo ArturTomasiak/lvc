@@ -5,16 +5,16 @@
 // pattern is written file content
 
 void object::create(
-    const std::filesystem::path& object, const std::string& type, std::string& content, std::string& out_id,
+    const std::filesystem::path& object, const std::string& type, std::string& content, std::string& id,
     char** error_message) {
     insert_pattern(content, type);
 
-    char id[65];
-    sha256(content.data(), content.size(), id);
-    out_id = id;
+    char content_id[65];
+    sha256(content.data(), content.size(), content_id);
+    id = content_id;
 
     if (std::filesystem::is_regular_file(object / id))
         return;
 
-    io::file(object / out_id, std::ios::binary | std::ios::trunc, content.data(), content.size(), 1, error_message);
+    io::file(object / id, std::ios::binary | std::ios::trunc, content.data(), content.size(), 1, error_message);
 }

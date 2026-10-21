@@ -31,4 +31,5 @@ namespace lvc {
     bool current(int argc, char* argv[]);
     bool list(int argc, char* argv[]);
     bool insert(int argc, char* argv[]);
+    bool test(int argc, char* argv[]);
 }

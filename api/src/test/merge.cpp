@@ -1,3 +1,3 @@
 #include <test.hpp>
 
-void test::merge() {}
+bool test::merge() { return true; }

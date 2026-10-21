@@ -48,7 +48,7 @@ namespace operation {
 }
 
 namespace object {
-    enum class type : uint8_t { blob, tree };
+    enum class type : uint8_t { version, blob, tree, prepare };
 
     struct info {
         object::type          type;
@@ -79,7 +79,7 @@ namespace version {
     void prepare_reset(Paths& paths, char** error_message);
 
     std::vector<std::string> checkout(Paths& paths, char** error_message);
-    std::vector<std::string> status(Paths& paths, std::string& latest_version, char** error_message);
+    std::vector<std::string> status(Paths& paths, const std::filesystem::path& prepare_dir, const std::string& latest_version, char** error_message);
     std::vector<std::string> status_all(Paths& paths, char** error_message);
 
     LvcVersion*
