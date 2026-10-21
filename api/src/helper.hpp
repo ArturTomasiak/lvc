@@ -3,14 +3,14 @@
 #include <filesystem>
 #include <fstream>
 #include <lvc.hpp>
-#include <vector>
 #include <paths.hpp>
+#include <vector>
 
 void  sha256(const char* in, size_t in_len, char out[65]);
 char* deflate(const char* in, size_t in_len, size_t& out_len);
 char* inflate(const std::string& in, size_t& out_len);
 
-void insert_pattern(std::string& dest, const std::string& type);
+void                  insert_pattern(std::string& dest, const std::string& type);
 std::filesystem::path prepare_path(Paths& paths, const std::string& workspace_name);
 std::filesystem::path workspace_path(const std::filesystem::path& workspace_dir, const std::string& workspace_name);
 

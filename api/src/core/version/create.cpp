@@ -167,15 +167,15 @@ void version::create(
         error_message_creator("No version message recieved", error_message);
         return;
     }
-    const std::string              workspace_name = io::content(paths.current, 0, error_message);
-    const std::filesystem::path    workspace      = workspace_path(paths.workspace, workspace_name);
-    const std::string              version_id     = io::content_first_line(workspace, error_message);
-    const std::filesystem::path prepare_dir = prepare_path(paths, workspace_name);
+    const std::string           workspace_name = io::content(paths.current, 0, error_message);
+    const std::filesystem::path workspace      = workspace_path(paths.workspace, workspace_name);
+    const std::string           version_id     = io::content_first_line(workspace, error_message);
+    const std::filesystem::path prepare_dir    = prepare_path(paths, workspace_name);
     if (!std::filesystem::is_regular_file(prepare_dir)) {
         error_message_creator("No files prepared", error_message);
         return;
     }
-    std::vector<std::string> status         = version::status(paths, prepare_dir, version_id, error_message);
+    std::vector<std::string> status = version::status(paths, prepare_dir, version_id, error_message);
 
     std::string root_id;
     if (!version_id.empty()) {

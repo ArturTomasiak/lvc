@@ -1,19 +1,19 @@
 #include <test.hpp>
 
-struct Expected {
+struct ExpectedSha {
     std::string input;
     std::string output;
 };
 
-static bool compare(const Expected& expected) {
+static bool compare(const ExpectedSha& expected) {
     char output[65];
     sha256(expected.input.data(), expected.input.size(), output);
     return strcmp(output, expected.output.c_str()) == 0;
 }
 
 bool test::sha256() {
-    bool                        out   = true;
-    const std::vector<Expected> tests = {
+    bool                           out   = true;
+    const std::vector<ExpectedSha> tests = {
         // 1-8: Case sensitivity, whitespace, special characters, empty
         {"", "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},
         {"ABC", "b5d4045c3f466fa91fe2cc6abe79232a1a57cdf104f7a26e716e0a1e2789df78"},
@@ -32,7 +32,7 @@ bool test::sha256() {
         // 15: Large input
         {std::string(9999, 'a'), "5e239d7f94d775403bb340918f842229d6fa59b49759998c64bb198296edc1bc"},
     };
-    for (const Expected& expected : tests) {
+    for (const ExpectedSha& expected : tests) {
         if (compare(expected) == false) {
             std::cout << "SHA256 TEST FAILURE: " << expected.input << '\n';
             out = false;

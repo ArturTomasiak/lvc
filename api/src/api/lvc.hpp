@@ -129,10 +129,10 @@ LVC_API void     lvc_run_tests() LVC_NOEXCEPT;
 #define VERSION_WORKSPACE 4
 
 // type string defines
-#define TYPE_VERSION   "version"
-#define TYPE_TREE      "tree"
-#define TYPE_BLOB      "blob"
-#define TYPE_PREPARE   "prepare"
+#define TYPE_VERSION "version"
+#define TYPE_TREE    "tree"
+#define TYPE_BLOB    "blob"
+#define TYPE_PREPARE "prepare"
 
 // prefixes
 

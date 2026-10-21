@@ -38,9 +38,10 @@ static void get_unmodified(
     }
 }
 
-std::vector<std::string> version::status(Paths& paths, const std::filesystem::path& prepare_dir, const std::string& latest_version, char** error_message) {
-    const std::string           workspace_name = io::content(paths.current, 0, error_message);
-    std::vector<std::string>        status = io::content_lines(prepare_dir, 1, error_message);
+std::vector<std::string> version::status(
+    Paths& paths, const std::filesystem::path& prepare_dir, const std::string& latest_version, char** error_message) {
+    const std::string        workspace_name = io::content(paths.current, 0, error_message);
+    std::vector<std::string> status         = io::content_lines(prepare_dir, 1, error_message);
     status.erase(status.begin());
     std::unordered_set<std::string> status_set;
     status_set.reserve(status.size());
@@ -62,7 +63,7 @@ std::vector<std::string> version::status(Paths& paths, const std::filesystem::pa
 std::vector<std::string> version::status_all(Paths& paths, char** error_message) {
     const std::string           workspace_name = io::content(paths.current, 0, error_message);
     const std::filesystem::path prepare_dir    = prepare_path(paths, workspace_name);
-    std::vector<std::string> status = io::content_lines(prepare_dir, 1, error_message);
+    std::vector<std::string>    status         = io::content_lines(prepare_dir, 1, error_message);
     status.erase(status.begin());
     return status;
 }

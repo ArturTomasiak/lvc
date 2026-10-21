@@ -83,7 +83,7 @@ extern "C" LVC_API char** lvc_checkout(const char* lvc, char** error_message) no
 
 extern "C" LVC_API char** lvc_status(const char* lvc, char** error_message) noexcept {
     Paths paths(lvc);
-    *error_message                       = 0;
+    *error_message                             = 0;
     const std::string           workspace_name = io::content(paths.current, 0, error_message);
     const std::filesystem::path workspace      = workspace_path(paths.workspace, workspace_name);
     const std::filesystem::path prepare        = prepare_path(paths, workspace);

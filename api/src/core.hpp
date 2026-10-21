@@ -79,7 +79,9 @@ namespace version {
     void prepare_reset(Paths& paths, char** error_message);
 
     std::vector<std::string> checkout(Paths& paths, char** error_message);
-    std::vector<std::string> status(Paths& paths, const std::filesystem::path& prepare_dir, const std::string& latest_version, char** error_message);
+    std::vector<std::string> status(
+        Paths& paths, const std::filesystem::path& prepare_dir, const std::string& latest_version,
+        char** error_message);
     std::vector<std::string> status_all(Paths& paths, char** error_message);
 
     LvcVersion*

@@ -1,6 +1,6 @@
 #include <test.hpp>
 
-struct Expected {
+struct ExpectedDiff {
     const char*       name;
     Lines             base, side;
     std::vector<Edit> edits;
@@ -18,8 +18,8 @@ bool compare(const std::vector<Edit>& actual, const std::vector<Edit>& expected)
 }
 
 bool test::diff() {
-    bool                        out   = true;
-    const std::vector<Expected> tests = {
+    bool                            out   = true;
+    const std::vector<ExpectedDiff> tests = {
         {"empty", {}, {}, {}},
         {"unchanged", {"a", "b", "c"}, {"a", "b", "c"}, {}},
         {"insert into empty", {}, {"a", "b"}, {{0, 0, 0, 2}}},
@@ -45,7 +45,7 @@ bool test::diff() {
         {"case and whitespace", {"abc", " abc", ""}, {"ABC", "abc ", ""}, {{0, 2, 0, 2}}},
         {"binary line", {std::string("a\0b", 3)}, {std::string("a\0c", 3)}, {{0, 1, 0, 1}}},
     };
-    for (const Expected& expected : tests) {
+    for (const ExpectedDiff& expected : tests) {
         if (!compare(::diff(expected.base, expected.side), expected.edits)) {
             std::cout << "DIFF TEST FAILURE: " << expected.name << '\n';
             out = false;
