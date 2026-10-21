@@ -280,14 +280,25 @@ extern "C" LVC_API LVC_BOOL lvc_workspace_exists(const char* lvc, const char* na
 
 extern "C" LVC_API void lvc_free_charpp(char** arr) noexcept { free_charpp(arr); }
 
+#define TEST_MS_MEASURE(test, prefix, time_warning, success_message, time_limit_ms)                                    \
+    do {                                                                                                               \
+        const auto start     = std::chrono::steady_clock::now();                                                       \
+        bool       test_bool = test;                                                                                   \
+        if (test_bool) {                                                                                               \
+            const auto elapsed =                                                                                       \
+                std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();           \
+            if (elapsed > time_limit_ms)                                                                               \
+                std::cout << time_warning;                                                                             \
+            std::cout << prefix << success_message << elapsed << " ms\n";                                              \
+        }                                                                                                              \
+    } while (0)
+
 extern "C" LVC_API void lvc_run_tests() noexcept {
-    const auto start  = std::chrono::steady_clock::now();
-    bool       diff   = test::diff();
-    bool       merge  = test::merge();
-    bool       sha256 = test::sha256();
-    if (diff && merge && sha256) {
-        const auto elapsed =
-            std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();
-        std::cout << "successfully passed all tests in: " << elapsed << " ms\n";
-    }
+    constexpr double time_limit_ms     = 3;
+    constexpr char   time_warning[]    = "WARNING: Anomalously long execution time\n";
+    constexpr char   success_message[] = "Successfully passed all tests in: ";
+
+    TEST_MS_MEASURE(test::diff(),   "DIFF:   ", time_warning, success_message, time_limit_ms);
+    TEST_MS_MEASURE(test::merge(),  "MERGE:  ", time_warning, success_message, time_limit_ms);
+    TEST_MS_MEASURE(test::sha256(), "SHA256: ", time_warning, success_message, time_limit_ms);
 }
