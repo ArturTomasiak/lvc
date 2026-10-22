@@ -7,7 +7,7 @@
 void object::create(
     const std::filesystem::path& object, const std::string& type, std::string& content, std::string& id,
     char** error_message) {
-    insert_pattern(content, type);
+    insert_pattern(content, type, nullptr);
 
     char content_id[65];
     sha256(content.data(), content.size(), content_id);

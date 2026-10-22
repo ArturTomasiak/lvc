@@ -1,7 +1,7 @@
 #include <core.hpp>
 
 void workspace::_goto(Paths& paths, std::string workspace_name, char** error_message) {
-    std::string           current = io::content(paths.current, 0, error_message);
+    const std::string     current = io::content(paths.current, 0, error_message);
     std::filesystem::path workspace;
     if (!workspace::exists(paths, workspace_name, workspace, error_message))
         error_message_creator("Workspace " + workspace_name + " doesn't exist", error_message);
@@ -9,9 +9,10 @@ void workspace::_goto(Paths& paths, std::string workspace_name, char** error_mes
         return;
     if (current == workspace_name)
         error_message_creator("Current workspace is already " + workspace_name, error_message);
-    std::filesystem::path src_operation  = paths.local / current;
-    std::filesystem::path dest_operation = paths.local / workspace_name;
-    std::string           version_id     = io::content_first_line(workspace, error_message);
+    const std::filesystem::path    src_operation     = paths.local / current;
+    const std::filesystem::path    dest_operation    = paths.local / workspace_name;
+    const std::vector<std::string> workspace_content = io::content_lines(workspace, 1, error_message);
+    std::string                    version_id        = workspace_content[1];
 
     std::vector<object::info> objects = version::all_objects(paths.object, version_id, {}, error_message);
 

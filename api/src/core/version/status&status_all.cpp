@@ -24,7 +24,7 @@ static void get_unmodified(
             std::filesystem::path path = paths.root / object.path;
             if (std::filesystem::is_regular_file(path)) {
                 std::string buffer = io::content(path, 0, error_message);
-                insert_pattern(buffer, TYPE_BLOB);
+                insert_pattern(buffer, TYPE_BLOB, nullptr);
                 sha256(buffer.data(), buffer.size(), id);
                 if (object.id != id)
                     continue;

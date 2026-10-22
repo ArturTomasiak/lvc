@@ -19,7 +19,7 @@ std::vector<object::info> workspace::all_objects(Paths& paths, char** error_mess
             object.type = std::filesystem::is_regular_file(entry.path()) ? object::type::blob : object::type::tree;
 
             std::string buffer = io::content(entry.path(), 0, error_message);
-            insert_pattern(buffer, TYPE_BLOB);
+            insert_pattern(buffer, TYPE_BLOB, nullptr);
 
             char id[65];
             sha256(buffer.data(), buffer.size(), id);

@@ -1,9 +1,10 @@
 #include <core.hpp>
 
 std::vector<std::string> version::checkout(Paths& paths, char** error_message) {
-    std::string           workspace_name = io::content(paths.current, 0, error_message);
-    std::filesystem::path workspace      = workspace_path(paths.workspace, workspace_name);
-    std::string           version        = io::content_first_line(workspace, error_message);
+    const std::string              workspace_name    = io::content(paths.current, 0, error_message);
+    const std::filesystem::path    workspace         = paths.workspace / workspace_name;
+    const std::vector<std::string> workspace_content = io::content_lines(workspace, 1, error_message);
+    const std::string              version           = workspace_content[1];
 
     std::vector<object::info> objects_version     = version::all_objects(paths.object, version, {}, error_message);
     std::vector<object::info> objects_working_dir = workspace::all_objects(paths, error_message);

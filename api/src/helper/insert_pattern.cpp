@@ -1,10 +1,12 @@
 #include <helper.hpp>
 
-void insert_pattern(std::string& dest, const std::string& type) {
-    size_t            content_size = dest.size();
-    const std::string header       = type + ' ' + std::to_string(content_size) + '\n';
-    size_t            total_len    = header.size() + content_size;
-
+void insert_pattern(std::string& dest, const std::string& type, const char* category) {
+    size_t      content_size = dest.size();
+    std::string header       = type + ' ' + std::to_string(content_size);
+    if (category != nullptr && type == TYPE_WORKSPACE)
+        header += category;
+    header += " \n";
+    size_t total_len = header.size() + content_size;
     dest.resize(total_len);
     if (content_size)
         std::memmove(dest.data() + total_len - content_size, dest.data(), content_size);

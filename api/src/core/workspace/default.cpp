@@ -7,14 +7,8 @@ void workspace::_default(Paths& paths, const char* workspace_name, char** error_
     }
     if (*error_message)
         return;
-
     std::string           name = workspace_name;
     std::filesystem::path path;
-    if (workspace::is_inactive(paths, name, path)) {
-        error_message_creator("Cannot make inactive workspace default", error_message);
-        return;
-    }
-
     io::file(
         paths.lvc / filename_default, std::ios::binary | std::ios::trunc, workspace_name, charplen(workspace_name), 0,
         error_message);

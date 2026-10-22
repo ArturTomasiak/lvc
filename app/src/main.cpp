@@ -7,12 +7,11 @@ struct Command {
     bool (*function)(int argc, char* argv[]);
 };
 
-constexpr Command commands[] = {{"create", lvc::create},    {"version", lvc::version},   {"history", lvc::history},
-                                {"prepare", lvc::prepare},  {"checkout", lvc::checkout}, {"status", lvc::status},
-                                {"default", lvc::_default}, {"goto", lvc::_goto},        {"move", lvc::move},
-                                {"revert", lvc::revert},    {"category", lvc::category}, {"workspace", lvc::workspace},
-                                {"diff", lvc::diff},        {"current", lvc::current},   {"insert", lvc::insert},
-                                {"list", lvc::list},        {"test", lvc::test}};
+constexpr Command commands[] = {
+    {"create", lvc::create},     {"version", lvc::version},   {"history", lvc::history},     {"prepare", lvc::prepare},
+    {"checkout", lvc::checkout}, {"status", lvc::status},     {"default", lvc::_default},    {"goto", lvc::_goto},
+    {"revert", lvc::revert},     {"category", lvc::category}, {"workspace", lvc::workspace}, {"diff", lvc::diff},
+    {"current", lvc::current},   {"insert", lvc::insert},     {"list", lvc::list},           {"test", lvc::test}};
 
 static bool (*command(std::string input))(int argc, char* argv[]) {
     for (const Command& cmd : commands)

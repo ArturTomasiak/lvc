@@ -45,7 +45,6 @@ typedef struct {
     const char*      location;
     const char*      server_link;
     const char*      repository_name;
-    const char*      category_name;
     const char*      workspace_name;
     const char*      clone_repository;
     LVC_BOOL         clone_versioning;
@@ -67,6 +66,7 @@ typedef struct {
     char** workspaces;
     char*  name;
     size_t workspaces_len;
+    size_t workspaces_alloc;
 } LvcCategory;
 
 typedef struct {
@@ -74,12 +74,14 @@ typedef struct {
     size_t       len;
 } LvcCategoryList;
 
+#define LVC_CATEGORY_UNCATEGORIZED "uncategorized"
+
 LVC_API void  lvc_create(LvcCreateInput input, char** error_message) LVC_NOEXCEPT;
 LVC_API char* lvc_current(const char* lvc, char** error_message) LVC_NOEXCEPT;
-LVC_API void  lvc_workspace(
-     const char* lvc, const char* category_name, const char* workspace_name, LVC_BOOL clean,
-     char** error_message) LVC_NOEXCEPT;
-LVC_API void   lvc_category(const char* lvc, const char* category_name, char** error_message) LVC_NOEXCEPT;
+LVC_API void
+lvc_workspace(const char* lvc, const char* workspace_name, LVC_BOOL clean, char** error_message) LVC_NOEXCEPT;
+LVC_API void lvc_change_category(
+    const char* lvc, const char* workspace_name, const char* category_name, char** error_message) LVC_NOEXCEPT;
 LVC_API void   lvc_goto(const char* lvc, const char* workspace_name, char** error_message) LVC_NOEXCEPT;
 LVC_API void   lvc_default(const char* lvc, const char* workspace_name, char** error_message) LVC_NOEXCEPT;
 LVC_API char** lvc_checkout(const char* lvc, char** error_message) LVC_NOEXCEPT;
@@ -104,16 +106,9 @@ LVC_API LvcConflictArray*
 lvc_insert(const char* lvc, const char* src_workspace_name, const char* author, char** error_message) LVC_NOEXCEPT;
 LVC_API void
 lvc_revert(const char* lvc, char* version_id, size_t input_count, char** input, char** error_message) LVC_NOEXCEPT;
-LVC_API void lvc_push_local(const char* lvc, const char* tmp_lvc, char** error_message) LVC_NOEXCEPT;
-LVC_API void lvc_push_server(const char* lvc, char** error_message) LVC_NOEXCEPT;
-LVC_API void lvc_rename_category(const char* lvc, const char* category_name, const char* new_name, char** error_message)
-    LVC_NOEXCEPT;
-LVC_API void lvc_move_workspace(
-    const char* lvc, const char* workspace_name, const char* previous_category, const char* category,
-    char** error_message) LVC_NOEXCEPT;
-LVC_API void     lvc_deactivate(const char* lvc, const char* workspace_name, char** error_message) LVC_NOEXCEPT;
+LVC_API void     lvc_push_local(const char* lvc, const char* tmp_lvc, char** error_message) LVC_NOEXCEPT;
+LVC_API void     lvc_push_server(const char* lvc, char** error_message) LVC_NOEXCEPT;
 LVC_API LVC_BOOL lvc_version_exists(const char* lvc, const char* id) LVC_NOEXCEPT;
-LVC_API LVC_BOOL lvc_category_exists(const char* lvc, const char* name, char** error_message) LVC_NOEXCEPT;
 LVC_API LVC_BOOL lvc_workspace_exists(const char* lvc, const char* name, char** error_message) LVC_NOEXCEPT;
 LVC_API void     lvc_free_charpp(char** arr) LVC_NOEXCEPT;
 LVC_API void     lvc_run_tests() LVC_NOEXCEPT;
@@ -129,10 +124,11 @@ LVC_API void     lvc_run_tests() LVC_NOEXCEPT;
 #define VERSION_WORKSPACE 4
 
 // type string defines
-#define TYPE_VERSION "version"
-#define TYPE_TREE    "tree"
-#define TYPE_BLOB    "blob"
-#define TYPE_PREPARE "prepare"
+#define TYPE_VERSION   "version"
+#define TYPE_TREE      "tree"
+#define TYPE_BLOB      "blob"
+#define TYPE_PREPARE   "prepare"
+#define TYPE_WORKSPACE "workspace"
 
 // prefixes
 

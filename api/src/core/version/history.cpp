@@ -3,7 +3,7 @@
 static LvcVersion* history(
     LvcVersion*& allocated, Paths& paths, const std::string& workspace_name, size_t depth, size_t length, size_t& index,
     char** error_message) {
-    std::filesystem::path workspace = workspace_path(paths.workspace, workspace_name);
+    std::filesystem::path workspace = paths.workspace / workspace_name;
     if (!std::filesystem::exists(workspace))
         return {};
     std::ifstream file(workspace, std::ios::binary);
@@ -62,7 +62,7 @@ version::history(Paths& paths, const std::string workspace_name, size_t depth, s
 static LvcVersion* history_all(
     LvcVersion*& allocated, Paths& paths, const std::string& workspace_name, size_t& allocated_size, size_t& index,
     char** error_message) {
-    std::filesystem::path workspace = workspace_path(paths.workspace, workspace_name);
+    std::filesystem::path workspace = paths.workspace / workspace_name;
     if (!std::filesystem::exists(workspace))
         return {};
     std::ifstream file(workspace, std::ios::binary);

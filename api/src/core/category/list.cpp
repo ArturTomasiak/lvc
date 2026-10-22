@@ -1,58 +1,61 @@
 #include <core.hpp>
 
+LvcCategory* find_category(LvcCategoryList* list, const std::string& name) {
+    for (size_t i = 0; i < list->len; i++) {
+        LvcCategory* category = &list->category[i];
+        if (!strcmp(category->name, name.c_str()))
+            return category;
+    }
+    return nullptr;
+}
+
+LvcCategory* add_category(LvcCategoryList* list, const std::string& name) {
+    list->category = (LvcCategory*)realloc(list->category, list->len + 1);
+    LvcCategory* out = &list->category[list->len];
+    out->name = (char*)malloc(name.size() + 1);
+    memcpy(out->name, name.data(), name.size() + 1);
+    out->workspaces_len = 0;
+    out->workspaces_alloc = 8;
+    out->workspaces = (char**)malloc(out->workspaces_alloc * sizeof(char*));
+    return out;
+}
+
+void add_workspace(LvcCategory* category, const std::string& name) {
+    if (category->workspaces_len == category->workspaces_alloc) {
+        category->workspaces_alloc *= 2;
+        category->workspaces = (char**)realloc(category->workspaces, category->workspaces_alloc * sizeof(char*));
+    }
+    char* workspace = category->workspaces[category->workspaces_len];
+    workspace = (char*)malloc(name.size() + 1);
+    memcpy(workspace, name.data(), name.size() + 1);
+    category->workspaces_len++;
+}
+
 LvcCategoryList* category::list(Paths& paths, char** error_message) {
     LvcCategoryList* out = (LvcCategoryList*)malloc(sizeof(LvcCategoryList));
+    add_category(out, LVC_CATEGORY_UNCATEGORIZED);
 
     for (const auto& entry : std::filesystem::directory_iterator(paths.workspace)) {
-        if (!entry.is_directory())
+        if (!entry.is_regular_file())
             continue;
-
         const std::filesystem::path path          = entry.path();
-        const std::string           category_name = path.lexically_relative(paths.workspace);
-
-        if (path == paths.local)
-            continue;
-
-        std::vector<std::string> files;
-        files.reserve(PREALLOCATE);
-
-        for (const auto& file : std::filesystem::directory_iterator(path)) {
-            if (!file.is_regular_file())
-                continue;
-            files.push_back(file.path().lexically_relative(path));
+        const std::string name = path.filename();
+        LvcCategory* current;
+        std::string buffer = io::content(path, 1, error_message);
+        size_t pos = buffer.find(' ');
+        buffer.erase(0, pos + 1);
+        pos = buffer.find(' ');
+        buffer.erase(0, pos + 1);
+        if (buffer[0] == '\n')
+            current = find_category(out, LVC_CATEGORY_UNCATEGORIZED);
+        else {
+            pos = buffer.find('\n');
+            const std::string name = buffer.substr(0, pos);
+            current = find_category(out, name);
+            if (current == nullptr)
+                current = add_category(out, name);
         }
-
-        out->category = (LvcCategory*)realloc(out->category, (out->len + 1) * sizeof(LvcCategory));
-
-        if (out->category == NULL) {
-            error_message_creator("Memory allocation failed", error_message);
-            return out;
-        }
-
-        LvcCategory* category    = &out->category[out->len];
-        category->workspaces_len = files.size();
-        category->workspaces     = (char**)malloc(category->workspaces_len * sizeof(char*));
-        category->name           = (char*)malloc(category_name.size() + 1);
-
-        if (category->workspaces == NULL || category->name == NULL) {
-            error_message_creator("Memory allocation failed", error_message);
-            return out;
-        }
-
-        memcpy(category->name, category_name.c_str(), category_name.size() + 1);
-        for (size_t i = 0; i < files.size(); i++) {
-            std::string& file       = files[i];
-            category->workspaces[i] = (char*)malloc(file.size() + 1);
-
-            if (category->workspaces == NULL) {
-                error_message_creator("Memory allocation failed", error_message);
-                return out;
-            }
-
-            char* workspace = category->workspaces[i];
-            memcpy(workspace, file.c_str(), file.size() + 1);
-        }
-        out->len++;
+        add_workspace(current, name);
     }
 
     return out;

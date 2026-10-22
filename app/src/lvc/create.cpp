@@ -71,7 +71,6 @@ bool lvc::create(int argc, char* argv[]) {
     std::string    location = std::filesystem::current_path();
     std::string    server_link;
     std::string    repository_name;
-    std::string    category_name;
     std::string    workspace_name;
     std::string    clone;
 
@@ -85,14 +84,12 @@ bool lvc::create(int argc, char* argv[]) {
         goto skip_verioning_questions;
 
     repository_name = ask_line("Repository name: ", 0);
-    category_name   = ask_line("Create default workspace’s category name: ", 0);
     workspace_name  = ask_line("Create default workspace name: ", 0);
 
 skip_verioning_questions:
     input.location         = location.c_str();
     input.repository_name  = repository_name.c_str();
     input.server_link      = server_link.c_str();
-    input.category_name    = category_name.c_str();
     input.workspace_name   = workspace_name.c_str();
     input.clone_repository = clone.empty() ? 0 : clone.c_str();
 

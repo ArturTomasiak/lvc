@@ -13,5 +13,4 @@ void repository::create(Paths& paths, char** error_message) {
         error_message_creator("Failed to create directory" + paths.object.string(), error_message);
         return;
     }
-    category::create(paths, "inactive", error_message);
 }

@@ -25,15 +25,6 @@ LvcConflictArray* operation::insert(
     std::filesystem::path dest_workspace;
     std::string           operation;
 
-    if (workspace::is_inactive(paths, src_workspace_name, src_workspace)) {
-        error_message_creator(src_workspace_name + IS_INACTIVE_STRING, error_message);
-        return out;
-    }
-    if (workspace::is_inactive(paths, dest_workspace_name, dest_workspace)) {
-        error_message_creator(dest_workspace_name + IS_INACTIVE_STRING, error_message);
-        return out;
-    }
-
     const Lines               src_versions  = io::content_lines(src_workspace, 0, error_message);
     const Lines               dest_versions = io::content_lines(dest_workspace, 0, error_message);
     const std::string         src_id        = src_versions[0];
@@ -140,7 +131,6 @@ LvcConflictArray* operation::insert(
 success:
     std::string message = "insert workspace " + src_workspace_name;
     std::cout << "Successfully inserted " + src_workspace_name;
-    workspace::deactivate(paths, src_workspace.c_str(), error_message);
     version::create(paths, message.c_str(), author, src_workspace, error_message);
     return out;
 }

@@ -15,10 +15,11 @@ void version::prepare(Paths& paths, std::vector<std::string> input_raw, char*** 
         return;
     }
 
-    const std::string           workspace_name = io::content(paths.current, 0, error_message);
-    const std::filesystem::path workspace      = workspace_path(paths.workspace, workspace_name);
-    const std::filesystem::path prepare_dir    = prepare_path(paths, workspace_name);
-    const std::string           version_id     = io::content_first_line(workspace, error_message);
+    const std::string              workspace_name    = io::content(paths.current, 0, error_message);
+    const std::filesystem::path    workspace         = paths.workspace / workspace_name;
+    const std::filesystem::path    prepare_dir       = prepare_path(paths, workspace_name);
+    const std::vector<std::string> workspace_content = io::content_lines(workspace, 1, error_message);
+    const std::string              version_id        = workspace_content[1];
 
     std::vector<std::string> ignore_raw = io::content_lines(paths.ignore, 0, error_message);
     std::vector<std::string> ignore     = paths.resolve(ignore_raw, version_id, 1, 1, error_message);
@@ -52,7 +53,7 @@ void version::prepare(Paths& paths, std::vector<std::string> input_raw, char*** 
     std::unordered_set<std::string> version = version::all_ids(paths, version_id, ignore_entries, error_message);
     std::erase_if(current, [&version, &paths, &error_message](const std::string& entry) {
         std::string buffer = io::content(paths.root / entry, 0, error_message);
-        insert_pattern(buffer, TYPE_BLOB);
+        insert_pattern(buffer, TYPE_BLOB, nullptr);
         char id[65];
         sha256(buffer.c_str(), buffer.size(), id);
         return version.contains(id);
@@ -62,7 +63,7 @@ void version::prepare(Paths& paths, std::vector<std::string> input_raw, char*** 
     for (std::string& path : current)
         buffer += path + "\n";
 
-    insert_pattern(buffer, TYPE_PREPARE);
+    insert_pattern(buffer, TYPE_PREPARE, nullptr);
     io::file(prepare_dir, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 1, error_message);
 
     if (prepared)

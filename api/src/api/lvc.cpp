@@ -22,10 +22,7 @@ extern "C" LVC_API void lvc_create(LvcCreateInput input, char** error_message) n
     repository::rename(paths, input.repository_name, error_message);
     if (*error_message)
         return;
-    category::create(paths, input.category_name, error_message);
-    if (*error_message)
-        return;
-    workspace::create(paths, input.category_name, input.workspace_name, 0, error_message);
+    workspace::create(paths, input.workspace_name, 0, error_message);
     if (*error_message)
         return;
     io::file(
@@ -48,18 +45,18 @@ extern "C" LVC_API char* lvc_current(const char* lvc, char** error_message) noex
     return out;
 }
 
-extern "C" LVC_API void lvc_workspace(
-    const char* lvc, const char* category_name, const char* workspace_name, LVC_BOOL clean,
-    char** error_message) noexcept {
+extern "C" LVC_API void
+lvc_workspace(const char* lvc, const char* workspace_name, LVC_BOOL clean, char** error_message) noexcept {
     Paths paths(lvc);
     *error_message = 0;
-    workspace::create(paths, category_name, workspace_name, clean, error_message);
+    workspace::create(paths, workspace_name, clean, error_message);
 }
 
-extern "C" LVC_API void lvc_category(const char* lvc, const char* category_name, char** error_message) noexcept {
+extern "C" LVC_API void lvc_change_category(
+    const char* lvc, const char* workspace_name, const char* category_name, char** error_message) noexcept {
     Paths paths(lvc);
     *error_message = 0;
-    category::create(paths, category_name, error_message);
+    category::change(paths.workspace / workspace_name, category_name, error_message);
 }
 
 extern "C" LVC_API void lvc_goto(const char* lvc, const char* workspace_name, char** error_message) noexcept {
@@ -83,11 +80,12 @@ extern "C" LVC_API char** lvc_checkout(const char* lvc, char** error_message) no
 
 extern "C" LVC_API char** lvc_status(const char* lvc, char** error_message) noexcept {
     Paths paths(lvc);
-    *error_message                             = 0;
-    const std::string           workspace_name = io::content(paths.current, 0, error_message);
-    const std::filesystem::path workspace      = workspace_path(paths.workspace, workspace_name);
-    const std::filesystem::path prepare        = prepare_path(paths, workspace);
-    const std::string           version_id     = io::content_first_line(workspace, error_message);
+    *error_message                                   = 0;
+    const std::string              workspace_name    = io::content(paths.current, 0, error_message);
+    const std::filesystem::path    workspace         = paths.workspace / workspace_name;
+    const std::filesystem::path    prepare           = prepare_path(paths, workspace);
+    const std::vector<std::string> workspace_content = io::content_lines(workspace, 1, error_message);
+    const std::string              version_id        = workspace_content[1];
     if (*error_message)
         return 0;
     std::vector<std::string> status = version::status(paths, prepare, version_id, error_message);
@@ -160,9 +158,10 @@ extern "C" LVC_API void lvc_terminal_conflict_solver(const char* lvc, char** err
 extern "C" LVC_API void lvc_diff(const char* lvc, int argc, char* argv[], char** error_message) noexcept {
     Paths paths(lvc);
 
-    const std::string           workspace_name = io::content(paths.current, 0, error_message);
-    const std::filesystem::path workspace      = workspace_path(paths.workspace, workspace_name);
-    const std::string           version_id     = io::content_first_line(workspace, error_message);
+    const std::string              workspace_name    = io::content(paths.current, 0, error_message);
+    const std::filesystem::path    workspace         = paths.workspace / workspace_name;
+    const std::vector<std::string> workspace_content = io::content_lines(workspace, 1, error_message);
+    const std::string              version_id        = workspace_content[1];
 
     std::vector<std::string> raw_input;
     raw_input.reserve(argc - 2);
@@ -240,36 +239,9 @@ extern "C" LVC_API void lvc_push_server(const char* lvc, char** error_message) n
     *error_message = 0;
 }
 
-extern "C" LVC_API void
-lvc_rename_category(const char* lvc, const char* category_name, const char* new_name, char** error_message) noexcept {
-    Paths paths(lvc);
-    *error_message = 0;
-    category::rename(paths, category_name, new_name, error_message);
-}
-
-extern "C" LVC_API void lvc_move_workspace(
-    const char* lvc, const char* workspace_name, const char* previous_category, const char* category,
-    char** error_message) noexcept {
-    Paths paths(lvc);
-    *error_message = 0;
-    workspace::move_categories(paths, workspace_name, previous_category, category, error_message);
-}
-
-extern "C" LVC_API void lvc_deactivate(const char* lvc, const char* workspace_name, char** error_message) noexcept {
-    Paths paths(lvc);
-    *error_message = 0;
-    workspace::deactivate(paths, workspace_name, error_message);
-}
-
 extern "C" LVC_API LVC_BOOL lvc_version_exists(const char* lvc, const char* id) noexcept {
     std::filesystem::path lvc_path = lvc;
     return std::filesystem::is_regular_file(lvc_path / foldername_object / id);
-}
-
-extern "C" LVC_API LVC_BOOL lvc_category_exists(const char* lvc, const char* name, char** error_message) noexcept {
-    Paths paths(lvc);
-    *error_message = 0;
-    return category::exists(paths, name);
 }
 
 extern "C" LVC_API LVC_BOOL lvc_workspace_exists(const char* lvc, const char* name, char** error_message) noexcept {
@@ -298,7 +270,7 @@ extern "C" LVC_API void lvc_run_tests() noexcept {
     constexpr char   time_warning[]    = "WARNING: Anomalously long execution time\n";
     constexpr char   success_message[] = "Successfully passed all tests in: ";
 
-    TEST_MS_MEASURE(test::diff(),   "DIFF:   ", time_warning, success_message, time_limit_ms);
-    TEST_MS_MEASURE(test::merge(),  "MERGE:  ", time_warning, success_message, time_limit_ms);
+    TEST_MS_MEASURE(test::diff(), "DIFF:   ", time_warning, success_message, time_limit_ms);
+    TEST_MS_MEASURE(test::merge(), "MERGE:  ", time_warning, success_message, time_limit_ms);
     TEST_MS_MEASURE(test::sha256(), "SHA256: ", time_warning, success_message, time_limit_ms);
 }

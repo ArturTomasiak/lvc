@@ -9,12 +9,9 @@
 #include <paths.hpp>
 
 namespace category {
-    void             create(Paths& paths, std::string name, char** error_message);
-    void             rename(Paths& paths, const char* category_name, const char* new_name, char** error_message);
-    bool             exists(Paths& paths, std::string name);
+    void             change(std::filesystem::path workspace, const char* name, char** error_message);
     LvcCategoryList* list(Paths& paths, char** error_message);
     void             free_category_list(LvcCategoryList* list);
-    void             free_category_list(LvcCategoryList& list);
 }
 
 namespace operation {
@@ -48,7 +45,7 @@ namespace operation {
 }
 
 namespace object {
-    enum class type : uint8_t { version, blob, tree, prepare };
+    enum class type : uint8_t { version, blob, tree, prepare, workspace };
 
     struct info {
         object::type          type;
@@ -73,7 +70,7 @@ namespace version {
     void
     create(Paths& paths, std::string message, std::string author, std::string inserted_workspace, char** error_message);
     void create_tmp(
-        Paths& paths, std::filesystem::path& operation, std::unordered_set<std::string_view>& ignore,
+        Paths& paths, const std::filesystem::path& operation, std::unordered_set<std::string_view>& ignore,
         char** error_message);
     void prepare(Paths& paths, std::vector<std::string> input, char*** prepared, char** error_message);
     void prepare_reset(Paths& paths, char** error_message);
@@ -100,20 +97,11 @@ namespace version {
 }
 
 namespace workspace {
-    void create(Paths& paths, std::string category_name, std::string workspace_name, bool clean, char** error_message);
-    bool exists(Paths& paths, std::string name, char** error_message);
-    bool exists(Paths& paths, std::string name, std::filesystem::path& path, char** error_message);
-    bool is_inactive(Paths& paths, const std::string& name, std::filesystem::path& workspace);
-    bool is_inactive(const std::filesystem::path& workspace);
-    void _goto(Paths& paths, std::string workspace_name, char** error_message);
-    void _default(Paths& paths, const char* workspace_name, char** error_message);
-
-    void move_categories(
-        Paths& paths, const char* workspace_name, const char* previous_category, const char* category,
-        char** error_message);
-    void activate(Paths& paths, const char* workspace_name, const char* category_name, char** error_message);
-    void deactivate(Paths& paths, const char* workspace_name, char** error_message);
-
+    void                      create(Paths& paths, std::string workspace_name, bool clean, char** error_message);
+    bool                      exists(Paths& paths, std::string name, char** error_message);
+    bool                      exists(Paths& paths, std::string name, std::filesystem::path& path, char** error_message);
+    void                      _goto(Paths& paths, std::string workspace_name, char** error_message);
+    void                      _default(Paths& paths, const char* workspace_name, char** error_message);
     std::vector<object::info> all_objects(Paths& paths, char** error_message);
     bool changed_since_ver(Paths& paths, std::vector<object::info>& objects_version, char** error_message);
 }
@@ -158,8 +146,6 @@ inline bool charpcmp(const char* str1, const char* str2) {
             return 0;
     return *str1 == *str2;
 }
-
-inline constexpr std::string IS_INACTIVE_STRING = " is inactive";
 
 inline constexpr char DEFAULT_HYBRID_STORAGE[] =
     R"LVC(# Format: <size in MB> <extension>
