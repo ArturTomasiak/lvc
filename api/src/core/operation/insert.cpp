@@ -94,10 +94,13 @@ LvcConflictArray* operation::insert(
 
         bool conflict = merge(paths.root / src_info.path, common, src, dest);
         if (conflict) {
-            size_t len           = charplen(src_info.path.c_str());
-            out->paths           = (char**)realloc(out, (out->len + 1) * sizeof(char*));
-            out->paths[out->len] = (char*)malloc(len + 1);
-            memcpy(out->paths[out->len], src_info.path.c_str(), len + 1);
+            size_t len = charplen(src_info.path.c_str());
+            out->paths = (char**)realloc(out, (out->len + 1) * sizeof(char*));
+            CHECKALLOC(out->paths, error_message, out);
+            char* new_path = (char*)malloc(len + 1);
+            CHECKALLOC(new_path, error_message, out);
+            memcpy(new_path, src_info.path.c_str(), len + 1);
+            out->paths[out->len] = new_path;
             out->len++;
         } else {
             std::cout << "MERGED:  " << src_info.path << '\n';

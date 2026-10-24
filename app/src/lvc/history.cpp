@@ -16,8 +16,10 @@ static void print_history(LvcVersion* version, std::string prefix = "") {
 
 bool lvc::history(int argc, char* argv[]) {
     std::filesystem::path lvc;
-    if (!helper::find_repository(lvc))
+    if (!helper::find_repository(lvc)) {
+        helper::error("Couldn't find LVC repository");
         return 0;
+    }
 
     bool   all    = 0;
     size_t depth  = 1;

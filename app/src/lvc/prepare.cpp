@@ -8,8 +8,10 @@ static bool call_reset(const std::filesystem::path& lvc) {
 
 bool lvc::prepare(int argc, char* argv[]) {
     std::filesystem::path lvc;
-    if (!helper::find_repository(lvc))
+    if (!helper::find_repository(lvc)) {
+        helper::error("Couldn't find LVC repository");
         return 0;
+    }
 
     if (argc == 3 && !std::strcmp(argv[2], "reset"))
         return call_reset(lvc);

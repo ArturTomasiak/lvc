@@ -2,8 +2,10 @@
 
 bool lvc::list(int argc, char* argv[]) {
     std::filesystem::path lvc;
-    if (!helper::find_repository(lvc))
+    if (!helper::find_repository(lvc)) {
+        helper::error("Couldn't find LVC repository");
         return 0;
+    }
     LvcCategoryList* list = lvc_category_list(lvc.c_str(), &error_message);
 
     if (error_message) {

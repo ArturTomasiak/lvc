@@ -2,8 +2,10 @@
 
 bool lvc::category(int argc, char* argv[]) {
     std::filesystem::path lvc;
-    if (!helper::find_repository(lvc))
+    if (!helper::find_repository(lvc)) {
+        helper::error("Couldn't find LVC repository");
         return 0;
+    }
 
     if (argc < 3) {
         helper::error("No workspace name given");

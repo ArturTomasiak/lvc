@@ -6,6 +6,14 @@
 #include <paths.hpp>
 #include <vector>
 
+#define CHECKALLOC(dest, error_message, ...)                                                                           \
+    do {                                                                                                               \
+        if ((dest) == nullptr) {                                                                                       \
+            error_message_creator("Memory allocation failed", error_message);                                          \
+            return __VA_ARGS__;                                                                                        \
+        }                                                                                                              \
+    } while (false)
+
 void  sha256(const char* in, size_t in_len, char out[65]);
 char* deflate(const char* in, size_t in_len, size_t& out_len);
 char* inflate(const std::string& in, size_t& out_len);

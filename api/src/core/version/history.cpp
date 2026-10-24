@@ -43,6 +43,7 @@ static LvcVersion* history(
 
         size_t desc_size     = version_content[VERSION_MESSAGE].size();
         version->description = (char*)malloc(desc_size + 1);
+        CHECKALLOC(version->description, error_message, first_version);
         memcpy(version->description, version_content[VERSION_MESSAGE].c_str(), desc_size + 1);
         if (depth && version_content.size() - 1 >= VERSION_WORKSPACE)
             version->nested_versions =
@@ -55,7 +56,8 @@ static LvcVersion* history(
 LvcVersion*
 version::history(Paths& paths, const std::string workspace_name, size_t depth, size_t length, char** error_message) {
     LvcVersion* allocated = (LvcVersion*)malloc(length * sizeof(LvcVersion));
-    size_t      index     = 0;
+    CHECKALLOC(allocated, error_message, {});
+    size_t index = 0;
     return history(allocated, paths, workspace_name, depth, length, index, error_message);
 }
 
@@ -107,6 +109,7 @@ static LvcVersion* history_all(
 
         size_t desc_size     = version_content[VERSION_MESSAGE].size();
         version->description = (char*)malloc(desc_size + 1);
+        CHECKALLOC(version->description, error_message, first_version);
         memcpy(version->description, version_content[VERSION_MESSAGE].c_str(), desc_size + 1);
         if (version_content.size() >= VERSION_WORKSPACE)
             version->nested_versions =
@@ -120,6 +123,7 @@ LvcVersion* version::history_all(Paths& paths, const std::string workspace_name,
     size_t      allocated_size = 50;
     size_t      index          = 0;
     LvcVersion* allocated      = (LvcVersion*)malloc(allocated_size * sizeof(LvcVersion));
+    CHECKALLOC(allocated, error_message, {});
     return history_all(allocated, paths, workspace_name, allocated_size, index, error_message);
 }
 

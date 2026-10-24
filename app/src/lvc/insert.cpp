@@ -2,8 +2,10 @@
 
 bool lvc::insert(int argc, char* argv[]) {
     std::filesystem::path lvc;
-    if (!helper::find_repository(lvc))
+    if (!helper::find_repository(lvc)) {
+        helper::error("Couldn't find LVC repository");
         return 0;
+    }
 
     if (argc < 3) {
         helper::error("No src workspace given.");

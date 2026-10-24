@@ -2,8 +2,10 @@
 
 bool lvc::checkout(int argc, char* argv[]) {
     std::filesystem::path lvc;
-    if (!helper::find_repository(lvc))
+    if (!helper::find_repository(lvc)) {
+        helper::error("Couldn't find LVC repository");
         return 0;
+    }
 
     char** checkout;
     lvc_checkout(lvc.c_str(), &error_message);
