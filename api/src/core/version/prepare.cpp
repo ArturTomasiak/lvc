@@ -9,17 +9,18 @@ void version::prepare_reset(Paths& paths, char** error_message) {
         error_message_creator("Could not reset prepare", error_message);
 }
 
-void version::prepare(Paths& paths, std::vector<std::string> input_raw, char*** prepared, char** error_message) {
+void version::prepare(Paths& paths, std::vector<std::string>& input_raw, char*** prepared, char** error_message) {
     if (input_raw.empty()) {
         error_message_creator("No input recieved", error_message);
         return;
     }
-
     const std::string              workspace_name    = io::content(paths.current, 0, error_message);
     const std::filesystem::path    workspace         = paths.workspace / workspace_name;
     const std::filesystem::path    prepare_dir       = prepare_path(paths, workspace_name);
     const std::vector<std::string> workspace_content = io::content_lines(workspace, 1, error_message);
-    const std::string              version_id        = workspace_content[1];
+    std::string                    version_id;
+    if (workspace_content.size() > 1)
+        version_id = workspace_content[1];
 
     std::vector<std::string> ignore_raw = io::content_lines(paths.ignore, 0, error_message);
     std::vector<std::string> ignore     = paths.resolve(ignore_raw, version_id, 1, 1, error_message);

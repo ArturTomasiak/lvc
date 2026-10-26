@@ -85,7 +85,9 @@ extern "C" LVC_API char** lvc_status(const char* lvc, char** error_message) noex
     const std::filesystem::path    workspace         = paths.workspace / workspace_name;
     const std::filesystem::path    prepare           = prepare_path(paths, workspace);
     const std::vector<std::string> workspace_content = io::content_lines(workspace, 1, error_message);
-    const std::string              version_id        = workspace_content[1];
+    std::string                    version_id;
+    if (workspace_content.size() > 1)
+        version_id = workspace_content[1];
     if (*error_message)
         return 0;
     std::vector<std::string> status = version::status(paths, prepare, version_id, error_message);
@@ -161,7 +163,9 @@ extern "C" LVC_API void lvc_diff(const char* lvc, int argc, char* argv[], char**
     const std::string              workspace_name    = io::content(paths.current, 0, error_message);
     const std::filesystem::path    workspace         = paths.workspace / workspace_name;
     const std::vector<std::string> workspace_content = io::content_lines(workspace, 1, error_message);
-    const std::string              version_id        = workspace_content[1];
+    std::string                    version_id;
+    if (workspace_content.size() > 1)
+        version_id = workspace_content[1];
 
     std::vector<std::string> raw_input;
     raw_input.reserve(argc - 2);

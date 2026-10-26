@@ -12,7 +12,9 @@ void workspace::_goto(Paths& paths, std::string workspace_name, char** error_mes
     const std::filesystem::path    src_operation     = paths.local / current;
     const std::filesystem::path    dest_operation    = paths.local / workspace_name;
     const std::vector<std::string> workspace_content = io::content_lines(workspace, 1, error_message);
-    std::string                    version_id        = workspace_content[1];
+    std::string                    version_id;
+    if (workspace_content.size() > 1)
+        version_id = workspace_content[1];
 
     std::vector<object::info> objects = version::all_objects(paths.object, version_id, {}, error_message);
 
