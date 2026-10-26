@@ -13,15 +13,13 @@ void workspace::_goto(Paths& paths, std::string workspace_name, char** error_mes
     const std::filesystem::path    dest_operation    = paths.local / workspace_name;
     const std::vector<std::string> workspace_content = io::content_lines(workspace, 1, error_message);
     std::string                    version_id;
+    bool                           remove_tmp = false;
     if (workspace_content.size() > 1)
         version_id = workspace_content[1];
-
-    std::vector<object::info> objects = version::all_objects(paths.object, version_id, {}, error_message);
-
-    std::filesystem::path tmp = dest_operation / filename_tmp;
-
-    std::vector<std::string>             ignore_raw = io::content_lines(paths.ignore, 0, error_message);
-    std::vector<std::string>             ignore     = paths.resolve(ignore_raw, version_id, 0, 1, error_message);
+    const std::filesystem::path          tmp        = dest_operation / filename_tmp;
+    const std::vector<std::string>       ignore_raw = io::content_lines(paths.ignore, 0, error_message);
+    const std::vector<std::string>       ignore     = paths.resolve(ignore_raw, version_id, 0, 1, error_message);
+    std::vector<object::info>            objects;
     std::unordered_set<std::string_view> ignore_set;
     ignore_set.reserve(ignore.size());
     for (const std::string& entry : ignore)
@@ -32,11 +30,13 @@ void workspace::_goto(Paths& paths, std::string workspace_name, char** error_mes
 
     std::filesystem::path object_dir;
     if (std::filesystem::is_regular_file(tmp)) {
-        object_dir = dest_operation / foldername_object;
         version_id = io::content(tmp, 0, error_message);
+        object_dir = dest_operation / foldername_object;
         objects    = version::all_objects(object_dir, version_id, {}, error_message);
+        remove_tmp = true;
     } else {
         object_dir = paths.object;
+        objects    = version::all_objects(paths.object, version_id, {}, error_message);
     }
 
     if (*error_message)
@@ -90,4 +90,9 @@ void workspace::_goto(Paths& paths, std::string workspace_name, char** error_mes
     io::file(
         paths.current, std::ios::binary | std::ios::trunc, workspace_name.c_str(), workspace_name.size(), 0,
         error_message);
+
+    if (remove_tmp) {
+        std::filesystem::remove(tmp);
+        std::filesystem::remove_all(object_dir);
+    }
 }

@@ -38,9 +38,9 @@ void add_workspace(LvcCategory* category, const std::string& name, char** error_
 }
 
 LvcCategoryList* category::list(Paths& paths, char** error_message) {
-    LvcCategoryList* out = (LvcCategoryList*)malloc(sizeof(LvcCategoryList));
-    out->category = nullptr;
-    out->len      = 0;
+    LvcCategoryList* out       = (LvcCategoryList*)malloc(sizeof(LvcCategoryList));
+    out->category              = nullptr;
+    out->len                   = 0;
     bool uncategorized_created = 0;
 
     for (const auto& entry : std::filesystem::directory_iterator(paths.workspace)) {
@@ -56,13 +56,11 @@ LvcCategoryList* category::list(Paths& paths, char** error_message) {
         buffer.erase(0, pos + 1);
         if (buffer[0] == '\n') {
             if (uncategorized_created == 0) {
-                current = add_category(out, LVC_CATEGORY_UNCATEGORIZED, error_message);
+                current               = add_category(out, LVC_CATEGORY_UNCATEGORIZED, error_message);
                 uncategorized_created = 1;
-            }
-            else 
+            } else
                 current = find_category(out, LVC_CATEGORY_UNCATEGORIZED);
-        }
-        else {
+        } else {
             pos                    = buffer.find('\n');
             const std::string name = buffer.substr(0, pos);
             current                = find_category(out, name);
