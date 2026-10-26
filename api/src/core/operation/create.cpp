@@ -3,18 +3,15 @@
 void operation::create(
     Paths& paths, const std::string& workspace_name, operation::type type_enum, LvcConflictArray* conflicts,
     char** error_message) {
-    const std::filesystem::path operation = paths.local / workspace_name / foldername_operation;
+    const std::filesystem::path operation = paths.local / workspace_name;
     io::dir(operation, error_message);
     std::string type;
     switch (type_enum) {
         case operation::type::sync:
             type = filename_sync;
             break;
-        case operation::type::unite:
-            type = filename_unite;
-            break;
-        case operation::type::insert:
-            type = filename_insert;
+        case operation::type::merge:
+            type = filename_merge;
             break;
         default:
             error_message_creator("APIERROR OperationType doesn't exist", error_message);

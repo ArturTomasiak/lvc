@@ -17,7 +17,7 @@ static void existance_conflict(
     file.close();
 }
 
-LvcConflictArray* operation::insert(
+LvcConflictArray* operation::merge(
     Paths& paths, const std::string& src_workspace_name, const std::string& dest_workspace_name, const char* author,
     char** error_message) {
     LvcConflictArray*     out = NULL;
@@ -25,32 +25,23 @@ LvcConflictArray* operation::insert(
     std::filesystem::path dest_workspace;
     std::string           operation;
 
+    const operation::type     type          = operation::ongoing(paths, src_workspace_name, operation, error_message);
     const Lines               src_versions  = io::content_lines(src_workspace, 0, error_message);
     const Lines               dest_versions = io::content_lines(dest_workspace, 0, error_message);
     const std::string         src_id        = src_versions[0];
     const std::string         dest_id       = dest_versions[0];
     std::string               common_id     = src_versions.front();
     bool                      common_exists = false;
-    operation::type           type          = operation::ongoing(paths, src_workspace_name, operation, error_message);
     std::vector<object::info> src_objects;
     std::unordered_map<std::filesystem::path, object::info> dest_objects;
     std::unordered_map<std::filesystem::path, object::info> common_objects;
 
-    switch (type) {
-        case operation::type::none:
-            break;
-        case operation::type::insert:
-            if (operation::conflicts_handled(paths, src_workspace_name, error_message)) {
-                goto success;
-            } else {
-                std::cout << "Resolve conflicts before insertion";
-                return out;
-            }
-            break;
-        default:
-            error_message_creator("Ongoing operation: " + operation, error_message);
-            return out;
-            break;
+    if (type != operation::type::none && conflicts_handled(paths, dest_workspace_name, error_message) == false) {
+        error_message_creator(
+            "Unhandled conflicts from previous " + operation +
+                " operation. Use lvc conflict for the list of conflicts.",
+            error_message);
+        return out;
     }
 
     for (const auto& src_version : src_versions) {
@@ -92,7 +83,7 @@ LvcConflictArray* operation::insert(
         const Lines src  = io::content_lines(paths.object / src_info.id, 1, error_message);
         const Lines dest = io::content_lines(paths.object / dest_info->id, 1, error_message);
 
-        bool conflict = merge(paths.root / src_info.path, common, src, dest);
+        bool conflict = merge3(paths.root / src_info.path, common, src, dest);
         if (conflict) {
             size_t len = charplen(src_info.path.c_str());
             out->paths = (char**)realloc(out, (out->len + 1) * sizeof(char*));

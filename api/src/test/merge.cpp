@@ -8,7 +8,7 @@ struct ExpectedMerge {
 };
 
 static bool compare(const std::filesystem::path& path, const ExpectedMerge& expected) {
-    const bool    conflict = merge(path, expected.base, expected.ours, expected.theirs);
+    const bool    conflict = merge3(path, expected.base, expected.ours, expected.theirs);
     std::ifstream file(path, std::ios::binary);
     if (!file.is_open())
         return false;

@@ -7,7 +7,6 @@
 inline constexpr std::string workspacename_inactive = "inactive";
 inline constexpr std::string foldername_workspace   = "workspace";
 inline constexpr std::string foldername_local       = "local";
-inline constexpr std::string foldername_operation   = "operation";
 inline constexpr std::string foldername_object      = "object";
 inline constexpr std::string filename_default       = "default";
 inline constexpr std::string filename_current       = "current";
@@ -17,8 +16,7 @@ inline constexpr std::string filename_ignore        = "lvc.ignore";
 inline constexpr std::string filename_storage       = "lvc.storage";
 inline constexpr std::string filename_tmp           = "tmp";
 inline constexpr std::string filename_sync          = "sync";
-inline constexpr std::string filename_unite         = "unite";
-inline constexpr std::string filename_insert        = "insert";
+inline constexpr std::string filename_merge         = "merge";
 inline constexpr std::string filename_conflict      = "conflict";
 
 struct Paths {

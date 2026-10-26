@@ -232,7 +232,7 @@ static void emit_unchanged_base(const size_t& until, size_t& base_position, cons
     base_position = until;
 }
 
-bool merge(const std::filesystem::path path, const Lines& base, const Lines& ours, const Lines& theirs) {
+bool merge3(const std::filesystem::path path, const Lines& base, const Lines& ours, const Lines& theirs) {
     const std::vector<Edit> ours_edits   = diff(base, ours);
     const std::vector<Edit> theirs_edits = diff(base, theirs);
     bool                    conflict     = false;
@@ -320,6 +320,7 @@ bool merge(const std::filesystem::path path, const Lines& base, const Lines& our
             out << theirs_label << '\n';
             for (std::string& line : theirs_version)
                 out << line << '\n';
+            out << end_label << '\n';
         }
         base_position = region_end;
     }

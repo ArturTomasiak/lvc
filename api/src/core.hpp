@@ -15,15 +15,13 @@ namespace category {
 }
 
 namespace operation {
-    enum class type : uint8_t { none, sync, unite, insert };
+    enum class type : uint8_t { sync, merge, none };
 
     inline std::string type_to_string(operation::type type) {
         if (type == operation::type::sync)
             return "sync";
-        if (type == operation::type::insert)
-            return "insert";
-        if (type == operation::type::unite)
-            return "unite";
+        if (type == operation::type::merge)
+            return "merge";
         return "";
     }
 
@@ -36,12 +34,9 @@ namespace operation {
 
     void revert(Paths& paths, std::string version_id, std::vector<std::string>& input_raw, char** error_message);
     LvcConflictArray* sync(Paths& src_paths, Paths& dest_paths, char** error_message);
-    LvcConflictArray* insert(
+    LvcConflictArray* merge(
         Paths& paths, const std::string& src_workspace_name, const std::string& dest_workspace_name, const char* author,
         char** error_message);
-    LvcConflictArray* unite(
-        Paths& paths, std::string src_workspace, std::string dest_workspace, const char* author, char** error_message);
-    void push(Paths& src_paths, Paths& dest_paths, char** error_message);
 }
 
 namespace object {
