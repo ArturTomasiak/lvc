@@ -10,7 +10,7 @@ LvcCategory* find_category(LvcCategoryList* list, const std::string& name) {
 }
 
 LvcCategory* add_category(LvcCategoryList* list, const std::string& name, char** error_message) {
-    list->category = (LvcCategory*)realloc(list->category, list->len + 1);
+    list->category = (LvcCategory*)realloc(list->category, (list->len + 1) * sizeof(LvcCategory));
     CHECKALLOC(list->category, error_message, {});
     LvcCategory* out      = &list->category[list->len];
     out->workspaces_len   = 0;
@@ -20,6 +20,7 @@ LvcCategory* add_category(LvcCategoryList* list, const std::string& name, char**
     CHECKALLOC(out->workspaces, error_message, {});
     CHECKALLOC(out->name, error_message, {});
     memcpy(out->name, name.data(), name.size() + 1);
+    list->len++;
     return out;
 }
 
@@ -38,7 +39,9 @@ void add_workspace(LvcCategory* category, const std::string& name, char** error_
 
 LvcCategoryList* category::list(Paths& paths, char** error_message) {
     LvcCategoryList* out = (LvcCategoryList*)malloc(sizeof(LvcCategoryList));
-    add_category(out, LVC_CATEGORY_UNCATEGORIZED, error_message);
+    out->category = nullptr;
+    out->len      = 0;
+    bool uncategorized_created = 0;
 
     for (const auto& entry : std::filesystem::directory_iterator(paths.workspace)) {
         if (!entry.is_regular_file())
@@ -51,20 +54,26 @@ LvcCategoryList* category::list(Paths& paths, char** error_message) {
         buffer.erase(0, pos + 1);
         pos = buffer.find(' ');
         buffer.erase(0, pos + 1);
-        if (buffer[0] == '\n')
-            current = find_category(out, LVC_CATEGORY_UNCATEGORIZED);
+        if (buffer[0] == '\n') {
+            if (uncategorized_created == 0) {
+                current = add_category(out, LVC_CATEGORY_UNCATEGORIZED, error_message);
+                uncategorized_created = 1;
+            }
+            else 
+                current = find_category(out, LVC_CATEGORY_UNCATEGORIZED);
+        }
         else {
             pos                    = buffer.find('\n');
             const std::string name = buffer.substr(0, pos);
             current                = find_category(out, name);
             if (current == nullptr) {
                 current = add_category(out, name, error_message);
-                if (error_message != 0)
+                if (*error_message != 0)
                     return out;
             }
         }
         add_workspace(current, name, error_message);
-        if (error_message != 0)
+        if (*error_message != 0)
             return out;
     }
 

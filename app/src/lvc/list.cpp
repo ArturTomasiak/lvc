@@ -16,7 +16,7 @@ bool lvc::list(int argc, char* argv[]) {
 
     for (size_t i = 0; i < list->len; i++) {
         LvcCategory* category = &list->category[i];
-        if (list->len != 1)
+        if (list->len > 1)
             std::cout << category->name << '\n';
         for (size_t i = 0; i < category->workspaces_len; i++) {
             std::cout << "    " << category->workspaces[i] << '\n';
