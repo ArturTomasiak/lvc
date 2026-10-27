@@ -169,7 +169,7 @@ void version::create(
     }
     const std::string              workspace_name    = io::content(paths.current, 0, 0, error_message);
     const std::filesystem::path    workspace         = paths.workspace / workspace_name;
-    const std::vector<std::string> workspace_content = io::content_lines(workspace, 1, 0, error_message);
+    const std::vector<std::string> workspace_content = io::content_lines(workspace, 1, 1, error_message);
     const std::filesystem::path    prepare_dir       = prepare_path(paths, workspace_name);
     const std::string              version_id        = workspace_content.empty() ? "" : workspace_content[0];
     if (!std::filesystem::is_regular_file(prepare_dir)) {
