@@ -6,15 +6,12 @@ static LvcVersion* history(
     std::filesystem::path workspace = paths.workspace / workspace_name;
     if (!std::filesystem::exists(workspace))
         return {};
-    std::ifstream file(workspace, std::ios::binary);
-    if (!file.is_open())
-        return {};
+    std::vector<std::string> buffer = io::content_lines(workspace, 1, 1, error_message);
 
-    std::string line;
     LvcVersion* first_version = nullptr;
     LvcVersion* version       = nullptr;
     bool        first         = 1;
-    while (std::getline(file, line)) {
+    for (std::string &line : buffer) {
         if (index == length)
             return first_version;
 
@@ -23,7 +20,7 @@ static LvcVersion* history(
 
         std::vector<std::string> version_content = io::content_lines(paths.object / line, 1, 0, error_message);
 
-        if (version_content.size() <= VERSION_AUTHOR || line.size() != 64) {
+        if (line.size() != 64 || version_content.size() <= VERSION_AUTHOR) {
             continue;
         }
 
