@@ -9,7 +9,7 @@ void workspace::create(
     }
     std::string buffer;
     if (!copy_workspace_name.empty())
-        buffer = io::content(paths.workspace / copy_workspace_name, 0, 0, error_message);
+        buffer = io::content(paths.workspace / copy_workspace_name, 1, 1, error_message);
     insert_pattern(buffer, TYPE_WORKSPACE, nullptr);
     io::file(workspace, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 1, error_message);
 }
