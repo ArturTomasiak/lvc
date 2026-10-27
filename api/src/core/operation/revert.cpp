@@ -11,7 +11,7 @@ void operation::revert(
         return;
     }
 
-    std::vector<std::string> ignore_raw = io::content_lines(paths.ignore, 0, error_message);
+    std::vector<std::string> ignore_raw = io::content_lines(paths.ignore, 0, 0, error_message);
     std::vector<std::string> ignore     = paths.resolve(ignore_raw, version_id, 0, 1, error_message);
     if (*error_message)
         return;
@@ -62,11 +62,10 @@ void operation::revert(
 
     for (object::info& object : objects) {
         if (object.type == object::type::blob) {
-            std::string buffer = io::content(paths.object / object.id, 1, error_message);
-            size_t      pos    = buffer.find('\n');
+            std::string buffer = io::content(paths.object / object.id, 1, 1, error_message);
             io::file(
-                paths.root / object.path, std::ios::binary | std::ios::trunc, buffer.data() + pos + 1,
-                buffer.size() - pos - 1, 0, error_message);
+                paths.root / object.path, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 0,
+                error_message);
         }
     }
 }

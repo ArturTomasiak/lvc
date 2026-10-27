@@ -23,10 +23,6 @@ void io::file(
     if (compress) {
         size_t deflated_length;
         char*  deflated = deflate(content, length, deflated_length);
-        if (!file) {
-            error_message_creator_path("Could not deflate file", path, error_message);
-            return;
-        }
         file.write(deflated, deflated_length);
         free(deflated);
     } else
@@ -40,51 +36,6 @@ void io::file(
     file.close();
 }
 
-void io::prefix_file_content(std::filesystem::path path, const char* content, size_t length, char** error_message) {
-    const std::filesystem::path temp = path.parent_path() / (path.filename().string() + ".tmp");
-
-    std::ifstream input(path, std::ios::binary);
-    if (!input) {
-        error_message_creator_path("Could not read file", path, error_message);
-        return;
-    }
-
-    std::ofstream output(temp, std::ios::binary | std::ios::trunc);
-    if (!output) {
-        error_message_creator_path("Could not create file", temp, error_message);
-        return;
-    }
-
-    output.write(content, length);
-    output << input.rdbuf();
-
-    if (output.bad()) {
-        output.close();
-        std::filesystem::remove(temp);
-        error_message_creator_path("Could not write file", temp, error_message);
-        return;
-    }
-
-    input.close();
-    output.close();
-
-    std::error_code ec;
-
-    std::filesystem::remove(path, ec);
-    if (ec) {
-        std::filesystem::remove(temp);
-        error_message_creator_path("Could not write file", temp, error_message);
-        return;
-    }
-
-    std::filesystem::rename(temp, path, ec);
-    if (ec) {
-        std::filesystem::remove(temp);
-        error_message_creator_path("Could not write file", path, error_message);
-        return;
-    }
-}
-
 bool io::dir(std::filesystem::path path, char** error_message) {
     std::error_code error;
     if (!std::filesystem::create_directory(path, error) || error)
@@ -92,25 +43,36 @@ bool io::dir(std::filesystem::path path, char** error_message) {
     return 1;
 }
 
-std::string io::content(std::filesystem::path file_path, bool decompress, char** error_message) {
+std::string io::content(std::filesystem::path file_path, bool decompress, bool ignore_pattern, char** error_message) {
     std::ifstream file(file_path, std::ios::binary);
-    std::string   out;
     if (!file)
-        return out;
+        return std::string();
+
     std::ostringstream buffer;
     buffer << file.rdbuf();
+
     if (!file.eof() && file.fail())
-        return out;
+        return std::string();
 
     if (decompress) {
         size_t inflated_len;
         char*  inflated = inflate(buffer.str(), inflated_len);
-        if (inflated)
-            out.assign(inflated, inflated_len);
-    } else
-        out = buffer.str();
-
-    return out;
+        char*  original = inflated;
+        if (inflated == 0)
+            return std::string();
+        if (ignore_pattern) {
+            const char* newline = (const char*)memchr(inflated, '\n', inflated_len);
+            if (newline) {
+                const size_t skipped = newline - inflated + 1;
+                inflated += skipped;
+                inflated_len -= skipped;
+            }
+        }
+        std::string out = std::string(inflated, inflated_len);
+        free(original);
+        return out;
+    }
+    return buffer.str();
 }
 
 static std::vector<std::string> stream_to_lines(std::istream& stream) {
@@ -125,16 +87,16 @@ static std::vector<std::string> stream_to_lines(std::istream& stream) {
     return result;
 }
 
-std::vector<std::string> io::content_lines(std::filesystem::path file_path, bool decompress, char** error_message) {
+std::vector<std::string>
+io::content_lines(std::filesystem::path file_path, bool decompress, bool ignore_pattern, char** error_message) {
     if (!std::filesystem::exists(file_path))
         return {};
     if (decompress) {
-        std::string decompressed = io::content(file_path, decompress, error_message);
+        const std::string decompressed = io::content(file_path, decompress, ignore_pattern, error_message);
         if (decompressed.empty())
             return {};
 
         std::istringstream stream(std::move(decompressed));
-
         return stream_to_lines(stream);
     } else {
         std::ifstream file(file_path, std::ios::binary);

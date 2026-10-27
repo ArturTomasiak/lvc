@@ -232,10 +232,10 @@ static void emit_unchanged_base(const size_t& until, size_t& base_position, cons
     base_position = until;
 }
 
-bool merge3(const std::filesystem::path path, const Lines& base, const Lines& ours, const Lines& theirs) {
+MergeResult merge3(const std::filesystem::path path, const Lines& base, const Lines& ours, const Lines& theirs) {
     const std::vector<Edit> ours_edits   = diff(base, ours);
     const std::vector<Edit> theirs_edits = diff(base, theirs);
-    bool                    conflict     = false;
+    MergeResult             result       = MergeResult::no_change;
     std::ofstream           out(path, std::ios::binary | std::ios::trunc | std::ios::out);
     size_t                  oi            = 0;
     size_t                  ti            = 0;
@@ -263,6 +263,8 @@ bool merge3(const std::filesystem::path path, const Lines& base, const Lines& ou
                 out << theirs[i] << '\n';
             base_position = edit.base_end;
             ti++;
+            if (result != MergeResult::conflict)
+                result = MergeResult::merge;
             continue;
         }
         if (oi < ours_edits.size() && ti < theirs_edits.size() && !interacts(ours_edits[oi], theirs_edits[ti])) {
@@ -276,6 +278,8 @@ bool merge3(const std::filesystem::path path, const Lines& base, const Lines& ou
                 emit_unchanged_base(edit.base_begin, base_position, base, out);
                 for (size_t i = edit.side_begin; i < edit.side_end; i++)
                     out << theirs[i] << '\n';
+                if (result != MergeResult::conflict)
+                    result = MergeResult::merge;
             }
             continue;
         }
@@ -313,7 +317,7 @@ bool merge3(const std::filesystem::path path, const Lines& base, const Lines& ou
             for (std::string& line : ours_version)
                 out << line << '\n';
         } else {
-            conflict = true;
+            result = MergeResult::conflict;
             out << ours_label << '\n';
             for (std::string& line : ours_version)
                 out << line << '\n';
@@ -326,5 +330,5 @@ bool merge3(const std::filesystem::path path, const Lines& base, const Lines& ou
     }
     emit_unchanged_base(base.size(), base_position, base, out);
     out.close();
-    return conflict;
+    return result;
 }

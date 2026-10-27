@@ -26,10 +26,10 @@ namespace io {
     void file(
         std::filesystem::path path, std::ios_base::openmode flags, const char* content, size_t length, bool compress,
         char** error_message);
-    void prefix_file_content(std::filesystem::path path, const char* content, size_t length, char** error_message);
-    bool dir(std::filesystem::path path, char** error_message);
-    std::string              content(std::filesystem::path file_path, bool decompress, char** error_message);
-    std::vector<std::string> content_lines(std::filesystem::path file_path, bool decompress, char** error_message);
+    bool        dir(std::filesystem::path path, char** error_message);
+    std::string content(std::filesystem::path file_path, bool decompress, bool ignore_pattern, char** error_message);
+    std::vector<std::string>
+    content_lines(std::filesystem::path file_path, bool decompress, bool ignore_pattern, char** error_message);
 }
 
 inline std::string latest_common_version(const std::vector<std::string>& a, const std::vector<std::string>& b) {

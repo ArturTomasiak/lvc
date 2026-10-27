@@ -21,7 +21,7 @@ static LvcVersion* history(
         if (!line.empty() && line.back() == '\r')
             line.pop_back();
 
-        std::vector<std::string> version_content = io::content_lines(paths.object / line, 1, error_message);
+        std::vector<std::string> version_content = io::content_lines(paths.object / line, 1, 0, error_message);
 
         if (version_content.size() <= VERSION_AUTHOR || line.size() != 64) {
             continue;
@@ -87,7 +87,7 @@ static LvcVersion* history_all(
         if (!line.empty() && line.back() == '\r')
             line.pop_back();
 
-        std::vector<std::string> version_content = io::content_lines(paths.object / line, 1, error_message);
+        std::vector<std::string> version_content = io::content_lines(paths.object / line, 1, 0, error_message);
 
         if (version_content.size() <= VERSION_AUTHOR || line.size() != 64) {
             continue;

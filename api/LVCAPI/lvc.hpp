@@ -53,6 +53,7 @@ typedef struct {
 typedef struct {
     char** paths;
     size_t len;
+    size_t alloc;
 } LvcConflictArray;
 
 typedef struct LvcVersion {

@@ -27,7 +27,7 @@ static void add_object(
     VersionObject object;
     object.name        = filename;
     object.type        = TYPE_BLOB;
-    std::string buffer = io::content(path, 0, error_message);
+    std::string buffer = io::content(path, 0, 0, error_message);
     object::create(object_dir, TYPE_BLOB, buffer, object.id, error_message);
     objects.push_back(std::move(object));
 }
@@ -92,7 +92,7 @@ static TreeRelation tree_relation_init(std::vector<Tree>& trees) {
 static void tree_from_version(
     const std::filesystem::path& object_dir, std::vector<Tree>& trees, const std::string& tree_id,
     std::filesystem::path current, char** error_message) {
-    std::vector<std::string> tree_content = io::content_lines(object_dir / tree_id, 1, error_message);
+    std::vector<std::string> tree_content = io::content_lines(object_dir / tree_id, 1, 0, error_message);
     size_t                   pos;
     Tree                     tree;
     tree.relative = current;
@@ -167,37 +167,47 @@ void version::create(
         error_message_creator("No version message recieved", error_message);
         return;
     }
-    const std::string              workspace_name    = io::content(paths.current, 0, error_message);
+    const std::string              workspace_name    = io::content(paths.current, 0, 0, error_message);
     const std::filesystem::path    workspace         = paths.workspace / workspace_name;
-    const std::vector<std::string> workspace_content = io::content_lines(workspace, 1, error_message);
+    const std::vector<std::string> workspace_content = io::content_lines(workspace, 1, 0, error_message);
     const std::filesystem::path    prepare_dir       = prepare_path(paths, workspace_name);
-    std::string                    version_id;
-    if (workspace_content.size() > 1)
-        version_id = workspace_content[1];
+    const std::string              version_id        = workspace_content.empty() ? "" : workspace_content[0];
     if (!std::filesystem::is_regular_file(prepare_dir)) {
         error_message_creator("No files prepared", error_message);
         return;
     }
     std::vector<std::string> status = version::status(paths, prepare_dir, version_id, error_message);
-
-    std::string root_id;
+    std::string              root_id;
     if (!version_id.empty()) {
-        std::vector<std::string> version_content = io::content_lines(paths.object / version_id, 1, error_message);
-        root_id                                  = version_content[VERSION_ROOT_TREE];
+        std::vector<std::string> version_content = io::content_lines(paths.object / version_id, 1, 0, error_message);
+        if (version_content.empty()) {
+            error_message_creator(
+                "VERSION CREATION FAILURE: failed to read latest version, ID: " + version_id, error_message);
+            return;
+        }
+        root_id = version_content[VERSION_ROOT_TREE];
     }
-
-    std::string new_root_id = build(paths.object, paths.root, root_id, status, error_message);
-
-    const std::string nl     = "\n";
-    std::string       buffer = new_root_id + nl + message + nl + author;
+    std::string       new_root_id = build(paths.object, paths.root, root_id, status, error_message);
+    const std::string nl          = "\n";
+    std::string       buffer      = new_root_id + nl + message + nl + author;
     if (!inserted_workspace.empty())
         buffer += nl + inserted_workspace;
-
-    std::string id;
-    object::create(paths.object, TYPE_VERSION, buffer, id, error_message);
-    id += "\n";
-
-    io::prefix_file_content(workspace, id.c_str(), id.size(), error_message);
+    std::string new_workspace;
+    object::create(paths.object, TYPE_VERSION, buffer, new_workspace, error_message);
+    new_workspace += "\n";
+    std::string old_workspace = io::content(workspace, 1, 0, error_message);
+    std::string category;
+    for (int i = 0; i < 2; ++i) {
+        const size_t pos = old_workspace.find(' ');
+        old_workspace.erase(0, pos + 1);
+    }
+    const size_t pos = old_workspace.find('\n');
+    category         = old_workspace.substr(0, pos);
+    old_workspace.erase(0, pos + 1);
+    new_workspace += old_workspace;
+    insert_pattern(new_workspace, TYPE_WORKSPACE, category.empty() ? nullptr : category.c_str());
+    io::file(
+        workspace, std::ios::binary | std::ios::trunc, new_workspace.data(), new_workspace.size(), 1, error_message);
     if (*error_message)
         return;
 

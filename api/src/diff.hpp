@@ -7,6 +7,8 @@
 
 using Lines = std::vector<std::string>;
 
+enum class MergeResult { no_change, merge, conflict };
+
 inline constexpr std::string ours_label   = "<<<  OURS  <<<";
 inline constexpr std::string theirs_label = ">>> THEIRS >>>";
 inline constexpr std::string end_label    = "==============";
@@ -40,4 +42,4 @@ struct Scratch {
 
 std::vector<Edit> diff(const Lines& base, const Lines& side);
 void              print_diff(const Lines& base, const Lines& side, std::string path);
-bool              merge3(const std::filesystem::path path, const Lines& base, const Lines& ours, const Lines& theirs);
+MergeResult       merge3(const std::filesystem::path path, const Lines& base, const Lines& ours, const Lines& theirs);

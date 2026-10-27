@@ -4,7 +4,7 @@ static void get_unmodified(
     Paths& paths, std::unordered_set<std::string>& unmodified, std::unordered_set<std::string>& status,
     const std::string tree_id, const std::filesystem::path current, char** error_message) {
     char                     id[65];
-    std::vector<std::string> content = io::content_lines(paths.object / tree_id, 1, error_message);
+    std::vector<std::string> content = io::content_lines(paths.object / tree_id, 1, 0, error_message);
     for (size_t i = 1; i < content.size(); i++) {
         object::info       object;
         const std::string& line = content[i];
@@ -23,7 +23,7 @@ static void get_unmodified(
         if (status.contains(object.path.string())) {
             std::filesystem::path path = paths.root / object.path;
             if (std::filesystem::is_regular_file(path)) {
-                std::string buffer = io::content(path, 0, error_message);
+                std::string buffer = io::content(path, 0, 0, error_message);
                 insert_pattern(buffer, TYPE_BLOB, nullptr);
                 sha256(buffer.data(), buffer.size(), id);
                 if (object.id != id)
@@ -40,9 +40,8 @@ static void get_unmodified(
 
 std::vector<std::string> version::status(
     Paths& paths, const std::filesystem::path& prepare_dir, const std::string& latest_version, char** error_message) {
-    const std::string        workspace_name = io::content(paths.current, 0, error_message);
-    std::vector<std::string> status         = io::content_lines(prepare_dir, 1, error_message);
-    status.erase(status.begin());
+    const std::string               workspace_name = io::content(paths.current, 0, 0, error_message);
+    std::vector<std::string>        status         = io::content_lines(prepare_dir, 1, 1, error_message);
     std::unordered_set<std::string> status_set;
     status_set.reserve(status.size());
     for (const std::string& entry : status)
@@ -50,7 +49,7 @@ std::vector<std::string> version::status(
 
     std::unordered_set<std::string> unmodified;
     unmodified.reserve(status.size());
-    std::vector<std::string> version_content = io::content_lines(paths.object / latest_version, 1, error_message);
+    std::vector<std::string> version_content = io::content_lines(paths.object / latest_version, 1, 0, error_message);
     if (version_content.empty())
         return status;
     get_unmodified(paths, unmodified, status_set, version_content[VERSION_ROOT_TREE], "", error_message);
@@ -61,9 +60,8 @@ std::vector<std::string> version::status(
 }
 
 std::vector<std::string> version::status_all(Paths& paths, char** error_message) {
-    const std::string           workspace_name = io::content(paths.current, 0, error_message);
+    const std::string           workspace_name = io::content(paths.current, 0, 0, error_message);
     const std::filesystem::path prepare_dir    = prepare_path(paths, workspace_name);
-    std::vector<std::string>    status         = io::content_lines(prepare_dir, 1, error_message);
-    status.erase(status.begin());
+    std::vector<std::string>    status         = io::content_lines(prepare_dir, 1, 1, error_message);
     return status;
 }

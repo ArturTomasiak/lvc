@@ -1,8 +1,8 @@
 #include <app.hpp>
 
 bool helper::find_repository(std::filesystem::path& out) {
-    out = std::filesystem::current_path();
-    std::filesystem::path previous;
+    out                            = std::filesystem::current_path();
+    std::filesystem::path previous = "";
     while (true) {
         std::filesystem::path lvc = out / ".lvc";
         if (out == previous) {

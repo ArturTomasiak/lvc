@@ -3,7 +3,7 @@
 static void insert_id(
     const std::filesystem::path& object_folder, std::unordered_set<std::string>& out, const std::string tree_id,
     const std::filesystem::path current, std::unordered_set<std::string_view>& ignore, char** error_message) {
-    std::vector<std::string> content = io::content_lines(object_folder / tree_id, 1, error_message);
+    std::vector<std::string> content = io::content_lines(object_folder / tree_id, 1, 0, error_message);
     for (size_t i = 1; i < content.size(); i++) {
         object::info       object;
         const std::string& line = content[i];
@@ -30,7 +30,7 @@ std::unordered_set<std::string> version::all_ids(
     Paths& paths, const std::string& id, std::unordered_set<std::string_view> ignore, char** error_message) {
     if (id.empty())
         return {};
-    std::vector<std::string> version_content = io::content_lines(paths.object / id, 1, error_message);
+    std::vector<std::string> version_content = io::content_lines(paths.object / id, 1, 0, error_message);
     if (version_content.empty())
         return {};
 

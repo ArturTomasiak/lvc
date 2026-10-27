@@ -49,7 +49,7 @@ LvcCategoryList* category::list(Paths& paths, char** error_message) {
         const std::filesystem::path path = entry.path();
         const std::string           name = path.filename();
         LvcCategory*                current;
-        std::string                 buffer = io::content(path, 1, error_message);
+        std::string                 buffer = io::content(path, 1, 0, error_message);
         size_t                      pos    = buffer.find(' ');
         buffer.erase(0, pos + 1);
         pos = buffer.find(' ');

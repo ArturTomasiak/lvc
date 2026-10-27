@@ -1,7 +1,7 @@
 #include <core.hpp>
 
 void version::prepare_reset(Paths& paths, char** error_message) {
-    const std::string           workspace_name = io::content(paths.current, 0, error_message);
+    const std::string           workspace_name = io::content(paths.current, 0, 0, error_message);
     const std::filesystem::path prepare_dir    = prepare_path(paths, workspace_name);
     std::error_code             error;
     bool                        deleted = std::filesystem::remove(prepare_dir, error);
@@ -14,16 +14,13 @@ void version::prepare(Paths& paths, std::vector<std::string>& input_raw, char***
         error_message_creator("No input recieved", error_message);
         return;
     }
-    const std::string              workspace_name    = io::content(paths.current, 0, error_message);
+    const std::string              workspace_name    = io::content(paths.current, 0, 0, error_message);
     const std::filesystem::path    workspace         = paths.workspace / workspace_name;
     const std::filesystem::path    prepare_dir       = prepare_path(paths, workspace_name);
-    const std::vector<std::string> workspace_content = io::content_lines(workspace, 1, error_message);
-    std::string                    version_id;
-    if (workspace_content.size() > 1)
-        version_id = workspace_content[1];
-
-    std::vector<std::string> ignore_raw = io::content_lines(paths.ignore, 0, error_message);
-    std::vector<std::string> ignore     = paths.resolve(ignore_raw, version_id, 1, 1, error_message);
+    const std::vector<std::string> workspace_content = io::content_lines(workspace, 1, 1, error_message);
+    const std::string              version_id        = workspace_content.empty() ? "" : workspace_content[0];
+    std::vector<std::string>       ignore_raw        = io::content_lines(paths.ignore, 0, 0, error_message);
+    std::vector<std::string>       ignore            = paths.resolve(ignore_raw, version_id, 1, 1, error_message);
     if (*error_message)
         return;
 
@@ -33,7 +30,7 @@ void version::prepare(Paths& paths, std::vector<std::string>& input_raw, char***
     if (input.empty())
         return;
 
-    std::vector<std::string> current = io::content_lines(prepare_dir, 0, error_message);
+    std::vector<std::string> current = io::content_lines(prepare_dir, 0, 0, error_message);
 
     std::unordered_set<std::string_view> current_entries;
     current_entries.reserve(current.size());
@@ -53,7 +50,7 @@ void version::prepare(Paths& paths, std::vector<std::string>& input_raw, char***
 
     std::unordered_set<std::string> version = version::all_ids(paths, version_id, ignore_entries, error_message);
     std::erase_if(current, [&version, &paths, &error_message](const std::string& entry) {
-        std::string buffer = io::content(paths.root / entry, 0, error_message);
+        std::string buffer = io::content(paths.root / entry, 0, 0, error_message);
         insert_pattern(buffer, TYPE_BLOB, nullptr);
         char id[65];
         sha256(buffer.c_str(), buffer.size(), id);

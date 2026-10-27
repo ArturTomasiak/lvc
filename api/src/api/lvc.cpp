@@ -22,7 +22,7 @@ extern "C" LVC_API void lvc_create(LvcCreateInput input, char** error_message) n
     repository::rename(paths, input.repository_name, error_message);
     if (*error_message)
         return;
-    workspace::create(paths, input.workspace_name, 0, error_message);
+    workspace::create(paths, input.workspace_name, std::string{}, error_message);
     if (*error_message)
         return;
     io::file(
@@ -38,7 +38,7 @@ extern "C" LVC_API void lvc_create(LvcCreateInput input, char** error_message) n
 extern "C" LVC_API char* lvc_current(const char* lvc, char** error_message) noexcept {
     Paths paths(lvc);
     *error_message      = 0;
-    std::string current = io::content(paths.current, 0, error_message);
+    std::string current = io::content(paths.current, 0, 0, error_message);
     char*       out     = (char*)malloc(current.size() + 1);
     memcpy(out, current.data(), current.size());
     out[current.size()] = '\0';
@@ -49,7 +49,10 @@ extern "C" LVC_API void
 lvc_workspace(const char* lvc, const char* workspace_name, LVC_BOOL clean, char** error_message) noexcept {
     Paths paths(lvc);
     *error_message = 0;
-    workspace::create(paths, workspace_name, clean, error_message);
+    std::string cpy;
+    if (!clean)
+        cpy = io::content(paths.current, 0, 0, error_message);
+    workspace::create(paths, workspace_name, cpy, error_message);
 }
 
 extern "C" LVC_API void lvc_change_category(
@@ -81,13 +84,11 @@ extern "C" LVC_API char** lvc_checkout(const char* lvc, char** error_message) no
 extern "C" LVC_API char** lvc_status(const char* lvc, char** error_message) noexcept {
     Paths paths(lvc);
     *error_message                                   = 0;
-    const std::string              workspace_name    = io::content(paths.current, 0, error_message);
+    const std::string              workspace_name    = io::content(paths.current, 0, 0, error_message);
     const std::filesystem::path    workspace         = paths.workspace / workspace_name;
     const std::filesystem::path    prepare           = prepare_path(paths, workspace);
-    const std::vector<std::string> workspace_content = io::content_lines(workspace, 1, error_message);
-    std::string                    version_id;
-    if (workspace_content.size() > 1)
-        version_id = workspace_content[1];
+    const std::vector<std::string> workspace_content = io::content_lines(workspace, 1, 1, error_message);
+    const std::string              version_id        = workspace_content.empty() ? "" : workspace_content[0];
     if (*error_message)
         return 0;
     std::vector<std::string> status = version::status(paths, prepare, version_id, error_message);
@@ -160,12 +161,10 @@ extern "C" LVC_API void lvc_terminal_conflict_solver(const char* lvc, char** err
 extern "C" LVC_API void lvc_diff(const char* lvc, int argc, char* argv[], char** error_message) noexcept {
     Paths paths(lvc);
 
-    const std::string              workspace_name    = io::content(paths.current, 0, error_message);
+    const std::string              workspace_name    = io::content(paths.current, 0, 0, error_message);
     const std::filesystem::path    workspace         = paths.workspace / workspace_name;
-    const std::vector<std::string> workspace_content = io::content_lines(workspace, 1, error_message);
-    std::string                    version_id;
-    if (workspace_content.size() > 1)
-        version_id = workspace_content[1];
+    const std::vector<std::string> workspace_content = io::content_lines(workspace, 1, 1, error_message);
+    const std::string              version_id        = workspace_content.empty() ? "" : workspace_content[0];
 
     std::vector<std::string> raw_input;
     raw_input.reserve(argc - 2);
@@ -186,10 +185,9 @@ extern "C" LVC_API void lvc_diff(const char* lvc, int argc, char* argv[], char**
         } else if (it == version.end()) {
             std::cout << "Created " + path + "\n";
         } else {
-            object::info&            info = it->second;
-            std::vector<std::string> base = io::content_lines(paths.object / info.id, 1, error_message);
-            base.erase(base.begin());
-            const std::vector<std::string> side = io::content_lines(path, 0, error_message);
+            object::info&                  info = it->second;
+            const std::vector<std::string> base = io::content_lines(paths.object / info.id, 1, 1, error_message);
+            const std::vector<std::string> side = io::content_lines(path, 0, 0, error_message);
             print_diff(base, side, path);
         }
     }
@@ -207,7 +205,7 @@ extern "C" LVC_API LvcConflictArray*
 lvc_merge(const char* lvc, const char* src_workspace_name, const char* author, char** error_message) noexcept {
     Paths paths(lvc);
     *error_message                              = 0;
-    const std::string dest_workspace_name       = io::content(paths.current, 0, error_message);
+    const std::string dest_workspace_name       = io::content(paths.current, 0, 0, error_message);
     const std::string src_workspace_name_string = src_workspace_name;
     return operation::merge(paths, src_workspace_name_string, dest_workspace_name, author, error_message);
 }

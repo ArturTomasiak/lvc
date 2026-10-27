@@ -1,7 +1,7 @@
 #include <core.hpp>
 
 void workspace::_goto(Paths& paths, std::string workspace_name, char** error_message) {
-    const std::string     current = io::content(paths.current, 0, error_message);
+    const std::string     current = io::content(paths.current, 0, 0, error_message);
     std::filesystem::path workspace;
     if (!workspace::exists(paths, workspace_name, workspace, error_message))
         error_message_creator("Workspace " + workspace_name + " doesn't exist", error_message);
@@ -9,17 +9,15 @@ void workspace::_goto(Paths& paths, std::string workspace_name, char** error_mes
         return;
     if (current == workspace_name)
         error_message_creator("Current workspace is already " + workspace_name, error_message);
-    const std::filesystem::path    src_operation     = paths.local / current;
-    const std::filesystem::path    dest_operation    = paths.local / workspace_name;
-    const std::vector<std::string> workspace_content = io::content_lines(workspace, 1, error_message);
-    std::string                    version_id;
-    bool                           remove_tmp = false;
-    if (workspace_content.size() > 1)
-        version_id = workspace_content[1];
-    const std::filesystem::path          tmp        = dest_operation / filename_tmp;
-    const std::vector<std::string>       ignore_raw = io::content_lines(paths.ignore, 0, error_message);
-    const std::vector<std::string>       ignore     = paths.resolve(ignore_raw, version_id, 0, 1, error_message);
-    std::vector<object::info>            objects;
+    const std::filesystem::path          src_operation     = paths.local / current;
+    const std::filesystem::path          dest_operation    = paths.local / workspace_name;
+    const std::vector<std::string>       workspace_content = io::content_lines(workspace, 1, 1, error_message);
+    std::string                          version_id        = workspace_content.empty() ? "" : workspace_content[0];
+    const std::filesystem::path          tmp               = dest_operation / filename_tmp;
+    const std::vector<std::string>       ignore_raw        = io::content_lines(paths.ignore, 0, 0, error_message);
+    const std::vector<std::string>       ignore            = paths.resolve(ignore_raw, version_id, 0, 1, error_message);
+    bool                                 remove_tmp        = false;
+    std::vector<object::info>            objects = version::all_objects(paths.object, version_id, {}, error_message);
     std::unordered_set<std::string_view> ignore_set;
     ignore_set.reserve(ignore.size());
     for (const std::string& entry : ignore)
@@ -30,13 +28,12 @@ void workspace::_goto(Paths& paths, std::string workspace_name, char** error_mes
 
     std::filesystem::path object_dir;
     if (std::filesystem::is_regular_file(tmp)) {
-        version_id = io::content(tmp, 0, error_message);
-        object_dir = dest_operation / foldername_object;
-        objects    = version::all_objects(object_dir, version_id, {}, error_message);
-        remove_tmp = true;
+        version_id                        = io::content(tmp, 0, 0, error_message);
+        object_dir                        = dest_operation / foldername_object;
+        std::vector<object::info> objects = version::all_objects(object_dir, version_id, {}, error_message);
+        remove_tmp                        = true;
     } else {
         object_dir = paths.object;
-        objects    = version::all_objects(paths.object, version_id, {}, error_message);
     }
 
     if (*error_message)
@@ -55,7 +52,6 @@ void workspace::_goto(Paths& paths, std::string workspace_name, char** error_mes
             if (ignore_set.contains(relative.string())) {
                 if (entry.is_directory())
                     iterator.disable_recursion_pending();
-
                 continue;
             }
             remove_paths.push_back(entry.path());
@@ -78,11 +74,9 @@ void workspace::_goto(Paths& paths, std::string workspace_name, char** error_mes
         std::filesystem::path path = paths.root / object.path;
         std::filesystem::create_directories(path.parent_path());
         if (object.type == object::type::blob) {
-            std::string buffer = io::content(object_dir / object.id, 1, error_message);
-            size_t      pos    = buffer.find('\n');
+            std::string buffer = io::content(object_dir / object.id, 1, 1, error_message);
             io::file(
-                paths.root / path, std::ios::binary | std::ios::trunc, buffer.data() + pos + 1, buffer.size() - pos - 1,
-                0, error_message);
+                paths.root / path, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 0, error_message);
         } else
             std::filesystem::create_directories(path);
     }

@@ -92,11 +92,11 @@ namespace version {
 }
 
 namespace workspace {
-    void                      create(Paths& paths, std::string workspace_name, bool clean, char** error_message);
-    bool                      exists(Paths& paths, std::string name, char** error_message);
-    bool                      exists(Paths& paths, std::string name, std::filesystem::path& path, char** error_message);
-    void                      _goto(Paths& paths, std::string workspace_name, char** error_message);
-    void                      _default(Paths& paths, const char* workspace_name, char** error_message);
+    void create(Paths& paths, std::string workspace_name, std::string copy_workspace_name, char** error_message);
+    bool exists(Paths& paths, std::string name, char** error_message);
+    bool exists(Paths& paths, std::string name, std::filesystem::path& path, char** error_message);
+    void _goto(Paths& paths, std::string workspace_name, char** error_message);
+    void _default(Paths& paths, const char* workspace_name, char** error_message);
     std::vector<object::info> all_objects(Paths& paths, char** error_message);
     bool changed_since_ver(Paths& paths, const std::vector<object::info>& objects_version, char** error_message);
 }
