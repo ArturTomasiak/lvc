@@ -17,21 +17,11 @@ namespace category {
 namespace operation {
     enum class type : uint8_t { sync, merge, none };
 
-    inline std::string type_to_string(operation::type type) {
-        if (type == operation::type::sync)
-            return "sync";
-        if (type == operation::type::merge)
-            return "merge";
-        return "";
-    }
-
     void create(
-        Paths& paths, const std::string& workspace_name, operation::type type_enum, LvcConflictArray* conflicts,
-        char** error_message);
-    bool conflicts_handled(Paths& paths, const std::string& workspace_name, char** error_message);
-    operation::type
-    ongoing(Paths& paths, const std::string& workspace_name, std::string& operation_str, char** error_message);
-
+        Paths& paths, const std::string& dest_workspace_name, const std::string& src_workspace_name,
+        operation::type type, LvcConflictArray* conflicts, char** error_message);
+    bool conflicts_handled(
+        const std::filesystem::path& root_path, const std::filesystem::path& conflict_path, char** error_message);
     void revert(Paths& paths, std::string version_id, std::vector<std::string>& input_raw, char** error_message);
     LvcConflictArray* sync(Paths& src_paths, Paths& dest_paths, char** error_message);
     LvcConflictArray* merge(
@@ -62,8 +52,7 @@ namespace repository {
 }
 
 namespace version {
-    void
-    create(Paths& paths, std::string message, std::string author, std::string inserted_workspace, char** error_message);
+    void create(Paths& paths, std::string message, std::string author, char** error_message);
     void create_tmp(
         Paths& paths, const std::filesystem::path& operation, std::unordered_set<std::string_view>& ignore,
         char** error_message);
@@ -76,9 +65,7 @@ namespace version {
         char** error_message);
     std::vector<std::string> status_all(Paths& paths, char** error_message);
 
-    LvcVersion*
-    history(Paths& paths, const std::string workspace_name, size_t depth, size_t length, char** error_message);
-    LvcVersion* history_all(Paths& paths, const std::string workspace_name, char** error_message);
+    LvcVersion* history(Paths& paths, const std::string workspace_name, char** error_message);
     void        history_free(LvcVersion* version);
 
     std::unordered_set<std::string>

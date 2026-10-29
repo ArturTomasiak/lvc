@@ -13,5 +13,5 @@ bool lvc::merge(int argc, char* argv[]) {
     }
 
     lvc_merge(lvc.c_str(), argv[2], "placeholder", &error_message);
-    return 1;
+    return error_message == 0;
 }

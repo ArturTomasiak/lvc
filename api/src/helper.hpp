@@ -40,15 +40,9 @@ inline std::string latest_common_version(const std::vector<std::string>& a, cons
     return "";
 }
 
-inline void error_message_creator(std::string message, char** dest) {
+inline void error_message_creator(const std::string message, char** dest) {
+    if (*dest)
+        return;
     *dest = (char*)malloc(message.size() + 1);
-    memcpy(*dest, message.data(), message.size());
-    (*dest)[message.size()] = '\0';
-}
-
-inline void error_message_creator_path(std::string message, const std::filesystem::path& path, char** dest) {
-    message = message + ' ' + path.string();
-    *dest   = (char*)malloc(message.size() + 1);
-    memcpy(*dest, message.data(), message.size());
-    (*dest)[message.size()] = '\0';
+    memcpy(*dest, message.c_str(), message.size() + 1);
 }

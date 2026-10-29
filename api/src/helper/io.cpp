@@ -4,7 +4,7 @@ void io::file(std::filesystem::path path, std::ios_base::openmode flags, char** 
     std::filesystem::create_directories(path.parent_path());
     std::ofstream file(path, std::ios::out | flags);
     if (!file) {
-        error_message_creator_path("Could not create file", path, error_message);
+        error_message_creator("Could not create file " + path.string(), error_message);
         return;
     }
     file.close();
@@ -16,7 +16,7 @@ void io::file(
     std::filesystem::create_directories(path.parent_path());
     std::ofstream file(path, std::ios::out | flags);
     if (!file) {
-        error_message_creator_path("Could not create file", path, error_message);
+        error_message_creator("Could not create file " + path.string(), error_message);
         return;
     }
 
@@ -29,7 +29,7 @@ void io::file(
         file.write(content, length);
 
     if (!file) {
-        error_message_creator_path("Could not write file", path, error_message);
+        error_message_creator("Could not write file " + path.string(), error_message);
         return;
     }
 

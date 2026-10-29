@@ -19,5 +19,5 @@ bool lvc::revert(int argc, char* argv[]) {
     }
 
     lvc_revert(lvc.c_str(), argv[2], argc - 3, argv + 3, &error_message);
-    return 1;
+    return error_message == 0;
 }

@@ -23,5 +23,5 @@ bool lvc::status(int argc, char* argv[]) {
         lvc_free_charpp(status_copy);
     } else
         std::cout << "No difference in prepared files since last version\n";
-    return 1;
+    return error_message == 0;
 }

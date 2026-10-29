@@ -161,8 +161,7 @@ static std::string build(
     return tree_builder(tree_relation, object_dir, error_message);
 }
 
-void version::create(
-    Paths& paths, std::string message, std::string author, std::string inserted_workspace, char** error_message) {
+void version::create(Paths& paths, std::string message, std::string author, char** error_message) {
     if (message.empty()) {
         error_message_creator("No version message recieved", error_message);
         return;
@@ -174,6 +173,18 @@ void version::create(
     const std::string              version_id        = workspace_content.empty() ? "" : workspace_content[0];
     if (!std::filesystem::is_regular_file(prepare_dir)) {
         error_message_creator("No files prepared", error_message);
+        return;
+    }
+    const std::filesystem::path local    = paths.local / workspace_name;
+    const std::filesystem::path merge    = local / filename_merge;
+    const std::filesystem::path conflict = local / filename_conflict;
+    std::string                 merged_workspace;
+    if (std::filesystem::is_regular_file(merge)) {
+        merged_workspace = io::content(merge, 0, 0, error_message);
+        std::filesystem::remove(merge);
+    }
+    if (!operation::conflicts_handled(paths.root, conflict, error_message)) {
+        error_message_creator("Unhandled conflicts. Use lvc conflict for the list of conflicts.", error_message);
         return;
     }
     std::vector<std::string> status = version::status(paths, prepare_dir, version_id, error_message);
@@ -190,8 +201,8 @@ void version::create(
     std::string       new_root_id = build(paths.object, paths.root, root_id, status, error_message);
     const std::string nl          = "\n";
     std::string       buffer      = new_root_id + nl + message + nl + author;
-    if (!inserted_workspace.empty())
-        buffer += nl + inserted_workspace;
+    if (!merged_workspace.empty())
+        buffer += nl + merged_workspace;
     std::string new_workspace;
     object::create(paths.object, TYPE_VERSION, buffer, new_workspace, error_message);
     new_workspace += "\n";

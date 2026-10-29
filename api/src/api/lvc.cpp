@@ -4,7 +4,6 @@
 #include <test.hpp>
 
 extern "C" LVC_API void lvc_create(LvcCreateInput input, char** error_message) noexcept {
-    *error_message            = 0;
     std::filesystem::path lvc = input.location;
     lvc /= ".lvc";
     Paths paths(lvc.c_str());
@@ -36,8 +35,7 @@ extern "C" LVC_API void lvc_create(LvcCreateInput input, char** error_message) n
 }
 
 extern "C" LVC_API char* lvc_current(const char* lvc, char** error_message) noexcept {
-    Paths paths(lvc);
-    *error_message      = 0;
+    Paths       paths(lvc);
     std::string current = io::content(paths.current, 0, 0, error_message);
     char*       out     = (char*)malloc(current.size() + 1);
     memcpy(out, current.data(), current.size());
@@ -47,8 +45,7 @@ extern "C" LVC_API char* lvc_current(const char* lvc, char** error_message) noex
 
 extern "C" LVC_API void
 lvc_workspace(const char* lvc, const char* workspace_name, LVC_BOOL clean, char** error_message) noexcept {
-    Paths paths(lvc);
-    *error_message = 0;
+    Paths       paths(lvc);
     std::string cpy;
     if (!clean)
         cpy = io::content(paths.current, 0, 0, error_message);
@@ -58,32 +55,27 @@ lvc_workspace(const char* lvc, const char* workspace_name, LVC_BOOL clean, char*
 extern "C" LVC_API void lvc_change_category(
     const char* lvc, const char* workspace_name, const char* category_name, char** error_message) noexcept {
     Paths paths(lvc);
-    *error_message = 0;
     category::change(paths.workspace / workspace_name, category_name, error_message);
 }
 
 extern "C" LVC_API void lvc_goto(const char* lvc, const char* workspace_name, char** error_message) noexcept {
     Paths paths(lvc);
-    *error_message = 0;
     workspace::_goto(paths, workspace_name, error_message);
 }
 
 extern "C" LVC_API void lvc_default(const char* lvc, const char* workspace_name, char** error_message) noexcept {
     Paths paths(lvc);
-    *error_message = 0;
     workspace::_default(paths, workspace_name, error_message);
 }
 
 extern "C" LVC_API char** lvc_checkout(const char* lvc, char** error_message) noexcept {
-    Paths paths(lvc);
-    *error_message                    = 0;
+    Paths                    paths(lvc);
     std::vector<std::string> checkout = version::checkout(paths, error_message);
     return strvector_to_charpp(checkout);
 }
 
 extern "C" LVC_API char** lvc_status(const char* lvc, char** error_message) noexcept {
-    Paths paths(lvc);
-    *error_message                                   = 0;
+    Paths                          paths(lvc);
     const std::string              workspace_name    = io::content(paths.current, 0, 0, error_message);
     const std::filesystem::path    workspace         = paths.workspace / workspace_name;
     const std::filesystem::path    prepare           = prepare_path(paths, workspace);
@@ -96,15 +88,13 @@ extern "C" LVC_API char** lvc_status(const char* lvc, char** error_message) noex
 }
 
 extern "C" LVC_API char** lvc_status_all(const char* lvc, char** error_message) noexcept {
-    Paths paths(lvc);
-    *error_message                      = 0;
+    Paths                    paths(lvc);
     std::vector<std::string> status_all = version::status_all(paths, error_message);
     return strvector_to_charpp(status_all);
 }
 
 extern "C" LVC_API char** lvc_prepare(const char* lvc, int argc, char* argv[], char** error_message) noexcept {
-    Paths paths(lvc);
-    *error_message = 0;
+    Paths                    paths(lvc);
     std::vector<std::string> input;
     input.reserve(argc - 2);
     for (size_t i = 2; i < argc; i++)
@@ -117,15 +107,13 @@ extern "C" LVC_API char** lvc_prepare(const char* lvc, int argc, char* argv[], c
 
 extern "C" LVC_API void lvc_prepare_reset(const char* lvc, char** error_message) noexcept {
     Paths paths(lvc);
-    *error_message = 0;
     version::prepare_reset(paths, error_message);
 }
 
 extern "C" LVC_API void
 lvc_version(const char* lvc, const char* message, const char* author, char** error_message) noexcept {
     Paths paths(lvc);
-    *error_message = 0;
-    version::create(paths, message, author, "", error_message);
+    version::create(paths, message, author, error_message);
 }
 
 extern "C" LVC_API LvcCategoryList* lvc_category_list(const char* lvc, char** error_message) noexcept {
@@ -135,19 +123,14 @@ extern "C" LVC_API LvcCategoryList* lvc_category_list(const char* lvc, char** er
 
 extern "C" LVC_API void lvc_category_list_free(LvcCategoryList* list) noexcept { category::free_category_list(list); }
 
-extern "C" LVC_API LvcVersion* lvc_history(
-    const char* lvc, const char* workspace, size_t depth, size_t length, LVC_BOOL all, char** error_message) noexcept {
+extern "C" LVC_API LvcVersion* lvc_history(const char* lvc, const char* workspace, char** error_message) noexcept {
     Paths paths(lvc);
     if (!workspace::exists(paths, workspace, error_message)) {
         error_message_creator("Workspace does not exist", error_message);
         return {};
     }
 
-    *error_message = 0;
-    if (all)
-        return version::history_all(paths, workspace, error_message);
-    else
-        return version::history(paths, workspace, depth, length, error_message);
+    return version::history(paths, workspace, error_message);
 }
 
 extern "C" LVC_API void lvc_history_free(LvcVersion* version) noexcept { version::history_free(version); }
@@ -155,7 +138,6 @@ extern "C" LVC_API void lvc_history_free(LvcVersion* version) noexcept { version
 extern "C" LVC_API void lvc_terminal_conflict_solver(const char* lvc, char** error_message) noexcept {
     // TODO
     Paths paths(lvc);
-    *error_message = 0;
 }
 
 extern "C" LVC_API void lvc_diff(const char* lvc, int argc, char* argv[], char** error_message) noexcept {
@@ -191,20 +173,17 @@ extern "C" LVC_API void lvc_diff(const char* lvc, int argc, char* argv[], char**
             print_diff(base, side, path);
         }
     }
-    *error_message = 0;
 }
 
 extern "C" LVC_API LvcConflictArray* lvc_sync(const char* lvc, const char* tmp_lvc, char** error_message) noexcept {
     // TODO
     Paths paths(lvc);
-    *error_message = 0;
     return NULL;
 }
 
 extern "C" LVC_API LvcConflictArray*
 lvc_merge(const char* lvc, const char* src_workspace_name, const char* author, char** error_message) noexcept {
-    Paths paths(lvc);
-    *error_message                              = 0;
+    Paths             paths(lvc);
     const std::string dest_workspace_name       = io::content(paths.current, 0, 0, error_message);
     const std::string src_workspace_name_string = src_workspace_name;
     return operation::merge(paths, src_workspace_name_string, dest_workspace_name, author, error_message);
@@ -212,8 +191,7 @@ lvc_merge(const char* lvc, const char* src_workspace_name, const char* author, c
 
 extern "C" LVC_API void
 lvc_revert(const char* lvc, char* version_id, size_t input_count, char** input, char** error_message) noexcept {
-    Paths paths(lvc);
-    *error_message = 0;
+    Paths                    paths(lvc);
     std::vector<std::string> input_vector;
     input_vector.reserve(input_count);
     for (size_t i = 0; i < input_count; i++)
@@ -224,13 +202,11 @@ lvc_revert(const char* lvc, char* version_id, size_t input_count, char** input, 
 extern "C" LVC_API void lvc_push_local(const char* lvc, const char* tmp_lvc, char** error_message) noexcept {
     // TODO
     Paths paths(lvc);
-    *error_message = 0;
 }
 
 extern "C" LVC_API void lvc_push_server(const char* lvc, char** error_message) noexcept {
     // TODO
     Paths paths(lvc);
-    *error_message = 0;
 }
 
 extern "C" LVC_API LVC_BOOL lvc_version_exists(const char* lvc, const char* id) noexcept {
@@ -240,7 +216,6 @@ extern "C" LVC_API LVC_BOOL lvc_version_exists(const char* lvc, const char* id) 
 
 extern "C" LVC_API LVC_BOOL lvc_workspace_exists(const char* lvc, const char* name, char** error_message) noexcept {
     Paths paths(lvc);
-    *error_message = 0;
     return workspace::exists(paths, name, error_message);
 }
 

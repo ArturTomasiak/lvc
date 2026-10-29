@@ -1,31 +1,20 @@
 #include "core.hpp"
 
 void operation::create(
-    Paths& paths, const std::string& workspace_name, operation::type type_enum, LvcConflictArray* conflicts,
-    char** error_message) {
-    const std::filesystem::path operation = paths.local / workspace_name;
+    Paths& paths, const std::string& dest_workspace_name, const std::string& src_workspace_name, operation::type type,
+    LvcConflictArray* conflicts, char** error_message) {
+    const std::filesystem::path operation = paths.local / dest_workspace_name;
     io::dir(operation, error_message);
-    std::string type;
-    switch (type_enum) {
-        case operation::type::sync:
-            type = filename_sync;
-            break;
-        case operation::type::merge:
-            type = filename_merge;
-            break;
-        default:
-            error_message_creator("APIERROR OperationType doesn't exist", error_message);
-            break;
-    }
-    io::file(operation / type, std::ios::binary | std::ios::trunc, error_message);
+    if (type == operation::type::merge)
+        io::file(
+            operation / filename_merge, std::ios::binary | std::ios::trunc, src_workspace_name.data(),
+            src_workspace_name.size(), 0, error_message);
     if (conflicts->len == 0)
         return;
-    std::string buffer;
+    std::ofstream conflict(operation / filename_conflict, std::ios::binary | std::ios::trunc | std::ios::out);
     for (size_t i = 0; i < conflicts->len; i++) {
-        buffer += conflicts->paths[i];
-        buffer += '\n';
+        conflict << conflicts->paths[i];
+        conflict << '\n';
     }
-    io::file(
-        operation / filename_conflict, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 0,
-        error_message);
+    conflict.close();
 }

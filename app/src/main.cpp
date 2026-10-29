@@ -1,7 +1,5 @@
 #include <app.hpp>
 
-char* error_message;
-
 struct Command {
     const std::string name;
     bool (*function)(int argc, char* argv[]);

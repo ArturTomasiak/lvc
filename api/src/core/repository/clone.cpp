@@ -22,7 +22,7 @@ static void clone_local(Paths& paths, std::filesystem::path path, bool clone_ver
                 entry.path(), paths.root / entry.path().filename(),
                 std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing, ec);
             if (ec) {
-                error_message_creator_path("Failed to copy file", entry.path().filename(), error_message);
+                error_message_creator("Failed to copy file " + entry.path().filename().string(), error_message);
                 return;
             }
         }

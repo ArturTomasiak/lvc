@@ -7,7 +7,7 @@
 #include <lvc.hpp>
 #include <string>
 
-extern char* error_message;
+inline char* error_message = 0;
 
 namespace helper {
     bool find_repository(std::filesystem::path& out);

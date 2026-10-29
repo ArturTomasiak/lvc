@@ -5,6 +5,8 @@ void workspace::_goto(Paths& paths, std::string workspace_name, char** error_mes
     std::filesystem::path workspace;
     if (!workspace::exists(paths, workspace_name, workspace, error_message))
         error_message_creator("Workspace " + workspace_name + " doesn't exist", error_message);
+    if (workspace_name == current)
+        error_message_creator("Already in " + workspace_name, error_message);
     if (*error_message)
         return;
     if (current == workspace_name)
