@@ -221,25 +221,11 @@ extern "C" LVC_API LVC_BOOL lvc_workspace_exists(const char* lvc, const char* na
 
 extern "C" LVC_API void lvc_free_charpp(char** arr) noexcept { free_charpp(arr); }
 
-#define TEST_MS_MEASURE(test, prefix, time_warning, success_message, time_limit_ms)                                    \
-    do {                                                                                                               \
-        const auto start     = std::chrono::steady_clock::now();                                                       \
-        bool       test_bool = test;                                                                                   \
-        if (test_bool) {                                                                                               \
-            const auto elapsed =                                                                                       \
-                std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();           \
-            if (elapsed > time_limit_ms)                                                                               \
-                std::cout << time_warning;                                                                             \
-            std::cout << prefix << success_message << elapsed << " ms\n";                                              \
-        }                                                                                                              \
-    } while (0)
-
 extern "C" LVC_API void lvc_run_tests() noexcept {
-    constexpr double time_limit_ms     = 3;
-    constexpr char   time_warning[]    = "WARNING: Anomalously long execution time\n";
-    constexpr char   success_message[] = "Successfully passed all tests in: ";
-
-    TEST_MS_MEASURE(test::diff(), "DIFF:   ", time_warning, success_message, time_limit_ms);
-    TEST_MS_MEASURE(test::merge(), "MERGE:  ", time_warning, success_message, time_limit_ms);
-    TEST_MS_MEASURE(test::sha256(), "SHA256: ", time_warning, success_message, time_limit_ms);
+    if (test::diff())
+        std::cout << "Diff tests passed\n";
+    if (test::merge())
+        std::cout << "Merge tests passed\n";
+    if (test::sha256())
+        std::cout << "Sha256 tests passed\n";
 }
