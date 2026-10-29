@@ -7,7 +7,7 @@ char* deflate(const char* in, size_t in_len, size_t& out_len) {
     out_len = compressBound_z(in_len);
     if (out_len == (size_t)-1)
         return 0; // overflow
-    char* out = (char*)malloc(out_len);
+    char* out = static_cast<char*>(malloc(out_len));
     if (!out)
         return 0;
     size_t result = compress2_z((Bytef*)out, &out_len, (const Bytef*)in, in_len, Z_DEFAULT_COMPRESSION);
@@ -48,7 +48,7 @@ char* inflate(const std::string& in, size_t& out_len) {
 
     out_len += pattern_len;
     out_len++; // \n
-    char* out = (char*)malloc(out_len);
+    char* out = static_cast<char*>(malloc(out_len));
 
     if (!out)
         return 0;

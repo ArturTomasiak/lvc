@@ -22,9 +22,9 @@ static LvcVersion* history(
         alloc++;
     }
 
-    LvcVersion* version = (LvcVersion*)malloc(sizeof(LvcVersion));
-    version->entry      = (LvcVersionEntry*)malloc(alloc * sizeof(LvcVersionEntry));
-    version->workspace  = (char*)malloc(workspace_name.size() + 1);
+    LvcVersion* version = static_cast<LvcVersion*>(malloc(sizeof(LvcVersion)));
+    version->entry      = static_cast<LvcVersionEntry*>(malloc(alloc * sizeof(LvcVersionEntry)));
+    version->workspace  = static_cast<char*>(malloc(workspace_name.size() + 1));
     version->len        = 0;
     memcpy(version->workspace, workspace_name.data(), workspace_name.size() + 1);
 
@@ -43,7 +43,7 @@ static LvcVersion* history(
         memcpy(entry->id, line.c_str(), 65);
 
         size_t desc_size = version_content[VERSION_MESSAGE].size();
-        entry->desc      = (char*)malloc(desc_size + 1);
+        entry->desc      = static_cast<char*>(malloc(desc_size + 1));
         CHECKALLOC(entry->desc, error_message, version);
         memcpy(entry->desc, version_content[VERSION_MESSAGE].c_str(), desc_size + 1);
 

@@ -43,6 +43,6 @@ inline std::string latest_common_version(const std::vector<std::string>& a, cons
 inline void error_message_creator(const std::string message, char** dest) {
     if (*dest)
         return;
-    *dest = (char*)malloc(message.size() + 1);
+    *dest = static_cast<char*>(malloc(message.size() + 1));
     memcpy(*dest, message.c_str(), message.size() + 1);
 }

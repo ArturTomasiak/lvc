@@ -97,11 +97,11 @@ inline void free_charpp(char** arr) {
 }
 
 inline char** strvector_to_charpp(const std::vector<std::string>& vector) {
-    char** result = (char**)calloc((vector.size() + 1), sizeof(char*));
+    char** result = static_cast<char**>(calloc((vector.size() + 1), sizeof(char*)));
     if (result) {
         char** copy = result;
         for (std::string_view str : vector) {
-            *copy = (char*)malloc(str.size() + 1);
+            *copy = static_cast<char*>(malloc(str.size() + 1));
             if (!copy) {
                 free_charpp(result);
                 return 0;

@@ -19,7 +19,7 @@ bool helper::find_repository(std::filesystem::path& out) {
 }
 
 void helper::error(std::string message) {
-    error_message = (char*)malloc(message.size() + 1);
+    error_message = static_cast<char*>(malloc(message.size() + 1));
     if (error_message == 0)
         return;
     memcpy(error_message, message.data(), message.size());

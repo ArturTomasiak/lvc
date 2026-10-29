@@ -36,7 +36,7 @@ extern "C" LVC_API void lvc_create(LvcCreateInput input, char** error_message) n
 extern "C" LVC_API char* lvc_current(const char* lvc, char** error_message) noexcept {
     Paths       paths(lvc);
     std::string current = io::content(paths.current, 0, 0, error_message);
-    char*       out     = (char*)malloc(current.size() + 1);
+    char*       out     = static_cast<char*>(malloc(current.size() + 1));
     memcpy(out, current.data(), current.size());
     out[current.size()] = '\0';
     return out;

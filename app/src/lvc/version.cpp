@@ -15,7 +15,7 @@ bool lvc::version(int argc, char* argv[]) {
     size_t allocate = 0;
     for (size_t i = 2; i < argc; i++)
         allocate += strlen(argv[i]) + 1;
-    char* description = (char*)malloc(allocate);
+    char* description = static_cast<char*>(malloc(allocate));
     if (description == 0) {
         helper::error("Memory allocation failed");
         return 0;

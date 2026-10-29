@@ -3,11 +3,11 @@
 static void add_path(LvcConflictArray* out, const std::filesystem::path& path, char** error_message) {
     if (out->len == out->alloc) {
         out->alloc *= 2;
-        out->paths = (char**)realloc(out, out->alloc * sizeof(char*));
+        out->paths = static_cast<char**>(realloc(out, out->alloc * sizeof(char*)));
         CHECKALLOC(out->paths, error_message);
     }
     size_t len = charplen(path.c_str()) + 1;
-    char*  str = (char*)malloc(len);
+    char*  str = static_cast<char*>(malloc(len));
     CHECKALLOC(str, error_message);
     memcpy(str, path.c_str(), len);
     out->paths[out->len] = str;
@@ -32,10 +32,10 @@ static void existance_conflict(
 LvcConflictArray* operation::merge(
     Paths& paths, const std::string& src_workspace_name, const std::string& dest_workspace_name, char** error_message) {
     LvcConflictArray* out                      = NULL;
-    out                                        = (LvcConflictArray*)malloc(sizeof(LvcConflictArray));
+    out                                        = static_cast<LvcConflictArray*>(malloc(sizeof(LvcConflictArray)));
     out->len                                   = 0;
     out->alloc                                 = 10;
-    out->paths                                 = (char**)malloc(out->alloc * sizeof(char*));
+    out->paths                                 = static_cast<char**>(malloc(out->alloc * sizeof(char*)));
     const std::filesystem::path src_workspace  = paths.workspace / src_workspace_name;
     const std::filesystem::path dest_workspace = paths.workspace / dest_workspace_name;
     const std::filesystem::path conflict_path  = paths.local / dest_workspace_name / filename_conflict;

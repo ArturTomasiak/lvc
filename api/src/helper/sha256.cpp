@@ -15,8 +15,8 @@ static void process_chunk(const uint8_t* chunk, uint32_t state[8]) {
     uint32_t w[64];
     for (uint8_t i = 0; i < 16; i++) {
         uint8_t offset = i * 4;
-        w[i]           = ((uint32_t)chunk[offset] << 24) | ((uint32_t)chunk[offset + 1] << 16) |
-               ((uint32_t)chunk[offset + 2] << 8) | ((uint32_t)chunk[offset + 3]);
+        w[i] = (static_cast<uint32_t>(chunk[offset]) << 24) | (static_cast<uint32_t>(chunk[offset + 1]) << 16) |
+               (static_cast<uint32_t>(chunk[offset + 2]) << 8) | (static_cast<uint32_t>(chunk[offset + 3]));
     }
     for (uint8_t i = 16; i < 64; i++) {
         uint32_t s0 = std::rotr(w[i - 15], 7) ^ std::rotr(w[i - 15], 18) ^ (w[i - 15] >> 3);
