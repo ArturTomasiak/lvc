@@ -1,4 +1,3 @@
-#include <chrono>
 #include <core.hpp>
 #include <lvc.hpp>
 #include <test.hpp>
@@ -182,11 +181,11 @@ extern "C" LVC_API LvcConflictArray* lvc_sync(const char* lvc, const char* tmp_l
 }
 
 extern "C" LVC_API LvcConflictArray*
-lvc_merge(const char* lvc, const char* src_workspace_name, const char* author, char** error_message) noexcept {
+lvc_merge(const char* lvc, const char* src_workspace_name, char** error_message) noexcept {
     Paths             paths(lvc);
     const std::string dest_workspace_name       = io::content(paths.current, 0, 0, error_message);
     const std::string src_workspace_name_string = src_workspace_name;
-    return operation::merge(paths, src_workspace_name_string, dest_workspace_name, author, error_message);
+    return operation::merge(paths, src_workspace_name_string, dest_workspace_name, error_message);
 }
 
 extern "C" LVC_API void
@@ -222,10 +221,7 @@ extern "C" LVC_API LVC_BOOL lvc_workspace_exists(const char* lvc, const char* na
 extern "C" LVC_API void lvc_free_charpp(char** arr) noexcept { free_charpp(arr); }
 
 extern "C" LVC_API void lvc_run_tests() noexcept {
-    if (test::diff())
-        std::cout << "Diff tests passed\n";
-    if (test::merge())
-        std::cout << "Merge tests passed\n";
-    if (test::sha256())
-        std::cout << "Sha256 tests passed\n";
+    test::diff();
+    test::merge();
+    test::sha256();
 }

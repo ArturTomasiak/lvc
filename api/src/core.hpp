@@ -25,7 +25,7 @@ namespace operation {
     void revert(Paths& paths, std::string version_id, std::vector<std::string>& input_raw, char** error_message);
     LvcConflictArray* sync(Paths& src_paths, Paths& dest_paths, char** error_message);
     LvcConflictArray* merge(
-        Paths& paths, const std::string& src_workspace_name, const std::string& dest_workspace_name, const char* author,
+        Paths& paths, const std::string& src_workspace_name, const std::string& dest_workspace_name,
         char** error_message);
 }
 

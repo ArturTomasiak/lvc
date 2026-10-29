@@ -105,8 +105,7 @@ LVC_API void              lvc_history_free(LvcVersion* version) LVC_NOEXCEPT;
 LVC_API void              lvc_terminal_conflict_solver(const char* lvc, char** error_message) LVC_NOEXCEPT;
 LVC_API void              lvc_diff(const char* lvc, int argc, char* argv[], char** error_message) LVC_NOEXCEPT;
 LVC_API LvcConflictArray* lvc_sync(const char* src_lvc, const char* dest_lvc, char** error_message) LVC_NOEXCEPT;
-LVC_API LvcConflictArray*
-lvc_merge(const char* lvc, const char* src_workspace_name, const char* author, char** error_message) LVC_NOEXCEPT;
+LVC_API LvcConflictArray* lvc_merge(const char* lvc, const char* src_workspace_name, char** error_message) LVC_NOEXCEPT;
 LVC_API void
 lvc_revert(const char* lvc, char* version_id, size_t input_count, char** input, char** error_message) LVC_NOEXCEPT;
 LVC_API void     lvc_push_local(const char* lvc, const char* tmp_lvc, char** error_message) LVC_NOEXCEPT;
