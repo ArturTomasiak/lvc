@@ -7,8 +7,7 @@ void workspace::_goto(Paths& paths, std::string workspace_name, char** error_mes
         error_message_creator("Workspace " + workspace_name + " doesn't exist", error_message);
     if (workspace_name == current)
         error_message_creator("Already in " + workspace_name, error_message);
-    if (*error_message)
-        return;
+    ERRORCHECK(error_message);
     if (current == workspace_name)
         error_message_creator("Current workspace is already " + workspace_name, error_message);
     const std::filesystem::path          src_operation     = paths.local / current;
@@ -38,8 +37,7 @@ void workspace::_goto(Paths& paths, std::string workspace_name, char** error_mes
         object_dir = paths.object;
     }
 
-    if (*error_message)
-        return;
+    ERRORCHECK(error_message);
 
     std::vector<std::filesystem::path> remove_paths;
 

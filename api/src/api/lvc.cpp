@@ -15,22 +15,17 @@ extern "C" LVC_API void lvc_create(LvcCreateInput input, char** error_message) n
     if (input.clone_versioning)
         return;
     repository::create(paths, error_message);
-    if (*error_message)
-        return;
+    ERRORCHECK(error_message);
     repository::rename(paths, input.repository_name, error_message);
-    if (*error_message)
-        return;
+    ERRORCHECK(error_message);
     workspace::create(paths, input.workspace_name, std::string{}, error_message);
-    if (*error_message)
-        return;
+    ERRORCHECK(error_message);
     io::file(
         paths.current, std::ios::binary | std::ios::trunc, input.workspace_name, strlen(input.workspace_name), 0,
         error_message);
-    if (*error_message)
-        return;
+    ERRORCHECK(error_message);
     workspace::_default(paths, input.workspace_name, error_message);
-    if (*error_message)
-        return;
+    ERRORCHECK(error_message);
 }
 
 extern "C" LVC_API char* lvc_current(const char* lvc, char** error_message) noexcept {
@@ -80,8 +75,7 @@ extern "C" LVC_API char** lvc_status(const char* lvc, char** error_message) noex
     const std::filesystem::path    prepare           = prepare_path(paths, workspace);
     const std::vector<std::string> workspace_content = io::content_lines(workspace, 1, 1, error_message);
     const std::string              version_id        = workspace_content.empty() ? "" : workspace_content[0];
-    if (*error_message)
-        return 0;
+    ERRORCHECK(error_message, 0);
     std::vector<std::string> status = version::status(paths, prepare, version_id, error_message);
     return strvector_to_charpp(status);
 }
@@ -220,8 +214,11 @@ extern "C" LVC_API LVC_BOOL lvc_workspace_exists(const char* lvc, const char* na
 
 extern "C" LVC_API void lvc_free_charpp(char** arr) noexcept { free_charpp(arr); }
 
-extern "C" LVC_API void lvc_run_tests() noexcept {
-    test::diff();
-    test::merge();
-    test::sha256();
+extern "C" LVC_API void lvc_run_tests(char** error_message) noexcept {
+    if (!test::diff())
+        error_message_creator("DIFF TESTS FAILED", error_message);
+    if (!test::merge())
+        error_message_creator("MERGE TESTS FAILED", error_message);
+    if (!test::sha256())
+        error_message_creator("SHA256 TESTS FAILED", error_message);
 }

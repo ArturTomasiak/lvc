@@ -21,12 +21,10 @@ void version::prepare(Paths& paths, std::vector<std::string>& input_raw, char***
     const std::string              version_id        = workspace_content.empty() ? "" : workspace_content[0];
     std::vector<std::string>       ignore_raw        = io::content_lines(paths.ignore, 0, 0, error_message);
     std::vector<std::string>       ignore            = paths.resolve(ignore_raw, version_id, 1, 1, error_message);
-    if (*error_message)
-        return;
+    ERRORCHECK(error_message);
 
     std::vector<std::string> input = paths.resolve(input_raw, version_id, 1, 1, error_message);
-    if (*error_message)
-        return;
+    ERRORCHECK(error_message);
     if (input.empty())
         return;
 

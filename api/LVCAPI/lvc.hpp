@@ -113,7 +113,7 @@ LVC_API void     lvc_push_server(const char* lvc, char** error_message) LVC_NOEX
 LVC_API LVC_BOOL lvc_version_exists(const char* lvc, const char* id) LVC_NOEXCEPT;
 LVC_API LVC_BOOL lvc_workspace_exists(const char* lvc, const char* name, char** error_message) LVC_NOEXCEPT;
 LVC_API void     lvc_free_charpp(char** arr) LVC_NOEXCEPT;
-LVC_API void     lvc_run_tests() LVC_NOEXCEPT;
+LVC_API void     lvc_run_tests(char** error_message) LVC_NOEXCEPT;
 #ifdef __cplusplus
 }
 #endif

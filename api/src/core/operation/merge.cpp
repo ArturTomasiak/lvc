@@ -45,11 +45,11 @@ LvcConflictArray* operation::merge(
     const std::string           dest_id        = dest_versions.empty() ? "" : dest_versions[0];
     std::string                 common_id      = src_versions.front();
     bool                        common_exists  = false;
+    ERRORCHECK(error_message, out);
 
-    if (!conflicts_handled(paths.root, conflict_path, error_message)) {
+    if (!conflicts_handled(paths.root, conflict_path, error_message))
         error_message_creator("Unhandled conflicts. Use lvc conflict for the list of conflicts.", error_message);
-        return out;
-    }
+    ERRORCHECK(error_message, out);
 
     for (const auto& src_version : src_versions) {
         if (std::find(dest_versions.begin(), dest_versions.end(), src_version) != dest_versions.end()) {
@@ -64,6 +64,7 @@ LvcConflictArray* operation::merge(
         version::map_all_objects(paths, dest_id, {}, error_message);
     const std::unordered_map<std::filesystem::path, object::info> common_objects =
         version::map_all_objects(paths, common_id, {}, error_message);
+    ERRORCHECK(error_message, out);
 
     for (const object::info& src_info : src_objects) {
         const auto          dest_it     = dest_objects.find(src_info.path);
@@ -95,6 +96,7 @@ LvcConflictArray* operation::merge(
             common = io::content_lines(paths.object / common_info->id, 1, 1, error_message);
         const Lines src  = io::content_lines(paths.object / src_info.id, 1, 1, error_message);
         const Lines dest = io::content_lines(paths.object / dest_info->id, 1, 1, error_message);
+        ERRORCHECK(error_message, out);
 
         const bool conflict = merge3(paths.root / src_info.path, common, src, dest);
         if (conflict)
@@ -112,6 +114,7 @@ LvcConflictArray* operation::merge(
             continue;
         const auto        common_it = common_objects.find(info.path);
         const std::string buffer    = io::content(paths.object / info.id, 1, 1, error_message);
+        ERRORCHECK(error_message, out);
         uint32_t          pos       = buffer.find('\n');
         if (common_it != common_objects.end()) {
             if (info.id == common_it->second.id)
@@ -130,6 +133,6 @@ LvcConflictArray* operation::merge(
     }
 
     operation::create(paths, dest_workspace_name, src_workspace_name, operation::type::merge, out, error_message);
-
+    
     return out;
 }

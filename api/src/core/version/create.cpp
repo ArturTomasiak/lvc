@@ -219,8 +219,7 @@ void version::create(Paths& paths, std::string message, std::string author, char
     insert_pattern(new_workspace, TYPE_WORKSPACE, category.empty() ? nullptr : category.c_str());
     io::file(
         workspace, std::ios::binary | std::ios::trunc, new_workspace.data(), new_workspace.size(), 1, error_message);
-    if (*error_message)
-        return;
+    ERRORCHECK(error_message);
 
     std::error_code error;
     bool            deleted = std::filesystem::remove(prepare_dir, error);

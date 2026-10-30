@@ -163,8 +163,7 @@ static std::vector<std::string> resolve_processed(
 
     if (!version_id.empty()) {
         std::vector<std::filesystem::path> deleted = version::deleted_since(paths, version_id, error_message);
-        if (*error_message)
-            return {};
+        ERRORCHECK(error_message, {});
         for (const std::filesystem::path& path : deleted) {
             if (!include_folders)
                 if (std::filesystem::is_directory(path))

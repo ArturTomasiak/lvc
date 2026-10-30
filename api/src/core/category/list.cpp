@@ -67,13 +67,11 @@ LvcCategoryList* category::list(Paths& paths, char** error_message) {
             current                = find_category(out, name);
             if (current == nullptr) {
                 current = add_category(out, name, error_message);
-                if (*error_message != 0)
-                    return out;
+                ERRORCHECK(error_message, out);
             }
         }
         add_workspace(current, name, error_message);
-        if (*error_message != 0)
-            return out;
+        ERRORCHECK(error_message, out);
     }
 
     return out;
