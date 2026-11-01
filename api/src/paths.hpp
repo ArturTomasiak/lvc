@@ -77,4 +77,9 @@ struct Paths {
         const std::vector<std::string>& inputs, const std::string version_id, bool prefix_deleted, bool include_folders,
         char** error_message);
     void write_pending(char** error_message);
+
+    std::filesystem::path add_pending_rename(const std::filesystem::path& dest) {
+        pending_rename.push_back({.tmp = tmp / std::to_string(pending_rename.size()), .dest = dest});
+        return pending_rename.back().tmp;
+    }
 };

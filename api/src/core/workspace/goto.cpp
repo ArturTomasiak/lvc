@@ -64,20 +64,18 @@ void workspace::_goto(Paths& paths, std::string workspace_name, char** error_mes
 
     for (object::info& object : objects) {
         if (object.type == object::type::blob) {
-            PendingRename pending = {
-                .tmp = paths.tmp / (object.id + object.path.filename().string()), .dest = paths.root / object.path};
-            std::string buffer = io::content(object_dir / object.id, 1, 1, error_message);
-            io::file(pending.tmp, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 0, error_message);
-            paths.pending_rename.emplace_back(std::move(pending));
+            const std::filesystem::path dest_path = paths.root / object.path;
+            const std::filesystem::path dest_tmp  = paths.add_pending_rename(dest_path);
+            std::string                 buffer    = io::content(object_dir / object.id, 1, 1, error_message);
+            io::file(dest_tmp, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 0, error_message);
         } else
             paths.pending_directory.emplace_back(paths.root / object.path);
     }
 
-    PendingRename pending = {.tmp = paths.tmp / filename_current, .dest = paths.current};
+    const std::filesystem::path current_tmp = paths.add_pending_rename(paths.current);
     io::file(
-        pending.tmp, std::ios::binary | std::ios::trunc, workspace_name.c_str(), workspace_name.size(), 0,
+        current_tmp, std::ios::binary | std::ios::trunc, workspace_name.c_str(), workspace_name.size(), 0,
         error_message);
-    paths.pending_rename.emplace_back(std::move(pending));
 
     if (remove_tmp) {
         paths.pending_delete.push_back(tmp);

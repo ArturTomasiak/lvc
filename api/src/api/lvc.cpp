@@ -19,15 +19,12 @@ extern "C" LVC_API void lvc_create(LvcCreateInput input, char** error_message) n
         workspace::create(paths, input.workspace_name, std::string{}, error_message);
         size_t name_len = charplen(input.workspace_name);
 
-        PendingRename pending_current = {.tmp = paths.tmp / filename_current, .dest = paths.current};
-        io::file(
-            pending_current.tmp, std::ios::binary | std::ios::trunc, input.workspace_name, name_len, 0, error_message);
-        paths.pending_rename.emplace_back(std::move(pending_current));
+        const std::filesystem::path current_tmp = paths.add_pending_rename(paths.current);
+        io::file(current_tmp, std::ios::binary | std::ios::trunc, input.workspace_name, name_len, 0, error_message);
 
-        PendingRename pending_default = {.tmp = paths.tmp / filename_default, .dest = paths.lvc / filename_default};
-        io::file(
-            pending_default.tmp, std::ios::binary | std::ios::trunc, input.workspace_name, name_len, 0, error_message);
-        paths.pending_rename.emplace_back(std::move(pending_default));
+        const std::filesystem::path default_path = paths.lvc / filename_default;
+        const std::filesystem::path default_tmp  = paths.add_pending_rename(default_path);
+        io::file(default_tmp, std::ios::binary | std::ios::trunc, input.workspace_name, name_len, 0, error_message);
     }
     if (*error_message) {
         std::filesystem::remove_all(paths.lvc);

@@ -5,21 +5,21 @@ void operation::create(
     LvcConflictArray* conflicts, char** error_message) {
     const std::filesystem::path operation = paths.local / dest_workspace_name;
     if (type == operation::type::merge) {
-        PendingRename pending = {.tmp = paths.tmp / filename_merge, .dest = operation / filename_merge};
+        const std::filesystem::path merge_path = operation / filename_merge;
+        const std::filesystem::path merge_tmp  = paths.add_pending_rename(merge_path);
         io::file(
-            pending.tmp, std::ios::binary | std::ios::trunc, src_workspace_name.data(), src_workspace_name.size(), 0,
+            merge_tmp, std::ios::binary | std::ios::trunc, src_workspace_name.data(), src_workspace_name.size(), 0,
             error_message);
-        paths.pending_rename.emplace_back(std::move(pending));
     }
     if (conflicts->len != 0) {
-        PendingRename pending = {.tmp = paths.tmp / filename_conflict, .dest = operation / filename_conflict};
-        std::ofstream conflict(pending.tmp, std::ios::binary | std::ios::trunc | std::ios::out);
+        const std::filesystem::path conflict_path = operation / filename_conflict;
+        const std::filesystem::path conflict_tmp  = paths.add_pending_rename(conflict_path);
+        std::ofstream               conflict(conflict_tmp, std::ios::binary | std::ios::trunc | std::ios::out);
         for (size_t i = 0; i < conflicts->len; i++) {
             conflict << conflicts->paths[i];
             conflict << '\n';
         }
         conflict.close();
-        paths.pending_rename.emplace_back(std::move(pending));
     }
     ERRORCHECK(error_message);
     paths.pending_directory.push_back(std::move(operation));

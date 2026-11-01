@@ -22,8 +22,7 @@ void version::prepare(Paths& paths, std::vector<std::string>& input_raw, char***
     const std::string              version_id        = workspace_content.empty() ? "" : workspace_content[0];
     std::vector<std::string>       ignore_raw        = io::content_lines(paths.ignore, 0, 0, error_message);
     std::vector<std::string>       ignore            = paths.resolve(ignore_raw, version_id, 1, 1, error_message);
-    PendingRename                  pending           = {.dest = prepare_path(paths, workspace_name)};
-    pending.tmp                                      = paths.tmp / pending.dest.filename();
+    const std::filesystem::path    prepare_tmp       = paths.add_pending_rename(prepare_dir);
     ERRORCHECK(error_message);
 
     std::vector<std::string> input = paths.resolve(input_raw, version_id, 1, 1, error_message);
@@ -63,8 +62,7 @@ void version::prepare(Paths& paths, std::vector<std::string>& input_raw, char***
         buffer += path + "\n";
 
     insert_pattern(buffer, TYPE_PREPARE, nullptr);
-    io::file(pending.tmp, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 1, error_message);
-    paths.pending_rename.emplace_back(std::move(pending));
+    io::file(prepare_tmp, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 1, error_message);
 
     if (prepared)
         *prepared = strvector_to_charpp(current);

@@ -163,9 +163,10 @@ void version::create(Paths& paths, std::string message, std::string author, char
         error_message_creator("No version message recieved", error_message);
         return;
     }
-    const std::string workspace_name = io::content(paths.current, 0, 0, error_message);
-    PendingRename     pending        = {.tmp = paths.tmp / workspace_name, .dest = paths.workspace / workspace_name};
-    const std::vector<std::string> workspace_content = io::content_lines(pending.dest, 1, 1, error_message);
+    const std::string              workspace_name    = io::content(paths.current, 0, 0, error_message);
+    const std::filesystem::path    workspace_path    = paths.workspace / workspace_name;
+    const std::filesystem::path    workspace_tmp     = paths.add_pending_rename(workspace_path);
+    const std::vector<std::string> workspace_content = io::content_lines(workspace_path, 1, 1, error_message);
     const std::filesystem::path    prepare_dir       = prepare_path(paths, workspace_name);
     const std::string              version_id        = workspace_content.empty() ? "" : workspace_content[0];
     if (!std::filesystem::is_regular_file(prepare_dir)) {
@@ -203,7 +204,7 @@ void version::create(Paths& paths, std::string message, std::string author, char
     std::string new_workspace;
     object::create(paths, TYPE_VERSION, buffer, new_workspace, error_message);
     new_workspace += "\n";
-    std::string old_workspace = io::content(pending.dest, 1, 0, error_message);
+    std::string old_workspace = io::content(workspace_path, 1, 0, error_message);
     std::string category;
     for (int i = 0; i < 2; ++i) {
         const size_t pos = old_workspace.find(' ');
@@ -215,8 +216,8 @@ void version::create(Paths& paths, std::string message, std::string author, char
     new_workspace += old_workspace;
     insert_pattern(new_workspace, TYPE_WORKSPACE, category.empty() ? nullptr : category.c_str());
     io::file(
-        pending.tmp, std::ios::binary | std::ios::trunc, new_workspace.data(), new_workspace.size(), 1, error_message);
-    paths.pending_rename.emplace_back(std::move(pending));
+        workspace_tmp, std::ios::binary | std::ios::trunc, new_workspace.data(), new_workspace.size(), 1,
+        error_message);
 
     std::error_code error;
     bool            deleted = std::filesystem::remove(prepare_dir, error);
@@ -249,7 +250,8 @@ void version::create_tmp(
         return;
     }
 
-    PendingRename               pending         = {.tmp = paths.tmp / filename_tmp, .dest = operation / filename_tmp};
+    const std::filesystem::path operation_path  = operation / filename_tmp;
+    const std::filesystem::path operation_tmp   = paths.add_pending_rename(operation_path);
     const std::filesystem::path preserve_object = paths.object;
     paths.object                                = operation / foldername_object;
     paths.pending_directory.emplace_back(paths.object);
@@ -262,7 +264,6 @@ void version::create_tmp(
 
     std::string id;
     object::create(paths, TYPE_VERSION, buffer, id, error_message);
-    io::file(pending.tmp, std::ios::binary | std::ios::trunc, id.data(), id.size(), 0, error_message);
+    io::file(operation_tmp, std::ios::binary | std::ios::trunc, id.data(), id.size(), 0, error_message);
     paths.object = preserve_object;
-    paths.pending_rename.emplace_back(std::move(pending));
 }

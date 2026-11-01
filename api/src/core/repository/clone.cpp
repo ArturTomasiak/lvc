@@ -20,13 +20,13 @@ static void clone_local(Paths& paths, std::filesystem::path path, bool clone_ver
             }
 
             if (std::filesystem::is_regular_file(entry.path())) {
-                PendingRename pending = {.tmp = paths.tmp / relative, .dest = paths.root / relative};
-                std::filesystem::copy(entry.path(), pending.tmp, ec);
+                const std::filesystem::path dest = paths.root / relative;
+                const std::filesystem::path tmp  = paths.add_pending_rename(dest);
+                std::filesystem::copy(entry.path(), tmp, ec);
                 if (ec) {
                     error_message_creator("Failed to copy file " + entry.path().filename().string(), error_message);
                     return;
                 }
-                paths.pending_rename.emplace_back(std::move(pending));
             } else if (std::filesystem::is_directory(entry.path())) {
                 std::filesystem::create_directories(paths.tmp / relative);
                 paths.pending_directory.emplace_back(std::move(relative));

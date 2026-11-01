@@ -12,10 +12,10 @@ void object::create(
     sha256(content.data(), content.size(), content_id);
     id = content_id;
 
-    PendingRename pending = {.tmp = paths.tmp / id, .dest = paths.object / id};
-    if (std::filesystem::is_regular_file(pending.dest))
+    const std::filesystem::path object_path = paths.object / id;
+    const std::filesystem::path object_tmp  = paths.add_pending_rename(object_path);
+    if (std::filesystem::is_regular_file(object_path) || std::filesystem::is_regular_file(object_tmp))
         return;
 
-    io::file(pending.tmp, std::ios::binary | std::ios::trunc, content.data(), content.size(), 1, error_message);
-    paths.pending_rename.emplace_back(std::move(pending));
+    io::file(object_tmp, std::ios::binary | std::ios::trunc, content.data(), content.size(), 1, error_message);
 }

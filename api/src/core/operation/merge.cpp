@@ -99,9 +99,9 @@ LvcConflictArray* operation::merge(
         const Lines dest = io::content_lines(paths.object / dest_info->id, 1, 1, error_message);
         ERRORCHECK(error_message, out);
 
-        PendingRename pending  = {.tmp = paths.tmp / src_info.id, .dest = paths.root / src_info.path};
-        const bool    conflict = merge3(pending.tmp, common, src, dest);
-        paths.pending_rename.emplace_back(std::move(pending));
+        const std::filesystem::path file_path = paths.root / src_info.path;
+        const std::filesystem::path file_tmp  = paths.add_pending_rename(file_path);
+        const bool                  conflict  = merge3(file_tmp, common, src, dest);
         if (conflict)
             add_path(out, src_info.path, error_message);
         else
@@ -124,10 +124,10 @@ LvcConflictArray* operation::merge(
                 continue;
             existance_conflict(paths, out, info.path, buffer, 0, error_message);
         } else {
-            PendingRename pending = {.tmp = paths.tmp / info.id, .dest = paths.root / info.path};
-            io::file(pending.tmp, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 0, error_message);
+            const std::filesystem::path file_path = paths.root / info.path;
+            const std::filesystem::path file_tmp  = paths.add_pending_rename(paths.root / info.path);
+            io::file(file_tmp, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 0, error_message);
             messages.push_back("NEW:  " + info.path.string() + '\n');
-            paths.pending_rename.emplace_back(std::move(pending));
         }
     }
 
