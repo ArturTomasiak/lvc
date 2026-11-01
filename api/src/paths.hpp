@@ -61,8 +61,8 @@ struct Paths {
         std::random_device                           rng;
         std::uniform_int_distribution<std::uint32_t> dist(0, std::numeric_limits<std::uint32_t>::max());
         for (uint8_t i = 0; i < 100; i++) {
-            tmp = std::filesystem::temp_directory_path() / ("lvc-" + std::to_string(dist(rng)));
-            if (std::filesystem::create_directory(tmp))
+            tmp = lvc / "tmp" / std::to_string(dist(rng));
+            if (std::filesystem::create_directories(tmp))
                 return;
         }
         error_message_creator("Failed to create tmp directory.", error_message);

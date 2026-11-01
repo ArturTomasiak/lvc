@@ -21,7 +21,7 @@ static void clone_local(Paths& paths, std::filesystem::path path, bool clone_ver
 
             if (std::filesystem::is_regular_file(entry.path())) {
                 PendingRename pending = {.tmp = paths.tmp / relative, .dest = paths.root / relative};
-                std::filesystem::copy(entry.path(), pending.dest, ec);
+                std::filesystem::copy(entry.path(), pending.tmp, ec);
                 if (ec) {
                     error_message_creator("Failed to copy file " + entry.path().filename().string(), error_message);
                     return;

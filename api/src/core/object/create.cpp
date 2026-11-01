@@ -10,8 +10,9 @@ void object::create(
 
     char content_id[65];
     sha256(content.data(), content.size(), content_id);
+    id = content_id;
 
-    PendingRename pending = {.tmp = paths.tmp / content_id, .dest = paths.object / content_id};
+    PendingRename pending = {.tmp = paths.tmp / id, .dest = paths.object / id};
     if (std::filesystem::is_regular_file(pending.dest))
         return;
 

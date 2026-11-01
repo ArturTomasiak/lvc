@@ -34,8 +34,11 @@ void workspace::_goto(Paths& paths, std::string workspace_name, char** error_mes
     for (const std::string& entry : ignore)
         ignore_set.insert(entry);
 
-    if (version_id.empty() || workspace::changed_since_ver(paths, objects, error_message))
+    if (version_id.empty() || workspace::changed_since_ver(paths, objects, error_message)) {
         version::create_tmp(paths, src_operation, ignore_set, error_message);
+        ERRORCHECK(error_message);
+        paths.write_pending(error_message);
+    }
 
     ERRORCHECK(error_message);
 
@@ -61,8 +64,9 @@ void workspace::_goto(Paths& paths, std::string workspace_name, char** error_mes
 
     for (object::info& object : objects) {
         if (object.type == object::type::blob) {
-            PendingRename pending = {.tmp = paths.tmp / object.id, .dest = paths.root / object.path};
-            std::string   buffer  = io::content(object_dir / object.id, 1, 1, error_message);
+            PendingRename pending = {
+                .tmp = paths.tmp / (object.id + object.path.filename().string()), .dest = paths.root / object.path};
+            std::string buffer = io::content(object_dir / object.id, 1, 1, error_message);
             io::file(pending.tmp, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 0, error_message);
             paths.pending_rename.emplace_back(std::move(pending));
         } else

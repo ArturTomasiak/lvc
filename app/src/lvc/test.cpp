@@ -53,7 +53,6 @@ bool lvc::test(int argc, char* argv[]) {
     } while (!std::filesystem::create_directory(tmp));
 
     const std::filesystem::path lvc = tmp / ".lvc";
-    std::filesystem::create_directories(tmp);
 
     const std::string example_file_1 =
         "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam justo tellus, consequat a sagittis vitae, "
@@ -93,10 +92,11 @@ bool lvc::test(int argc, char* argv[]) {
     input.repository_name  = name.c_str();
     input.workspace_name   = main_workspace.c_str();
 
+    TEST_MS_MEASURE(lvc_create(input, &error_message), "LVC CREATE TEST", "LVC CREATE SUCCESS IN: ");
+
     TEST_MS_MEASURE(
         lvc_run_tests(lvc.c_str(), &error_message), "DIFF, MERGE AND SHA256 TESTS",
         "DIFF, MERGE AND SHA256 SUCCESS IN: ");
-    TEST_MS_MEASURE(lvc_create(input, &error_message), "LVC CREATE TEST", "LVC CREATE SUCCESS IN: ");
 
     create_file(example_file_1_path, example_file_1);
     create_file(example_file_2_path, example_file_2);

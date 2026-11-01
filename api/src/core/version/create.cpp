@@ -252,6 +252,7 @@ void version::create_tmp(
     PendingRename               pending         = {.tmp = paths.tmp / filename_tmp, .dest = operation / filename_tmp};
     const std::filesystem::path preserve_object = paths.object;
     paths.object                                = operation / foldername_object;
+    paths.pending_directory.emplace_back(paths.object);
 
     std::string root_id;
     std::string new_root_id = build(paths, root_id, status, error_message);

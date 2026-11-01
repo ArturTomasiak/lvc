@@ -5,15 +5,14 @@
 extern "C" LVC_API void lvc_create(LvcCreateInput input, char** error_message) noexcept {
     std::filesystem::path lvc = input.location;
     lvc /= ".lvc";
-    Paths paths(lvc.c_str(), error_message);
-    if (std::filesystem::is_directory(paths.lvc)) {
+    if (std::filesystem::is_directory(lvc)) {
         error_message_creator("Repository already exists", error_message);
         return;
     }
+    Paths paths(lvc.c_str(), error_message);
     if (input.clone_repository)
         repository::clone(paths, input.clone_repository, input.clone_versioning, error_message);
     if (!input.clone_versioning) {
-        paths.pending_directory.emplace_back(paths.lvc);
         paths.pending_directory.emplace_back(paths.workspace);
         paths.pending_directory.emplace_back(paths.object);
         repository::rename(paths, input.repository_name, error_message);
@@ -30,7 +29,10 @@ extern "C" LVC_API void lvc_create(LvcCreateInput input, char** error_message) n
             pending_default.tmp, std::ios::binary | std::ios::trunc, input.workspace_name, name_len, 0, error_message);
         paths.pending_rename.emplace_back(std::move(pending_default));
     }
-    ERRORCHECK(error_message);
+    if (*error_message) {
+        std::filesystem::remove_all(paths.lvc);
+        return;
+    }
     paths.write_pending(error_message);
 }
 

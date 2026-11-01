@@ -7,13 +7,13 @@ void operation::create(
     if (type == operation::type::merge) {
         PendingRename pending = {.tmp = paths.tmp / filename_merge, .dest = operation / filename_merge};
         io::file(
-            pending.dest, std::ios::binary | std::ios::trunc, src_workspace_name.data(), src_workspace_name.size(), 0,
+            pending.tmp, std::ios::binary | std::ios::trunc, src_workspace_name.data(), src_workspace_name.size(), 0,
             error_message);
         paths.pending_rename.emplace_back(std::move(pending));
     }
     if (conflicts->len != 0) {
         PendingRename pending = {.tmp = paths.tmp / filename_conflict, .dest = operation / filename_conflict};
-        std::ofstream conflict(pending.dest, std::ios::binary | std::ios::trunc | std::ios::out);
+        std::ofstream conflict(pending.tmp, std::ios::binary | std::ios::trunc | std::ios::out);
         for (size_t i = 0; i < conflicts->len; i++) {
             conflict << conflicts->paths[i];
             conflict << '\n';

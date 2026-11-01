@@ -60,8 +60,10 @@ void operation::revert(
 
     for (object::info& object : objects) {
         if (object.type == object::type::blob) {
-            PendingRename pending = {.tmp = paths.tmp / object.id, .dest = paths.root / object.path};
-            std::string   buffer  = io::content(paths.object / object.id, 1, 1, error_message);
+            PendingRename pending = {
+                .tmp = paths.tmp / (object.id + object.path.string()), .dest = paths.root / object.path};
+            paths.pending_directory.push_back(pending.dest.parent_path());
+            std::string buffer = io::content(paths.object / object.id, 1, 1, error_message);
             io::file(pending.tmp, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 0, error_message);
             paths.pending_rename.emplace_back(std::move(pending));
         }
