@@ -1,14 +1,12 @@
 #include "core.hpp"
 
 void workspace::_default(Paths& paths, const char* workspace_name, char** error_message) {
-    if (!workspace::exists(paths, workspace_name, error_message)) {
-        std::string workspace_str = workspace_name;
-        error_message_creator("Workspace " + workspace_str + " doesn't exist", error_message);
+    if (!std::filesystem::is_regular_file(paths.workspace / workspace_name)) {
+        error_message_creator("Workspace " + std::string(workspace_name) + " doesn't exist", error_message);
+        return;
     }
-    ERRORCHECK(error_message);
-    std::string           name = workspace_name;
-    std::filesystem::path path;
+    PendingRename pending = {.tmp = paths.tmp / filename_default, .dest = paths.lvc / filename_default};
     io::file(
-        paths.lvc / filename_default, std::ios::binary | std::ios::trunc, workspace_name, charplen(workspace_name), 0,
-        error_message);
+        pending.tmp, std::ios::binary | std::ios::trunc, workspace_name, charplen(workspace_name), 0, error_message);
+    paths.pending_rename.emplace_back(std::move(pending));
 }

@@ -3,10 +3,11 @@
 #include <filesystem>
 #include <fstream>
 #include <lvc.hpp>
-#include <paths.hpp>
 #include <vector>
 
-#define CHECKALLOC(dest, error_message, ...)                                                                           \
+struct Paths;
+
+#define ALLOCKCHECK(dest, error_message, ...)                                                                          \
     do {                                                                                                               \
         if ((dest) == nullptr) {                                                                                       \
             error_message_creator("Memory allocation failed", error_message);                                          \
@@ -14,7 +15,9 @@
         }                                                                                                              \
     } while (false)
 
-#define ERRORCHECK(error_message, ...) if (*error_message) [[unlikely]] return __VA_ARGS__
+#define ERRORCHECK(error_message, ...)                                                                                 \
+    if (*error_message) [[unlikely]]                                                                                   \
+    return __VA_ARGS__
 
 void  sha256(const char* in, size_t in_len, char out[65]);
 char* deflate(const char* in, size_t in_len, size_t& out_len);
@@ -28,7 +31,6 @@ namespace io {
     void file(
         std::filesystem::path path, std::ios_base::openmode flags, const char* content, size_t length, bool compress,
         char** error_message);
-    bool        dir(std::filesystem::path path, char** error_message);
     std::string content(std::filesystem::path file_path, bool decompress, bool ignore_pattern, char** error_message);
     std::vector<std::string>
     content_lines(std::filesystem::path file_path, bool decompress, bool ignore_pattern, char** error_message);

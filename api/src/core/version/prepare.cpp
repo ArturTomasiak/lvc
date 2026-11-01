@@ -3,10 +3,11 @@
 void version::prepare_reset(Paths& paths, char** error_message) {
     const std::string           workspace_name = io::content(paths.current, 0, 0, error_message);
     const std::filesystem::path prepare_dir    = prepare_path(paths, workspace_name);
-    std::error_code             error;
-    bool                        deleted = std::filesystem::remove(prepare_dir, error);
-    if (!deleted || error)
-        error_message_creator("Could not reset prepare", error_message);
+    if (!std::filesystem::is_regular_file(prepare_dir)) {
+        error_message_creator("No files have been prepared", error_message);
+        return;
+    }
+    paths.pending_delete.emplace_back(std::move(prepare_dir));
 }
 
 void version::prepare(Paths& paths, std::vector<std::string>& input_raw, char*** prepared, char** error_message) {
@@ -21,6 +22,8 @@ void version::prepare(Paths& paths, std::vector<std::string>& input_raw, char***
     const std::string              version_id        = workspace_content.empty() ? "" : workspace_content[0];
     std::vector<std::string>       ignore_raw        = io::content_lines(paths.ignore, 0, 0, error_message);
     std::vector<std::string>       ignore            = paths.resolve(ignore_raw, version_id, 1, 1, error_message);
+    PendingRename                  pending           = {.dest = prepare_path(paths, workspace_name)};
+    pending.tmp                                      = paths.tmp / pending.dest.filename();
     ERRORCHECK(error_message);
 
     std::vector<std::string> input = paths.resolve(input_raw, version_id, 1, 1, error_message);
@@ -60,7 +63,8 @@ void version::prepare(Paths& paths, std::vector<std::string>& input_raw, char***
         buffer += path + "\n";
 
     insert_pattern(buffer, TYPE_PREPARE, nullptr);
-    io::file(prepare_dir, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 1, error_message);
+    io::file(pending.tmp, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 1, error_message);
+    paths.pending_rename.emplace_back(std::move(pending));
 
     if (prepared)
         *prepared = strvector_to_charpp(current);

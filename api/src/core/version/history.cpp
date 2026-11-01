@@ -44,7 +44,7 @@ static LvcVersion* history(
 
         size_t desc_size = version_content[VERSION_MESSAGE].size();
         entry->desc      = static_cast<char*>(malloc(desc_size + 1));
-        CHECKALLOC(entry->desc, error_message, version);
+        ALLOCKCHECK(entry->desc, error_message, version);
         memcpy(entry->desc, version_content[VERSION_MESSAGE].c_str(), desc_size + 1);
 
         saved_versions.insert(line);

@@ -11,14 +11,14 @@ LvcCategory* find_category(LvcCategoryList* list, const std::string& name) {
 
 LvcCategory* add_category(LvcCategoryList* list, const std::string& name, char** error_message) {
     list->category = static_cast<LvcCategory*>(realloc(list->category, (list->len + 1) * sizeof(LvcCategory)));
-    CHECKALLOC(list->category, error_message, {});
+    ALLOCKCHECK(list->category, error_message, {});
     LvcCategory* out      = &list->category[list->len];
     out->workspaces_len   = 0;
     out->workspaces_alloc = 8;
     out->workspaces       = static_cast<char**>(malloc(out->workspaces_alloc * sizeof(char*)));
     out->name             = static_cast<char*>(malloc(name.size() + 1));
-    CHECKALLOC(out->workspaces, error_message, {});
-    CHECKALLOC(out->name, error_message, {});
+    ALLOCKCHECK(out->workspaces, error_message, {});
+    ALLOCKCHECK(out->name, error_message, {});
     memcpy(out->name, name.data(), name.size() + 1);
     list->len++;
     return out;
@@ -29,10 +29,10 @@ void add_workspace(LvcCategory* category, const std::string& name, char** error_
         category->workspaces_alloc *= 2;
         category->workspaces =
             static_cast<char**>(realloc(category->workspaces, category->workspaces_alloc * sizeof(char*)));
-        CHECKALLOC(category->workspaces, error_message);
+        ALLOCKCHECK(category->workspaces, error_message);
     }
     char* workspace = static_cast<char*>(malloc(name.size() + 1));
-    CHECKALLOC(workspace, error_message);
+    ALLOCKCHECK(workspace, error_message);
     memcpy(workspace, name.data(), name.size() + 1);
     category->workspaces[category->workspaces_len] = workspace;
     category->workspaces_len++;

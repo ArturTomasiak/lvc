@@ -1,6 +1,7 @@
 #include <app.hpp>
 #include <chrono>
 #include <fstream>
+#include <random>
 
 #define TEST_MS_MEASURE(test, pre_msg, success_msg)                                                                    \
     do {                                                                                                               \
@@ -40,12 +41,18 @@ static void modify_line(const std::filesystem::path& path, size_t line_number, s
 }
 
 bool lvc::test(int argc, char* argv[]) {
-    const std::string           name              = "lvctest";
-    const std::string           main_workspace    = "main";
-    const std::string           feature_worksapce = "feature";
-    const std::string           stamp = std::to_string(std::chrono::system_clock::now().time_since_epoch().count());
-    const std::filesystem::path tmp   = std::filesystem::temp_directory_path() / (name + stamp);
-    const std::filesystem::path lvc   = tmp / ".lvc";
+    const std::string name              = "lvctest";
+    const std::string main_workspace    = "main";
+    const std::string feature_worksapce = "feature";
+
+    std::filesystem::path                        tmp;
+    std::random_device                           rng;
+    std::uniform_int_distribution<std::uint32_t> dist(0, std::numeric_limits<std::uint32_t>::max());
+    do {
+        tmp = std::filesystem::temp_directory_path() / ("lvc-" + std::to_string(dist(rng)));
+    } while (!std::filesystem::create_directory(tmp));
+
+    const std::filesystem::path lvc = tmp / ".lvc";
     std::filesystem::create_directories(tmp);
 
     const std::string example_file_1 =
@@ -80,12 +87,15 @@ bool lvc::test(int argc, char* argv[]) {
 
     LvcCreateInput input{};
     input.clone_repository = 0;
+    input.clone_versioning = 0;
     input.local            = 1;
     input.location         = tmp.c_str();
     input.repository_name  = name.c_str();
     input.workspace_name   = main_workspace.c_str();
 
-    TEST_MS_MEASURE(lvc_run_tests(), "DIFF, MERGE AND SHA256 TESTS", "DIFF, MERGE AND SHA256 SUCCESS IN: ");
+    TEST_MS_MEASURE(
+        lvc_run_tests(lvc.c_str(), &error_message), "DIFF, MERGE AND SHA256 TESTS",
+        "DIFF, MERGE AND SHA256 SUCCESS IN: ");
     TEST_MS_MEASURE(lvc_create(input, &error_message), "LVC CREATE TEST", "LVC CREATE SUCCESS IN: ");
 
     create_file(example_file_1_path, example_file_1);

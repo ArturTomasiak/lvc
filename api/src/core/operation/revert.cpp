@@ -51,7 +51,7 @@ void operation::revert(
             if (!input_set.contains(relative.string()))
                 continue;
             if (!objects_set.contains(relative.string()))
-                std::filesystem::remove_all(entry.path());
+                paths.pending_delete.emplace_back(entry.path());
         }
     } catch (const std::filesystem::filesystem_error& error) {
         error_message_creator("Directory iteration failure", error_message);
@@ -60,10 +60,10 @@ void operation::revert(
 
     for (object::info& object : objects) {
         if (object.type == object::type::blob) {
-            std::string buffer = io::content(paths.object / object.id, 1, 1, error_message);
-            io::file(
-                paths.root / object.path, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 0,
-                error_message);
+            PendingRename pending = {.tmp = paths.tmp / object.id, .dest = paths.root / object.path};
+            std::string   buffer  = io::content(paths.object / object.id, 1, 1, error_message);
+            io::file(pending.tmp, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 0, error_message);
+            paths.pending_rename.emplace_back(std::move(pending));
         }
     }
 }

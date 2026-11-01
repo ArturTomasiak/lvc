@@ -19,25 +19,23 @@ struct TreeRelation {
     std::vector<TreeRelation> children;
 };
 
-static void add_object(
-    std::filesystem::path& path, const std::filesystem::path& object_dir, std::vector<VersionObject>& objects,
-    char** error_message) {
+static void
+add_object(Paths& paths, std::filesystem::path& path, std::vector<VersionObject>& objects, char** error_message) {
     std::string filename = path.filename();
     std::erase_if(objects, [&](const VersionObject& object) { return object.name == filename; });
     VersionObject object;
     object.name        = filename;
     object.type        = TYPE_BLOB;
     std::string buffer = io::content(path, 0, 0, error_message);
-    object::create(object_dir, TYPE_BLOB, buffer, object.id, error_message);
+    object::create(paths, TYPE_BLOB, buffer, object.id, error_message);
     objects.push_back(std::move(object));
 }
 
-static void
-rem_object(std::filesystem::path path, const std::filesystem::path& object_dir, std::vector<VersionObject>& objects) {
+static void rem_object(Paths& paths, std::filesystem::path path, std::vector<VersionObject>& objects) {
     std::erase_if(objects, [&](const VersionObject& object) { return object.name == path.filename(); });
 }
 
-static std::string tree_builder(TreeRelation& relation, const std::filesystem::path& object_dir, char** error_message) {
+static std::string tree_builder(Paths& paths, TreeRelation& relation, char** error_message) {
     std::string tree_content;
     std::string type;
     std::string id;
@@ -45,7 +43,7 @@ static std::string tree_builder(TreeRelation& relation, const std::filesystem::p
 
     type = TYPE_TREE;
     for (TreeRelation& child : relation.children) {
-        id   = tree_builder(child, object_dir, error_message);
+        id   = tree_builder(paths, child, error_message);
         name = child.tree.relative.filename();
         tree_content += type + " " + id + " " + name + "\n";
     }
@@ -57,7 +55,7 @@ static std::string tree_builder(TreeRelation& relation, const std::filesystem::p
         tree_content += type + " " + id + " " + name + "\n";
     }
 
-    object::create(object_dir, TYPE_TREE, tree_content, id, error_message);
+    object::create(paths, TYPE_TREE, tree_content, id, error_message);
     return id;
 }
 
@@ -90,9 +88,9 @@ static TreeRelation tree_relation_init(std::vector<Tree>& trees) {
 }
 
 static void tree_from_version(
-    const std::filesystem::path& object_dir, std::vector<Tree>& trees, const std::string& tree_id,
-    std::filesystem::path current, char** error_message) {
-    std::vector<std::string> tree_content = io::content_lines(object_dir / tree_id, 1, 0, error_message);
+    Paths& paths, std::vector<Tree>& trees, const std::string& tree_id, std::filesystem::path current,
+    char** error_message) {
+    std::vector<std::string> tree_content = io::content_lines(paths.object / tree_id, 1, 0, error_message);
     size_t                   pos;
     Tree                     tree;
     tree.relative = current;
@@ -109,29 +107,28 @@ static void tree_from_version(
         object.name = line.substr(pos + 1);
 
         if (object.type == TYPE_TREE) // tree objects are inserted in tree_builder
-            tree_from_version(object_dir, trees, object.id, current / object.name, error_message);
+            tree_from_version(paths, trees, object.id, current / object.name, error_message);
         else
             tree.objects.push_back(object);
     }
     trees.push_back(tree);
 }
 
-static std::string build(
-    const std::filesystem::path& object_dir, const std::filesystem::path& working_dir, const std::string& tree_id,
-    const std::vector<std::string>& status, char** error_message) {
+static std::string
+build(Paths& paths, const std::string& tree_id, const std::vector<std::string>& status, char** error_message) {
     std::vector<Tree> trees;
     trees.emplace_back();
     trees.reserve(PREALLOCATE);
 
     if (!tree_id.empty())
-        tree_from_version(object_dir, trees, tree_id, {}, error_message);
+        tree_from_version(paths, trees, tree_id, {}, error_message);
 
     for (std::string path : status) {
         bool deleted = path.starts_with(PREFIX_DELETED);
         if (deleted)
             path.erase(0, strlen(PREFIX_DELETED));
 
-        std::filesystem::path working_path = working_dir / path;
+        std::filesystem::path working_path = paths.root / path;
         std::filesystem::path relative     = path;
         relative                           = relative.parent_path();
 
@@ -150,15 +147,15 @@ static std::string build(
         }
 
         else if (std::filesystem::is_regular_file(working_path))
-            add_object(working_path, object_dir, tree->objects, error_message);
+            add_object(paths, working_path, tree->objects, error_message);
 
         else if (deleted)
-            rem_object(path, object_dir, tree->objects);
+            rem_object(paths, path, tree->objects);
     }
 
     TreeRelation tree_relation = tree_relation_init(trees);
 
-    return tree_builder(tree_relation, object_dir, error_message);
+    return tree_builder(paths, tree_relation, error_message);
 }
 
 void version::create(Paths& paths, std::string message, std::string author, char** error_message) {
@@ -166,9 +163,9 @@ void version::create(Paths& paths, std::string message, std::string author, char
         error_message_creator("No version message recieved", error_message);
         return;
     }
-    const std::string              workspace_name    = io::content(paths.current, 0, 0, error_message);
-    const std::filesystem::path    workspace         = paths.workspace / workspace_name;
-    const std::vector<std::string> workspace_content = io::content_lines(workspace, 1, 1, error_message);
+    const std::string workspace_name = io::content(paths.current, 0, 0, error_message);
+    PendingRename     pending        = {.tmp = paths.tmp / workspace_name, .dest = paths.workspace / workspace_name};
+    const std::vector<std::string> workspace_content = io::content_lines(pending.dest, 1, 1, error_message);
     const std::filesystem::path    prepare_dir       = prepare_path(paths, workspace_name);
     const std::string              version_id        = workspace_content.empty() ? "" : workspace_content[0];
     if (!std::filesystem::is_regular_file(prepare_dir)) {
@@ -198,15 +195,15 @@ void version::create(Paths& paths, std::string message, std::string author, char
         }
         root_id = version_content[VERSION_ROOT_TREE];
     }
-    std::string       new_root_id = build(paths.object, paths.root, root_id, status, error_message);
+    std::string       new_root_id = build(paths, root_id, status, error_message);
     const std::string nl          = "\n";
     std::string       buffer      = new_root_id + nl + message + nl + author;
     if (!merged_workspace.empty())
         buffer += nl + merged_workspace;
     std::string new_workspace;
-    object::create(paths.object, TYPE_VERSION, buffer, new_workspace, error_message);
+    object::create(paths, TYPE_VERSION, buffer, new_workspace, error_message);
     new_workspace += "\n";
-    std::string old_workspace = io::content(workspace, 1, 0, error_message);
+    std::string old_workspace = io::content(pending.dest, 1, 0, error_message);
     std::string category;
     for (int i = 0; i < 2; ++i) {
         const size_t pos = old_workspace.find(' ');
@@ -218,22 +215,18 @@ void version::create(Paths& paths, std::string message, std::string author, char
     new_workspace += old_workspace;
     insert_pattern(new_workspace, TYPE_WORKSPACE, category.empty() ? nullptr : category.c_str());
     io::file(
-        workspace, std::ios::binary | std::ios::trunc, new_workspace.data(), new_workspace.size(), 1, error_message);
-    ERRORCHECK(error_message);
+        pending.tmp, std::ios::binary | std::ios::trunc, new_workspace.data(), new_workspace.size(), 1, error_message);
+    paths.pending_rename.emplace_back(std::move(pending));
 
     std::error_code error;
     bool            deleted = std::filesystem::remove(prepare_dir, error);
-    if (!deleted || error)
+    if (!deleted || error) [[unlikely]]
         error_message_creator("Prepare reset failed", error_message);
 }
 
 void version::create_tmp(
     Paths& paths, const std::filesystem::path& operation, std::unordered_set<std::string_view>& ignore,
     char** error_message) {
-    std::filesystem::path object_dir = operation / foldername_object;
-
-    std::filesystem::create_directories(object_dir);
-
     std::vector<std::string> status;
     try {
         std::filesystem::recursive_directory_iterator iterator(paths.root);
@@ -256,13 +249,19 @@ void version::create_tmp(
         return;
     }
 
+    PendingRename               pending         = {.tmp = paths.tmp / filename_tmp, .dest = operation / filename_tmp};
+    const std::filesystem::path preserve_object = paths.object;
+    paths.object                                = operation / foldername_object;
+
     std::string root_id;
-    std::string new_root_id = build(object_dir, paths.root, root_id, status, error_message);
+    std::string new_root_id = build(paths, root_id, status, error_message);
 
     const std::string nl     = "\n";
     std::string       buffer = new_root_id + nl + "tmp snapshot" + nl + "lvc";
 
     std::string id;
-    object::create(object_dir, TYPE_VERSION, buffer, id, error_message);
-    io::file(operation / filename_tmp, std::ios::binary | std::ios::trunc, id.data(), id.size(), 0, error_message);
+    object::create(paths, TYPE_VERSION, buffer, id, error_message);
+    io::file(pending.tmp, std::ios::binary | std::ios::trunc, id.data(), id.size(), 0, error_message);
+    paths.object = preserve_object;
+    paths.pending_rename.emplace_back(std::move(pending));
 }

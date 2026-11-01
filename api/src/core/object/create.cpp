@@ -5,16 +5,16 @@
 // pattern is written file content
 
 void object::create(
-    const std::filesystem::path& object, const std::string& type, std::string& content, std::string& id,
-    char** error_message) {
+    Paths& paths, const std::string& type, std::string& content, std::string& id, char** error_message) {
     insert_pattern(content, type, nullptr);
 
     char content_id[65];
     sha256(content.data(), content.size(), content_id);
-    id = content_id;
 
-    if (std::filesystem::is_regular_file(object / id))
+    PendingRename pending = {.tmp = paths.tmp / content_id, .dest = paths.object / content_id};
+    if (std::filesystem::is_regular_file(pending.dest))
         return;
 
-    io::file(object / id, std::ios::binary | std::ios::trunc, content.data(), content.size(), 1, error_message);
+    io::file(pending.tmp, std::ios::binary | std::ios::trunc, content.data(), content.size(), 1, error_message);
+    paths.pending_rename.emplace_back(std::move(pending));
 }

@@ -4,11 +4,11 @@ static void add_path(LvcConflictArray* out, const std::filesystem::path& path, c
     if (out->len == out->alloc) {
         out->alloc *= 2;
         out->paths = static_cast<char**>(realloc(out, out->alloc * sizeof(char*)));
-        CHECKALLOC(out->paths, error_message);
+        ALLOCKCHECK(out->paths, error_message);
     }
     size_t len = charplen(path.c_str()) + 1;
     char*  str = static_cast<char*>(malloc(len));
-    CHECKALLOC(str, error_message);
+    ALLOCKCHECK(str, error_message);
     memcpy(str, path.c_str(), len);
     out->paths[out->len] = str;
     out->len++;
@@ -43,8 +43,9 @@ LvcConflictArray* operation::merge(
     const Lines                 dest_versions  = io::content_lines(dest_workspace, 1, 1, error_message);
     const std::string           src_id         = src_versions.empty() ? "" : src_versions[0];
     const std::string           dest_id        = dest_versions.empty() ? "" : dest_versions[0];
-    std::string                 common_id      = src_versions.front();
-    bool                        common_exists  = false;
+    std::vector<std::string>    messages;
+    std::string                 common_id     = src_versions.front();
+    bool                        common_exists = false;
     ERRORCHECK(error_message, out);
 
     if (!conflicts_handled(paths.root, conflict_path, error_message))
@@ -98,11 +99,13 @@ LvcConflictArray* operation::merge(
         const Lines dest = io::content_lines(paths.object / dest_info->id, 1, 1, error_message);
         ERRORCHECK(error_message, out);
 
-        const bool conflict = merge3(paths.root / src_info.path, common, src, dest);
+        PendingRename pending  = {.tmp = paths.tmp / src_info.id, .dest = paths.root / src_info.path};
+        const bool    conflict = merge3(pending.tmp, common, src, dest);
+        paths.pending_rename.emplace_back(std::move(pending));
         if (conflict)
             add_path(out, src_info.path, error_message);
         else
-            std::cout << "MERGED:  " << src_info.path << '\n';
+            messages.push_back("MERGED:  " + src_info.path.string() + '\n');
 
         if (dest_info != nullptr)
             dest_objects.erase(src_info.path);
@@ -115,24 +118,27 @@ LvcConflictArray* operation::merge(
         const auto        common_it = common_objects.find(info.path);
         const std::string buffer    = io::content(paths.object / info.id, 1, 1, error_message);
         ERRORCHECK(error_message, out);
-        uint32_t          pos       = buffer.find('\n');
+        uint32_t pos = buffer.find('\n');
         if (common_it != common_objects.end()) {
             if (info.id == common_it->second.id)
                 continue;
             existance_conflict(paths, out, info.path, buffer, 0, error_message);
         } else {
-            io::file(
-                paths.root / info.path, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 0,
-                error_message);
-            std::cout << "NEW:  " << info.path << '\n';
+            PendingRename pending = {.tmp = paths.tmp / info.id, .dest = paths.root / info.path};
+            io::file(pending.tmp, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 0, error_message);
+            messages.push_back("NEW:  " + info.path.string() + '\n');
+            paths.pending_rename.emplace_back(std::move(pending));
         }
     }
 
+    operation::create(paths, dest_workspace_name, src_workspace_name, operation::type::merge, out, error_message);
+
+    ERRORCHECK(error_message, out);
+    for (std::string& msg : messages) {
+        std::cout << msg;
+    }
     for (size_t i = 0; i < out->len; i++) {
         std::cout << "CONFLICT: " << out->paths[i] << '\n';
     }
-
-    operation::create(paths, dest_workspace_name, src_workspace_name, operation::type::merge, out, error_message);
-    
     return out;
 }

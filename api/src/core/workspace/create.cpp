@@ -2,8 +2,8 @@
 
 void workspace::create(
     Paths& paths, std::string workspace_name, std::string copy_workspace_name, char** error_message) {
-    std::filesystem::path workspace = paths.workspace / workspace_name;
-    if (std::filesystem::is_regular_file(workspace)) {
+    PendingRename pending = {.tmp = paths.tmp / workspace_name, .dest = paths.workspace / workspace_name};
+    if (std::filesystem::is_regular_file(pending.dest)) {
         error_message_creator("Workspace already exists", error_message);
         return;
     }
@@ -11,5 +11,6 @@ void workspace::create(
     if (!copy_workspace_name.empty())
         buffer = io::content(paths.workspace / copy_workspace_name, 1, 1, error_message);
     insert_pattern(buffer, TYPE_WORKSPACE, nullptr);
-    io::file(workspace, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 1, error_message);
+    io::file(pending.tmp, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 1, error_message);
+    paths.pending_rename.emplace_back(std::move(pending));
 }
