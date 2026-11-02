@@ -81,4 +81,6 @@ void workspace::_goto(Paths& paths, std::string workspace_name, char** error_mes
         paths.pending_remove_all.push_back(tmp);
         paths.pending_remove_all.push_back(object_dir);
     }
+
+    ERRORCHECK(error_message);
 }

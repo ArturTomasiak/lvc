@@ -15,7 +15,7 @@ void object::create(
     const std::filesystem::path object_path = paths.object / id;
     const std::filesystem::path object_tmp  = paths.add_pending_rename(object_path);
     if (std::filesystem::is_regular_file(object_path) || std::filesystem::is_regular_file(object_tmp)) [[unlikely]] {
-        paths.pending_rename.erase(paths.pending_rename.end());
+        paths.pending_rename.pop_back();
         return;
     }
 

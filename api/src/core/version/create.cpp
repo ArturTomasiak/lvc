@@ -165,7 +165,6 @@ void version::create(Paths& paths, std::string message, std::string author, char
     }
     const std::string              workspace_name    = io::content(paths.current, 0, 0, error_message);
     const std::filesystem::path    workspace_path    = paths.workspace / workspace_name;
-    const std::filesystem::path    workspace_tmp     = paths.add_pending_rename(workspace_path);
     const std::vector<std::string> workspace_content = io::content_lines(workspace_path, 1, 1, error_message);
     const std::filesystem::path    prepare_dir       = prepare_path(paths, workspace_name);
     const std::string              version_id        = workspace_content.empty() ? "" : workspace_content[0];
@@ -203,6 +202,8 @@ void version::create(Paths& paths, std::string message, std::string author, char
         buffer += nl + merged_workspace;
     std::string new_workspace;
     object::create(paths, TYPE_VERSION, buffer, new_workspace, error_message);
+    paths.write_pending(error_message);
+    ERRORCHECK(error_message);
     new_workspace += "\n";
     std::string old_workspace = io::content(workspace_path, 1, 0, error_message);
     std::string category;
@@ -215,6 +216,7 @@ void version::create(Paths& paths, std::string message, std::string author, char
     old_workspace.erase(0, pos + 1);
     new_workspace += old_workspace;
     insert_pattern(new_workspace, TYPE_WORKSPACE, category.empty() ? nullptr : category.c_str());
+    const std::filesystem::path workspace_tmp = paths.add_pending_rename(workspace_path);
     io::file(
         workspace_tmp, std::ios::binary | std::ios::trunc, new_workspace.data(), new_workspace.size(), 1,
         error_message);

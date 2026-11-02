@@ -28,6 +28,7 @@ void Paths::write_pending(char** error_message) {
         CHECKEC(error_message);
     }
     pending_remove.clear();
+    pending_remove_all.clear();
     pending_directory.clear();
     pending_rename.clear();
 }
