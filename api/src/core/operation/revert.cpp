@@ -51,7 +51,7 @@ void operation::revert(
             if (!input_set.contains(relative.string()))
                 continue;
             if (!objects_set.contains(relative.string()))
-                paths.pending_delete.emplace_back(entry.path());
+                paths.pending_remove.emplace_back(entry.path());
         }
     } catch (const std::filesystem::filesystem_error& error) {
         error_message_creator("Directory iteration failure", error_message);

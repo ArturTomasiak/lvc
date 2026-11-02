@@ -12,7 +12,7 @@ extern "C" LVC_API void lvc_create(LvcCreateInput input, char** error_message) n
     Paths paths(lvc.c_str(), error_message);
     if (input.clone_repository)
         repository::clone(paths, input.clone_repository, input.clone_versioning, error_message);
-    if (!input.clone_versioning) {
+    if (!(*error_message) && !input.clone_versioning) {
         paths.pending_directory.emplace_back(paths.workspace);
         paths.pending_directory.emplace_back(paths.object);
         repository::rename(paths, input.repository_name, error_message);
@@ -31,6 +31,10 @@ extern "C" LVC_API void lvc_create(LvcCreateInput input, char** error_message) n
         return;
     }
     paths.write_pending(error_message);
+    if (*error_message) {
+        std::filesystem::remove_all(paths.lvc);
+        return;
+    }
 }
 
 extern "C" LVC_API char* lvc_current(const char* lvc, char** error_message) noexcept {

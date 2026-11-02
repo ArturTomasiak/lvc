@@ -28,8 +28,7 @@ static void clone_local(Paths& paths, std::filesystem::path path, bool clone_ver
                     return;
                 }
             } else if (std::filesystem::is_directory(entry.path())) {
-                std::filesystem::create_directories(paths.tmp / relative);
-                paths.pending_directory.emplace_back(std::move(relative));
+                paths.pending_directory.emplace_back(paths.root / relative);
             }
         }
     } catch (const std::filesystem::filesystem_error& error) {

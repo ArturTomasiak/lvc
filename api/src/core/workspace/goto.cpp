@@ -55,7 +55,7 @@ void workspace::_goto(Paths& paths, std::string workspace_name, char** error_mes
                     iterator.disable_recursion_pending();
                 continue;
             }
-            paths.pending_delete.push_back(entry.path());
+            paths.pending_remove.push_back(entry.path());
         }
     } catch (const std::filesystem::filesystem_error& error) {
         error_message_creator("Directory iteration failure", error_message);
@@ -78,7 +78,7 @@ void workspace::_goto(Paths& paths, std::string workspace_name, char** error_mes
         error_message);
 
     if (remove_tmp) {
-        paths.pending_delete.push_back(tmp);
-        paths.pending_delete.push_back(object_dir);
+        paths.pending_remove_all.push_back(tmp);
+        paths.pending_remove_all.push_back(object_dir);
     }
 }

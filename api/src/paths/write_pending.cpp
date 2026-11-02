@@ -9,10 +9,14 @@
 
 void Paths::write_pending(char** error_message) {
     std::error_code ec;
-    for (ptrdiff_t i = pending_delete.size() - 1; i >= 0; i--) {
-        std::filesystem::remove(pending_delete[i], ec);
+    for (ptrdiff_t i = pending_remove.size() - 1; i >= 0; i--) {
+        std::filesystem::remove(pending_remove[i], ec);
         if (ec == std::errc::directory_not_empty)
             continue;
+        CHECKEC(error_message);
+    }
+    for (std::filesystem::path& path : pending_remove_all) {
+        std::filesystem::remove_all(path, ec);
         CHECKEC(error_message);
     }
     for (std::filesystem::path& path : pending_directory) {
@@ -23,7 +27,7 @@ void Paths::write_pending(char** error_message) {
         std::filesystem::rename(pending.tmp, pending.dest, ec); // may fail on windows
         CHECKEC(error_message);
     }
-    pending_delete.clear();
+    pending_remove.clear();
     pending_directory.clear();
     pending_rename.clear();
 }

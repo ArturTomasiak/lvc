@@ -7,7 +7,7 @@ void version::prepare_reset(Paths& paths, char** error_message) {
         error_message_creator("No files have been prepared", error_message);
         return;
     }
-    paths.pending_delete.emplace_back(std::move(prepare_dir));
+    paths.pending_remove.emplace_back(std::move(prepare_dir));
 }
 
 void version::prepare(Paths& paths, std::vector<std::string>& input_raw, char*** prepared, char** error_message) {

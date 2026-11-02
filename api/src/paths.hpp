@@ -39,7 +39,8 @@ struct Paths {
     std::filesystem::path              tmp;
     std::vector<PendingRename>         pending_rename;
     std::vector<std::filesystem::path> pending_directory;
-    std::vector<std::filesystem::path> pending_delete;
+    std::vector<std::filesystem::path> pending_remove;
+    std::vector<std::filesystem::path> pending_remove_all;
 
     Paths(const Paths&)            = delete;
     Paths& operator=(const Paths&) = delete;
@@ -57,7 +58,8 @@ struct Paths {
           local(workspace / foldername_local) {
         pending_rename.reserve(PREALLOCATE_SMALL);
         pending_directory.reserve(PREALLOCATE_SMALL);
-        pending_delete.reserve(PREALLOCATE_SMALL);
+        pending_remove.reserve(PREALLOCATE_SMALL);
+        pending_remove_all.reserve(PREALLOCATE_SMALL);
         std::random_device                           rng;
         std::uniform_int_distribution<std::uint32_t> dist(0, std::numeric_limits<std::uint32_t>::max());
         for (uint8_t i = 0; i < 100; i++) {
