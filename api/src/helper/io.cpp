@@ -66,6 +66,8 @@ std::string io::content(std::filesystem::path file_path, bool decompress, bool i
                 const size_t skipped = newline - inflated + 1;
                 inflated += skipped;
                 inflated_len -= skipped;
+            } else {
+                error_message_creator("Decompressed file has no header: " + file_path.string(), error_message);
             }
         }
         std::string out = std::string(inflated, inflated_len);
