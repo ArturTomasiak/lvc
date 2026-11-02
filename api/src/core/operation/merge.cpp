@@ -30,15 +30,17 @@ static void existance_conflict(
 }
 
 LvcConflictArray* operation::merge(
-    Paths& paths, const std::string& src_workspace_name, const std::string& dest_workspace_name, char** error_message) {
+    Paths& dest_paths, const std::string& src_workspace_name, const std::string& dest_workspace_name,
+    const char* src_lvc, char** error_message) {
+    Paths             src_paths(src_lvc == 0 ? dest_paths.lvc.c_str() : src_lvc);
     LvcConflictArray* out                      = NULL;
     out                                        = static_cast<LvcConflictArray*>(malloc(sizeof(LvcConflictArray)));
     out->len                                   = 0;
     out->alloc                                 = 10;
     out->paths                                 = static_cast<char**>(malloc(out->alloc * sizeof(char*)));
-    const std::filesystem::path src_workspace  = paths.workspace / src_workspace_name;
-    const std::filesystem::path dest_workspace = paths.workspace / dest_workspace_name;
-    const std::filesystem::path conflict_path  = paths.local / dest_workspace_name / filename_conflict;
+    const std::filesystem::path src_workspace  = src_paths.workspace / src_workspace_name;
+    const std::filesystem::path dest_workspace = dest_paths.workspace / dest_workspace_name;
+    const std::filesystem::path conflict_path  = dest_paths.local / dest_workspace_name / filename_conflict;
     const Lines                 src_versions   = io::content_lines(src_workspace, 1, 1, error_message);
     const Lines                 dest_versions  = io::content_lines(dest_workspace, 1, 1, error_message);
     const std::string           src_id         = src_versions.empty() ? "" : src_versions[0];
@@ -47,7 +49,7 @@ LvcConflictArray* operation::merge(
     bool                        common_exists  = false;
     CHECKERROR(error_message, out);
 
-    if (!conflicts_handled(paths.root, conflict_path, error_message))
+    if (!conflicts_handled(dest_paths.root, conflict_path, error_message))
         error_message_creator("Unhandled conflicts. Use lvc conflict for the list of conflicts.", error_message);
     CHECKERROR(error_message, out);
 
@@ -59,11 +61,11 @@ LvcConflictArray* operation::merge(
         }
     }
 
-    const std::vector<object::info> src_objects = version::all_objects(paths.object, src_id, {}, error_message);
+    const std::vector<object::info> src_objects = version::all_objects(src_paths.object, src_id, {}, error_message);
     std::unordered_map<std::filesystem::path, object::info> dest_objects =
-        version::map_all_objects(paths, dest_id, {}, error_message);
+        version::map_all_objects(dest_paths, dest_id, {}, error_message);
     const std::unordered_map<std::filesystem::path, object::info> common_objects =
-        version::map_all_objects(paths, common_id, {}, error_message);
+        version::map_all_objects(dest_paths, common_id, {}, error_message);
     CHECKERROR(error_message, out);
 
     for (const object::info& src_info : src_objects) {
@@ -82,8 +84,8 @@ LvcConflictArray* operation::merge(
 
         if (dest_info == nullptr) {
             if (common_info != nullptr && src_info.id != common_info->id) {
-                const std::string src = io::content(paths.object / src_info.id, 1, 1, error_message);
-                existance_conflict(paths, out, src_info.path, src, 1, error_message);
+                const std::string src = io::content(src_paths.object / src_info.id, 1, 1, error_message);
+                existance_conflict(dest_paths, out, src_info.path, src, 1, error_message);
             }
             continue;
         }
@@ -93,12 +95,12 @@ LvcConflictArray* operation::merge(
 
         Lines common;
         if (common_info != nullptr && common_exists == true)
-            common = io::content_lines(paths.object / common_info->id, 1, 1, error_message);
-        const Lines src  = io::content_lines(paths.object / src_info.id, 1, 1, error_message);
-        const Lines dest = io::content_lines(paths.object / dest_info->id, 1, 1, error_message);
+            common = io::content_lines(dest_paths.object / common_info->id, 1, 1, error_message);
+        const Lines src  = io::content_lines(src_paths.object / src_info.id, 1, 1, error_message);
+        const Lines dest = io::content_lines(dest_paths.object / dest_info->id, 1, 1, error_message);
         CHECKERROR(error_message, out);
 
-        const bool conflict = merge3(paths.root / src_info.path, common, src, dest);
+        const bool conflict = merge3(dest_paths.root / src_info.path, common, src, dest);
         if (conflict)
             add_path(out, src_info.path, error_message);
         else
@@ -113,16 +115,16 @@ LvcConflictArray* operation::merge(
         if (info.type == object::type::tree)
             continue;
         const auto        common_it = common_objects.find(info.path);
-        const std::string buffer    = io::content(paths.object / info.id, 1, 1, error_message);
+        const std::string buffer    = io::content(dest_paths.object / info.id, 1, 1, error_message);
         CHECKERROR(error_message, out);
         uint32_t pos = buffer.find('\n');
         if (common_it != common_objects.end()) {
             if (info.id == common_it->second.id)
                 continue;
-            existance_conflict(paths, out, info.path, buffer, 0, error_message);
+            existance_conflict(dest_paths, out, info.path, buffer, 0, error_message);
         } else {
             io::file(
-                paths.root / info.path, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 0,
+                dest_paths.root / info.path, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 0,
                 error_message);
             std::cout << "NEW:  " << info.path << '\n';
         }
@@ -132,7 +134,7 @@ LvcConflictArray* operation::merge(
         std::cout << "CONFLICT: " << out->paths[i] << '\n';
     }
 
-    operation::create(paths, dest_workspace_name, src_workspace_name, operation::type::merge, out, error_message);
+    operation::create(dest_paths, dest_workspace_name, src_workspace_name, operation::type::merge, out, error_message);
 
     return out;
 }

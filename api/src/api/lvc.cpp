@@ -168,18 +168,12 @@ extern "C" LVC_API void lvc_diff(const char* lvc, int argc, char* argv[], char**
     }
 }
 
-extern "C" LVC_API LvcConflictArray* lvc_sync(const char* lvc, const char* tmp_lvc, char** error_message) noexcept {
-    // TODO
-    Paths paths(lvc);
-    return NULL;
-}
-
 extern "C" LVC_API LvcConflictArray*
-lvc_merge(const char* lvc, const char* src_workspace_name, char** error_message) noexcept {
+lvc_merge(const char* lvc, const char* src_workspace_name, const char* src_lvc, char** error_message) noexcept {
     Paths             paths(lvc);
     const std::string dest_workspace_name       = io::content(paths.current, 0, 0, error_message);
     const std::string src_workspace_name_string = src_workspace_name;
-    return operation::merge(paths, src_workspace_name_string, dest_workspace_name, error_message);
+    return operation::merge(paths, src_workspace_name_string, dest_workspace_name, src_lvc, error_message);
 }
 
 extern "C" LVC_API void

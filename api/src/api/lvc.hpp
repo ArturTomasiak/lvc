@@ -98,14 +98,14 @@ LVC_API char** lvc_status_all(const char* lvc, char** error_message) LVC_NOEXCEP
 LVC_API char** lvc_prepare(const char* lvc, int argc, char* argv[], char** error_message) LVC_NOEXCEPT;
 LVC_API void   lvc_prepare_reset(const char* lvc, char** error_message) LVC_NOEXCEPT;
 LVC_API void   lvc_version(const char* lvc, const char* message, const char* author, char** error_message) LVC_NOEXCEPT;
-LVC_API LvcCategoryList*  lvc_category_list(const char* lvc, char** error_message) LVC_NOEXCEPT;
-LVC_API void              lvc_category_list_free(LvcCategoryList* list) LVC_NOEXCEPT;
-LVC_API LvcVersion*       lvc_history(const char* lvc, const char* workspace, char** error_message) LVC_NOEXCEPT;
-LVC_API void              lvc_history_free(LvcVersion* version) LVC_NOEXCEPT;
-LVC_API void              lvc_terminal_conflict_solver(const char* lvc, char** error_message) LVC_NOEXCEPT;
-LVC_API void              lvc_diff(const char* lvc, int argc, char* argv[], char** error_message) LVC_NOEXCEPT;
-LVC_API LvcConflictArray* lvc_sync(const char* src_lvc, const char* dest_lvc, char** error_message) LVC_NOEXCEPT;
-LVC_API LvcConflictArray* lvc_merge(const char* lvc, const char* src_workspace_name, char** error_message) LVC_NOEXCEPT;
+LVC_API LvcCategoryList* lvc_category_list(const char* lvc, char** error_message) LVC_NOEXCEPT;
+LVC_API void             lvc_category_list_free(LvcCategoryList* list) LVC_NOEXCEPT;
+LVC_API LvcVersion*      lvc_history(const char* lvc, const char* workspace, char** error_message) LVC_NOEXCEPT;
+LVC_API void             lvc_history_free(LvcVersion* version) LVC_NOEXCEPT;
+LVC_API void             lvc_terminal_conflict_solver(const char* lvc, char** error_message) LVC_NOEXCEPT;
+LVC_API void             lvc_diff(const char* lvc, int argc, char* argv[], char** error_message) LVC_NOEXCEPT;
+LVC_API LvcConflictArray*
+lvc_merge(const char* lvc, const char* src_workspace_name, const char* src_lvc, char** error_message) LVC_NOEXCEPT;
 LVC_API void
 lvc_revert(const char* lvc, char* version_id, size_t input_count, char** input, char** error_message) LVC_NOEXCEPT;
 LVC_API void     lvc_push_local(const char* lvc, const char* tmp_lvc, char** error_message) LVC_NOEXCEPT;

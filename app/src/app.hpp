@@ -10,7 +10,7 @@
 inline char* error_message = 0;
 
 namespace helper {
-    bool find_repository(std::filesystem::path& out);
+    bool find_repository(std::filesystem::path& out, std::filesystem::path in);
     void error(std::string message);
 }
 

@@ -23,10 +23,9 @@ namespace operation {
     bool conflicts_handled(
         const std::filesystem::path& root_path, const std::filesystem::path& conflict_path, char** error_message);
     void revert(Paths& paths, std::string version_id, std::vector<std::string>& input_raw, char** error_message);
-    LvcConflictArray* sync(Paths& src_paths, Paths& dest_paths, char** error_message);
     LvcConflictArray* merge(
-        Paths& paths, const std::string& src_workspace_name, const std::string& dest_workspace_name,
-        char** error_message);
+        Paths& dest_paths, const std::string& src_workspace_name, const std::string& dest_workspace_name,
+        const char* src_lvc, char** error_message);
 }
 
 namespace object {

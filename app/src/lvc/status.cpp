@@ -2,7 +2,7 @@
 
 bool lvc::status(int argc, char* argv[]) {
     std::filesystem::path lvc;
-    if (!helper::find_repository(lvc)) {
+    if (!helper::find_repository(lvc, std::filesystem::current_path())) {
         helper::error("Couldn't find LVC repository");
         return 0;
     }
