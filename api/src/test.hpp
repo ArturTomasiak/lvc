@@ -4,7 +4,7 @@
 namespace test {
     bool sha256();
     bool diff();
-    bool merge(Paths& paths);
+    bool merge();
 
     inline void print_lines(const Lines& lines) {
         for (const std::string& line : lines)

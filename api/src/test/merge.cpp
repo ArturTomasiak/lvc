@@ -1,3 +1,4 @@
+#include <chrono>
 #include <fstream>
 #include <iterator>
 #include <test.hpp>
@@ -17,7 +18,7 @@ static bool compare(const std::filesystem::path& path, const ExpectedMerge& expe
     return !file.bad() && conflict == expected.conflict && output == expected.output;
 }
 
-bool test::merge(Paths& paths) {
+bool test::merge() {
     bool                             out   = true;
     const std::vector<ExpectedMerge> tests = {
         {{}, {}, {}, "", false},
@@ -81,9 +82,22 @@ bool test::merge(Paths& paths) {
         {{"abc", "", "tail"}, {"ABC", "", "tail"}, {"abc", "", "tail "}, "ABC\n\ntail \n", false},
         {{std::string("a\0b", 3)}, {std::string("a\0c", 3)}, {std::string("a\0b", 3)}, std::string("a\0c\n", 4), false},
     };
-    const std::filesystem::path tmp = paths.tmp / "merge_test";
+
+    std::error_code             error;
+    const std::filesystem::path root = std::filesystem::temp_directory_path(error);
+    if (error) {
+        std::cout << "MERGE TEST FAILURE: could not create temporary directory\n";
+        return false;
+    }
+    const std::chrono::nanoseconds::rep stamp = std::chrono::system_clock::now().time_since_epoch().count();
+    const std::filesystem::path         path  = root / ("lvc-test-merge-" + std::to_string(stamp));
+    std::filesystem::create_directory(path, error);
+    if (path.empty() || error) {
+        std::cout << "MERGE TEST FAILURE: could not create temporary directory\n";
+        return false;
+    }
     for (const ExpectedMerge& expected : tests) {
-        if (!compare(tmp, expected)) {
+        if (!compare(path / "output", expected)) {
             std::cout << "MERGE TEST FAILURE:\nBASE:\n";
             print_lines(expected.base);
             std::cout << "OURS:\n";
@@ -93,5 +107,6 @@ bool test::merge(Paths& paths) {
             out = false;
         }
     }
+    std::filesystem::remove_all(path);
     return out;
 }

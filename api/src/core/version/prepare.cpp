@@ -3,11 +3,10 @@
 void version::prepare_reset(Paths& paths, char** error_message) {
     const std::string           workspace_name = io::content(paths.current, 0, 0, error_message);
     const std::filesystem::path prepare_dir    = prepare_path(paths, workspace_name);
-    if (!std::filesystem::is_regular_file(prepare_dir)) {
-        error_message_creator("No files have been prepared", error_message);
-        return;
-    }
-    paths.pending_remove.emplace_back(std::move(prepare_dir));
+    std::error_code             error;
+    bool                        deleted = std::filesystem::remove(prepare_dir, error);
+    if (!deleted || error)
+        error_message_creator("Could not reset prepare", error_message);
 }
 
 void version::prepare(Paths& paths, std::vector<std::string>& input_raw, char*** prepared, char** error_message) {
@@ -61,8 +60,7 @@ void version::prepare(Paths& paths, std::vector<std::string>& input_raw, char***
         buffer += path + "\n";
 
     insert_pattern(buffer, TYPE_PREPARE, nullptr);
-    const std::filesystem::path prepare_tmp = paths.add_pending_rename(prepare_dir);
-    io::file(prepare_tmp, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 1, error_message);
+    io::file(prepare_dir, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 1, error_message);
 
     if (prepared)
         *prepared = strvector_to_charpp(current);

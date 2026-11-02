@@ -9,7 +9,7 @@
 #include <paths.hpp>
 
 namespace category {
-    void             change(Paths& paths, std::string workspace_name, const char* name, char** error_message);
+    void             change(std::filesystem::path workspace, const char* name, char** error_message);
     LvcCategoryList* list(Paths& paths, char** error_message);
     void             free_category_list(LvcCategoryList* list);
 }
@@ -38,11 +38,14 @@ namespace object {
         std::filesystem::path path;
     };
 
-    void create(Paths& paths, const std::string& type, std::string& content, std::string& out_id, char** error_message);
+    void create(
+        const std::filesystem::path& object, const std::string& type, std::string& content, std::string& out_id,
+        char** error_message);
     bool exists(Paths& paths, char id[65]);
 }
 
 namespace repository {
+    void create(Paths& paths, char** error_message);
     void clone(Paths& paths, std::string path, bool clone_versioning, char** error_message);
     void rename(Paths& paths, const char* name, char** error_message);
     void storage_template(Paths& paths, StorageBehaviour option, char** error_message);
@@ -77,6 +80,8 @@ namespace version {
 
 namespace workspace {
     void create(Paths& paths, std::string workspace_name, std::string copy_workspace_name, char** error_message);
+    bool exists(Paths& paths, std::string name, char** error_message);
+    bool exists(Paths& paths, std::string name, std::filesystem::path& path, char** error_message);
     void _goto(Paths& paths, std::string workspace_name, char** error_message);
     void _default(Paths& paths, const char* workspace_name, char** error_message);
     std::vector<object::info> all_objects(Paths& paths, char** error_message);

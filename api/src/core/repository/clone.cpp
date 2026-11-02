@@ -1,34 +1,28 @@
 #include "core.hpp"
 
-static void clone_local(Paths& paths, std::filesystem::path path, bool clone_versioning, char** error_message) {
-    if (!std::filesystem::is_directory(path / ".lvc")) {
+static void validate_local(std::filesystem::path& path, char** error_message) {
+    if (!std::filesystem::is_directory(path / ".lvc"))
         error_message_creator("Clone has no .lvc folder", error_message);
-        return;
-    }
+}
 
+static void clone_local(Paths& paths, std::filesystem::path path, bool clone_versioning, char** error_message) {
+    validate_local(path, error_message);
+    ERRORCHECK(error_message);
     std::error_code ec;
+
     try {
-        std::filesystem::recursive_directory_iterator       iterator(path);
-        const std::filesystem::recursive_directory_iterator end;
-        for (; iterator != end; iterator++) {
-            const std::filesystem::directory_entry& entry    = *iterator;
-            const std::filesystem::path             relative = entry.path().lexically_relative(path);
-
-            if (!clone_versioning && iterator.depth() == 0 && relative.filename() == ".lvc") {
-                iterator.disable_recursion_pending();
+        std::filesystem::directory_iterator iterator(path);
+        for (const std::filesystem::directory_entry& entry : iterator) {
+            std::string name = entry.path().filename();
+            if (!clone_versioning && name == ".lvc")
                 continue;
-            }
 
-            if (std::filesystem::is_regular_file(entry.path())) {
-                const std::filesystem::path dest = paths.root / relative;
-                const std::filesystem::path tmp  = paths.add_pending_rename(dest);
-                std::filesystem::copy(entry.path(), tmp, ec);
-                if (ec) {
-                    error_message_creator("Failed to copy file " + entry.path().filename().string(), error_message);
-                    return;
-                }
-            } else if (std::filesystem::is_directory(entry.path())) {
-                paths.pending_directory.emplace_back(paths.root / relative);
+            std::filesystem::copy(
+                entry.path(), paths.root / entry.path().filename(),
+                std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing, ec);
+            if (ec) {
+                error_message_creator("Failed to copy file " + entry.path().filename().string(), error_message);
+                return;
             }
         }
     } catch (const std::filesystem::filesystem_error& error) {
