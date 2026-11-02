@@ -1,8 +1,9 @@
 #pragma once
 
-#include "filesystem"
-#include "vector"
+#include <filesystem>
 #include <lvc.hpp>
+#include <random>
+#include <vector>
 
 inline constexpr std::string workspacename_inactive = "inactive";
 inline constexpr std::string foldername_workspace   = "workspace";
@@ -19,6 +20,16 @@ inline constexpr std::string filename_sync          = "sync";
 inline constexpr std::string filename_merge         = "merge";
 inline constexpr std::string filename_conflict      = "conflict";
 
+inline std::filesystem::path tmp_directory() {
+    std::random_device                           rng;
+    std::uniform_int_distribution<std::uint32_t> dist(0, std::numeric_limits<std::uint32_t>::max());
+    std::filesystem::path                        tmp;
+    do {
+        tmp = std::filesystem::temp_directory_path() / ("lvc-" + std::to_string(dist(rng)));
+    } while (!std::filesystem::create_directory(tmp));
+    return tmp;
+}
+
 struct Paths {
     const std::filesystem::path lvc;
     const std::filesystem::path root;
@@ -28,6 +39,7 @@ struct Paths {
     const std::filesystem::path storage;
     const std::filesystem::path ignore;
     const std::filesystem::path local;
+    const std::filesystem::path tmp;
     Paths(const char* lvc_c_str)
         : lvc(lvc_c_str),
           root(lvc.parent_path()),
@@ -36,7 +48,8 @@ struct Paths {
           current(lvc / filename_current),
           storage(root / filename_storage),
           ignore(root / filename_ignore),
-          local(workspace / foldername_local) {};
+          local(workspace / foldername_local),
+          tmp(tmp_directory()) {};
     std::vector<std::string> resolve(
         const std::vector<std::string>& inputs, const std::string version_id, bool prefix_deleted, bool include_folders,
         char** error_message);

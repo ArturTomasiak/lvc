@@ -14,7 +14,9 @@
         }                                                                                                              \
     } while (false)
 
-#define ERRORCHECK(error_message, ...) if (*error_message) [[unlikely]] return __VA_ARGS__
+#define CHECKERROR(error_message, ...)                                                                                 \
+    if (*error_message) [[unlikely]]                                                                                   \
+    return __VA_ARGS__
 
 void  sha256(const char* in, size_t in_len, char out[65]);
 char* deflate(const char* in, size_t in_len, size_t& out_len);

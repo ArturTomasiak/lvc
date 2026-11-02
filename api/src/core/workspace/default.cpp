@@ -5,7 +5,7 @@ void workspace::_default(Paths& paths, const char* workspace_name, char** error_
         std::string workspace_str = workspace_name;
         error_message_creator("Workspace " + workspace_str + " doesn't exist", error_message);
     }
-    ERRORCHECK(error_message);
+    CHECKERROR(error_message);
     std::string           name = workspace_name;
     std::filesystem::path path;
     io::file(

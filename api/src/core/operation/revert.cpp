@@ -13,7 +13,7 @@ void operation::revert(
 
     std::vector<std::string> ignore_raw = io::content_lines(paths.ignore, 0, 0, error_message);
     std::vector<std::string> ignore     = paths.resolve(ignore_raw, version_id, 0, 1, error_message);
-    ERRORCHECK(error_message);
+    CHECKERROR(error_message);
 
     std::unordered_set<std::string_view> ignore_set;
     ignore_set.reserve(ignore.size());
@@ -26,7 +26,7 @@ void operation::revert(
         input_raw.push_back("/");
 
     std::vector<std::string> input = paths.resolve(input_raw, version_id, 0, 1, error_message);
-    ERRORCHECK(error_message);
+    CHECKERROR(error_message);
 
     std::unordered_set<std::string_view> input_set;
     input_set.reserve(input.size());
