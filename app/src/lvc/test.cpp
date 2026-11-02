@@ -85,7 +85,8 @@ bool lvc::test(int argc, char* argv[]) {
     input.repository_name  = name.c_str();
     input.workspace_name   = main_workspace.c_str();
 
-    TEST_MS_MEASURE(lvc_run_tests(&error_message), "DIFF, MERGE AND SHA256 TESTS", "DIFF, MERGE AND SHA256 SUCCESS IN: ");
+    TEST_MS_MEASURE(
+        lvc_run_tests(&error_message), "DIFF, MERGE AND SHA256 TESTS", "DIFF, MERGE AND SHA256 SUCCESS IN: ");
     TEST_MS_MEASURE(lvc_create(input, &error_message), "LVC CREATE TEST", "LVC CREATE SUCCESS IN: ");
 
     create_file(example_file_1_path, example_file_1);

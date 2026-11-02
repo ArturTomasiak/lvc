@@ -118,7 +118,7 @@ extern "C" LVC_API void lvc_category_list_free(LvcCategoryList* list) noexcept {
 
 extern "C" LVC_API LvcVersion* lvc_history(const char* lvc, const char* workspace, char** error_message) noexcept {
     Paths paths(lvc);
-    if (!workspace::exists(paths, workspace, error_message)) {
+    if (!std::filesystem::is_regular_file(paths.workspace / workspace)) {
         error_message_creator("Workspace does not exist", error_message);
         return {};
     }
@@ -209,7 +209,7 @@ extern "C" LVC_API LVC_BOOL lvc_version_exists(const char* lvc, const char* id) 
 
 extern "C" LVC_API LVC_BOOL lvc_workspace_exists(const char* lvc, const char* name, char** error_message) noexcept {
     Paths paths(lvc);
-    return workspace::exists(paths, name, error_message);
+    return std::filesystem::is_regular_file(paths.workspace / name);
 }
 
 extern "C" LVC_API void lvc_free_charpp(char** arr) noexcept { free_charpp(arr); }

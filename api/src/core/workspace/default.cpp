@@ -1,9 +1,8 @@
 #include "core.hpp"
 
 void workspace::_default(Paths& paths, const char* workspace_name, char** error_message) {
-    if (!workspace::exists(paths, workspace_name, error_message)) {
-        std::string workspace_str = workspace_name;
-        error_message_creator("Workspace " + workspace_str + " doesn't exist", error_message);
+    if (!std::filesystem::is_regular_file(paths.workspace / workspace_name)) {
+        error_message_creator("Workspace " + std::string(workspace_name) + " doesn't exist", error_message);
     }
     CHECKERROR(error_message);
     std::string           name = workspace_name;

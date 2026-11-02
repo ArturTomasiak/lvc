@@ -1,9 +1,9 @@
 #include <core.hpp>
 
 void workspace::_goto(Paths& paths, std::string workspace_name, char** error_message) {
-    const std::string     current = io::content(paths.current, 0, 0, error_message);
-    std::filesystem::path workspace;
-    if (!workspace::exists(paths, workspace_name, workspace, error_message))
+    const std::string     current   = io::content(paths.current, 0, 0, error_message);
+    std::filesystem::path workspace = paths.workspace / workspace_name;
+    if (!std::filesystem::is_regular_file(workspace))
         error_message_creator("Workspace " + workspace_name + " doesn't exist", error_message);
     if (workspace_name == current)
         error_message_creator("Already in " + workspace_name, error_message);
@@ -29,10 +29,10 @@ void workspace::_goto(Paths& paths, std::string workspace_name, char** error_mes
 
     std::filesystem::path object_dir;
     if (std::filesystem::is_regular_file(tmp)) {
-        version_id                        = io::content(tmp, 0, 0, error_message);
-        object_dir                        = dest_operation / foldername_object;
-        std::vector<object::info> objects = version::all_objects(object_dir, version_id, {}, error_message);
-        remove_tmp                        = true;
+        version_id = io::content(tmp, 0, 0, error_message);
+        object_dir = dest_operation / foldername_object;
+        objects    = version::all_objects(object_dir, version_id, {}, error_message);
+        remove_tmp = true;
     } else {
         object_dir = paths.object;
     }
@@ -61,14 +61,11 @@ void workspace::_goto(Paths& paths, std::string workspace_name, char** error_mes
         return;
     }
 
-    std::sort(
-        remove_paths.begin(), remove_paths.end(), [](const std::filesystem::path& a, const std::filesystem::path& b) {
-            return std::distance(a.begin(), a.end()) > std::distance(b.begin(), b.end());
-        });
-
-    for (const std::filesystem::path& path : remove_paths)
+    for (size_t i = remove_paths.size(); i > 0;) {
+        const std::filesystem::path& path = remove_paths[--i];
         if (std::filesystem::is_regular_file(path) || std::filesystem::is_empty(path))
             std::filesystem::remove(path);
+    }
 
     for (object::info& object : objects) {
         std::filesystem::path path = paths.root / object.path;
