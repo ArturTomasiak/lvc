@@ -45,7 +45,7 @@ LvcConflictArray* operation::merge(
     const Lines                 dest_versions  = io::content_lines(dest_workspace, 1, 1, error_message);
     const std::string           src_id         = src_versions.empty() ? "" : src_versions[0];
     const std::string           dest_id        = dest_versions.empty() ? "" : dest_versions[0];
-    std::string                 common_id      = src_versions.front();
+    std::string                 common_id      = src_id;
     bool                        common_exists  = false;
     CHECKERROR(error_message, out);
 
