@@ -30,12 +30,15 @@ char* inflate(const std::string& in, size_t& out_len) {
 
     int result = uncompress2_z((Bytef*)probe, &probe_bytes_written, (Bytef*)in_c, &probe_bytes_consumed);
 
-    if (result != Z_OK && result != Z_BUF_ERROR)
+    if (result != Z_OK && result != Z_BUF_ERROR) [[unlikely]]
         return 0;
 
     const char* newline = (const char*)std::memchr(probe, '\n', probe_bytes_written);
-    const char* space   = (const char*)std::memchr(probe, ' ', probe_bytes_written);
-    if (!space || !newline)
+    const char* first_space   = (const char*)std::memchr(probe, ' ', probe_bytes_written);
+    if (!first_space || !newline) [[unlikely]]
+        return 0;
+    const char* space   = (const char*)std::memchr(first_space + 1, ' ', probe_bytes_written);
+    if (!space) [[unlikely]]
         return 0;
     uint8_t pattern_len = (uint8_t)(newline - probe);
     out_len             = 0;
@@ -50,12 +53,12 @@ char* inflate(const std::string& in, size_t& out_len) {
     out_len++; // \n
     char* out = static_cast<char*>(malloc(out_len));
 
-    if (!out)
+    if (!out) [[unlikely]]
         return 0;
 
     result = uncompress2_z((Bytef*)out, &out_len, (Bytef*)in_c, &in_len);
 
-    if (result != Z_OK && result != Z_BUF_ERROR)
+    if (result != Z_OK && result != Z_BUF_ERROR) [[unlikely]]
         return 0;
 
     return out;
