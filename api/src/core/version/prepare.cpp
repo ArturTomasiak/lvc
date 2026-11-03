@@ -23,7 +23,7 @@ void version::prepare(Paths& paths, std::vector<std::string>& input_raw, char***
     std::vector<std::string>       ignore            = paths.resolve(ignore_raw, version_id, 1, 1, error_message);
     CHECKERROR(error_message);
 
-    std::vector<std::string> input = paths.resolve(input_raw, version_id, 1, 1, error_message);
+    std::vector<std::string> input = paths.resolve(input_raw, version_id, 1, 0, error_message);
     CHECKERROR(error_message);
     if (input.empty())
         return;
