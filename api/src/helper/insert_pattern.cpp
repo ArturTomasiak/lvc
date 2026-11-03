@@ -1,8 +1,8 @@
 #include <helper.hpp>
 
 void insert_pattern(std::string& dest, const std::string& type, const char* category) {
-    const size_t      content_size = dest.size();
-    std::string header       = type + ' ' + std::to_string(content_size) + ' ';
+    const size_t content_size = dest.size();
+    std::string  header       = type + ' ' + std::to_string(content_size) + ' ';
     if (category != nullptr && type == TYPE_WORKSPACE)
         header += category;
     header += '\n';

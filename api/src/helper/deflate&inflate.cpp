@@ -33,11 +33,11 @@ char* inflate(const std::string& in, size_t& out_len) {
     if (result != Z_OK && result != Z_BUF_ERROR) [[unlikely]]
         return 0;
 
-    const char* newline = (const char*)std::memchr(probe, '\n', probe_bytes_written);
-    const char* first_space   = (const char*)std::memchr(probe, ' ', probe_bytes_written);
+    const char* newline     = (const char*)std::memchr(probe, '\n', probe_bytes_written);
+    const char* first_space = (const char*)std::memchr(probe, ' ', probe_bytes_written);
     if (!first_space || !newline) [[unlikely]]
         return 0;
-    const char* space   = (const char*)std::memchr(first_space + 1, ' ', probe_bytes_written);
+    const char* space = (const char*)std::memchr(first_space + 1, ' ', probe_bytes_written);
     if (!space) [[unlikely]]
         return 0;
     uint8_t pattern_len = (uint8_t)(newline - probe);
