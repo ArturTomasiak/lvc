@@ -23,12 +23,12 @@ void version::prepare(Paths& paths, std::vector<std::string>& input_raw, char***
     std::vector<std::string>       ignore            = paths.resolve(ignore_raw, version_id, 1, 1, error_message);
     CHECKERROR(error_message);
 
-    std::vector<std::string> input = paths.resolve(input_raw, version_id, 1, 0, error_message);
+    std::vector<std::string> input = paths.resolve(input_raw, version_id, 1, 1, error_message);
     CHECKERROR(error_message);
     if (input.empty())
         return;
 
-    std::vector<std::string> current = io::content_lines(prepare_dir, 0, 0, error_message);
+    std::vector<std::string> current = io::content_lines(prepare_dir, 1, 1, error_message);
 
     std::unordered_set<std::string_view> current_entries;
     current_entries.reserve(current.size());
@@ -47,7 +47,11 @@ void version::prepare(Paths& paths, std::vector<std::string>& input_raw, char***
     std::erase_if(current, [&ignore_entries](const std::string& entry) { return ignore_entries.contains(entry); });
 
     std::unordered_set<std::string> version = version::all_ids(paths, version_id, ignore_entries, error_message);
-    std::erase_if(current, [&version, &paths, &error_message](const std::string& entry) {
+    std::erase_if(current, [&version, &paths, &error_message](std::string& entry) {
+        if (entry.starts_with(PREFIX_DELETED)) {
+            entry.erase(0, std::strlen(PREFIX_DELETED));
+            return false;
+        }
         std::string buffer = io::content(paths.root / entry, 0, 0, error_message);
         insert_pattern(buffer, TYPE_BLOB, nullptr);
         char id[65];
