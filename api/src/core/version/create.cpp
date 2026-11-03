@@ -200,8 +200,8 @@ void version::create(Paths& paths, std::string message, std::string author, char
         root_id = version_content[VERSION_ROOT_TREE];
     }
     std::string       buffer = build(paths.object, paths.root, root_id, status, error_message);
-    const std::string nl          = "\n";
-    buffer      += nl + message + nl + author;
+    const std::string nl     = "\n";
+    buffer += nl + message + nl + author;
     if (!merged_workspace.empty())
         buffer += nl + merged_workspace;
     std::string new_workspace;

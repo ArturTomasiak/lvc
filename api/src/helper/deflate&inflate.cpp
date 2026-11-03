@@ -35,18 +35,18 @@ char* inflate(const std::string& in, size_t& out_len) {
 
     const char* newline     = (const char*)std::memchr(probe, '\n', probe_bytes_written);
     const char* first_space = (const char*)std::memchr(probe, ' ', probe_bytes_written);
-    if (!first_space || !newline) [[unlikely]]
+    if (!newline || !first_space) [[unlikely]]
         return 0;
-    const char* space = (const char*)std::memchr(first_space + 1, ' ', probe_bytes_written);
-    if (!space) [[unlikely]]
+    const char* second_space = (const char*)std::memchr(first_space + 1, ' ', probe_bytes_written);
+    if (!second_space) [[unlikely]]
         return 0;
     uint8_t pattern_len = (uint8_t)(newline - probe);
     out_len             = 0;
-    space++;
-    while (space != newline) {
+    first_space++;
+    while (first_space != second_space) {
         out_len *= 10;
-        out_len += (size_t)(*space - '0');
-        space++;
+        out_len += (size_t)(*first_space - '0');
+        first_space++;
     }
 
     out_len += pattern_len;
