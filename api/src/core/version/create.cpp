@@ -199,15 +199,15 @@ void version::create(Paths& paths, std::string message, std::string author, char
         }
         root_id = version_content[VERSION_ROOT_TREE];
     }
-    std::string       new_root_id = build(paths.object, paths.root, root_id, status, error_message);
+    std::string       buffer = build(paths.object, paths.root, root_id, status, error_message);
     const std::string nl          = "\n";
-    std::string       buffer      = new_root_id + nl + message + nl + author;
+    buffer      += nl + message + nl + author;
     if (!merged_workspace.empty())
         buffer += nl + merged_workspace;
     std::string new_workspace;
     new_workspace.reserve(65 * (workspace_content.size() + 1));
     object::create(paths.object, TYPE_VERSION, buffer, new_workspace, error_message);
-    new_workspace[64] = '\n';
+    new_workspace += '\n';
     for (size_t i = 1; i < workspace_content.size(); i++)
         new_workspace += workspace_content[i] + '\n';
     insert_pattern(new_workspace, TYPE_WORKSPACE, category.empty() ? nullptr : category.c_str());
