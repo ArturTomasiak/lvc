@@ -50,23 +50,18 @@ LvcCategoryList* category::list(Paths& paths, char** error_message) {
         const std::filesystem::path path = entry.path();
         const std::string           name = path.filename();
         LvcCategory*                current;
-        std::string                 buffer = io::content(path, 1, 0, error_message);
-        size_t                      pos    = buffer.find(' ');
-        buffer.erase(0, pos + 1);
-        pos = buffer.find(' ');
-        buffer.erase(0, pos + 1);
-        if (buffer[0] == '\n') {
+        const std::string           buffer   = io::content(path, 1, 0, error_message);
+        const std::string           category = get_category(buffer);
+        if (category.empty()) {
             if (uncategorized_created == 0) {
                 current               = add_category(out, LVC_CATEGORY_UNCATEGORIZED, error_message);
                 uncategorized_created = 1;
             } else
                 current = find_category(out, LVC_CATEGORY_UNCATEGORIZED);
         } else {
-            pos                    = buffer.find('\n');
-            const std::string name = buffer.substr(0, pos);
-            current                = find_category(out, name);
+            current = find_category(out, category);
             if (current == nullptr) {
-                current = add_category(out, name, error_message);
+                current = add_category(out, category, error_message);
                 CHECKERROR(error_message, out);
             }
         }

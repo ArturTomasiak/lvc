@@ -36,12 +36,11 @@ namespace io {
     content_lines(std::filesystem::path file_path, bool decompress, bool ignore_pattern, char** error_message);
 }
 
-inline std::string latest_common_version(const std::vector<std::string>& a, const std::vector<std::string>& b) {
-    for (size_t i = 0; i < a.size(); i++)
-        for (size_t j = 0; j < b.size(); j++)
-            if (a[i] == b[j])
-                return a[i];
-    return "";
+inline std::string get_category(const std::string& pattern) {
+    const auto first = pattern.find(' ');
+    const auto start = pattern.find(' ', first + 1) + 1;
+    const auto end   = pattern.find('\n', start);
+    return pattern.substr(start, end - start);
 }
 
 inline void error_message_creator(const std::string message, char** dest) {

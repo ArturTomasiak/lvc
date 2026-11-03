@@ -168,9 +168,10 @@ void version::create(Paths& paths, std::string message, std::string author, char
     }
     const std::string              workspace_name    = io::content(paths.current, 0, 0, error_message);
     const std::filesystem::path    workspace         = paths.workspace / workspace_name;
-    const std::vector<std::string> workspace_content = io::content_lines(workspace, 1, 1, error_message);
+    const std::vector<std::string> workspace_content = io::content_lines(workspace, 1, 0, error_message);
     const std::filesystem::path    prepare_dir       = prepare_path(paths, workspace_name);
-    const std::string              version_id        = workspace_content.empty() ? "" : workspace_content[0];
+    const std::string              version_id = workspace_content.size() <= 1 ? std::string{} : workspace_content[1];
+    const std::string              category   = get_category(workspace_content[0]);
     if (!std::filesystem::is_regular_file(prepare_dir)) {
         error_message_creator("No files prepared", error_message);
         return;
@@ -204,18 +205,11 @@ void version::create(Paths& paths, std::string message, std::string author, char
     if (!merged_workspace.empty())
         buffer += nl + merged_workspace;
     std::string new_workspace;
+    new_workspace.reserve(65 * (workspace_content.size() + 1));
     object::create(paths.object, TYPE_VERSION, buffer, new_workspace, error_message);
-    new_workspace += "\n";
-    std::string old_workspace = io::content(workspace, 1, 0, error_message);
-    std::string category;
-    for (int i = 0; i < 2; ++i) {
-        const size_t pos = old_workspace.find(' ');
-        old_workspace.erase(0, pos + 1);
-    }
-    const size_t pos = old_workspace.find('\n');
-    category         = old_workspace.substr(0, pos);
-    old_workspace.erase(0, pos + 1);
-    new_workspace += old_workspace;
+    new_workspace[64] = '\n';
+    for (size_t i = 1; i < workspace_content.size(); i++)
+        new_workspace += workspace_content[i] + '\n';
     insert_pattern(new_workspace, TYPE_WORKSPACE, category.empty() ? nullptr : category.c_str());
     io::file(
         workspace, std::ios::binary | std::ios::trunc, new_workspace.data(), new_workspace.size(), 1, error_message);

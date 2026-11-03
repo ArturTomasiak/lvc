@@ -2,7 +2,7 @@
 
 void workspace::create(
     Paths& paths, std::string workspace_name, std::string copy_workspace_name, char** error_message) {
-    std::filesystem::path workspace = paths.workspace / workspace_name;
+    const std::filesystem::path workspace = paths.workspace / workspace_name;
     if (std::filesystem::is_regular_file(workspace)) {
         error_message_creator("Workspace already exists", error_message);
         return;
