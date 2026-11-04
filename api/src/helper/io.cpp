@@ -1,6 +1,6 @@
 #include <helper.hpp>
 
-void io::file(std::filesystem::path path, std::ios_base::openmode flags, char** error_message) {
+void io::file(const std::filesystem::path& path, std::ios_base::openmode flags, char** error_message) {
     std::filesystem::create_directories(path.parent_path());
     std::ofstream file(path, std::ios::out | flags);
     if (!file) {
@@ -11,7 +11,7 @@ void io::file(std::filesystem::path path, std::ios_base::openmode flags, char** 
 }
 
 void io::file(
-    std::filesystem::path path, std::ios_base::openmode flags, const char* content, size_t length, bool compress,
+    const std::filesystem::path& path, std::ios_base::openmode flags, const char* content, size_t length, bool compress,
     char** error_message) {
     std::filesystem::create_directories(path.parent_path());
     std::ofstream file(path, std::ios::out | flags);
@@ -36,15 +36,8 @@ void io::file(
     file.close();
 }
 
-bool io::dir(std::filesystem::path path, char** error_message) {
-    std::error_code error;
-    if (!std::filesystem::create_directory(path, error) || error)
-        return 0;
-    return 1;
-}
-
-std::string io::content(std::filesystem::path file_path, bool decompress, bool ignore_pattern, char** error_message) {
-    std::ifstream file(file_path, std::ios::binary);
+std::string io::content(const std::filesystem::path& path, bool decompress, bool ignore_pattern, char** error_message) {
+    std::ifstream file(path, std::ios::binary);
     if (!file)
         return std::string();
 
@@ -90,18 +83,18 @@ static std::vector<std::string> stream_to_lines(std::istream& stream) {
 }
 
 std::vector<std::string>
-io::content_lines(std::filesystem::path file_path, bool decompress, bool ignore_pattern, char** error_message) {
-    if (!std::filesystem::exists(file_path))
+io::content_lines(const std::filesystem::path& path, bool decompress, bool ignore_pattern, char** error_message) {
+    if (!std::filesystem::exists(path))
         return {};
     if (decompress) {
-        const std::string decompressed = io::content(file_path, decompress, ignore_pattern, error_message);
+        const std::string decompressed = io::content(path, decompress, ignore_pattern, error_message);
         if (decompressed.empty())
             return {};
 
         std::istringstream stream(std::move(decompressed));
         return stream_to_lines(stream);
     } else {
-        std::ifstream file(file_path, std::ios::binary);
+        std::ifstream file(path, std::ios::binary);
         if (!file.is_open())
             return {};
 

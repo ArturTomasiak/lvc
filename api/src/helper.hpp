@@ -27,14 +27,13 @@ void                  insert_pattern(std::string& dest, const std::string& type,
 std::filesystem::path prepare_path(Paths& paths, const std::string& workspace_name);
 
 namespace io {
-    void file(std::filesystem::path path, std::ios_base::openmode flags, char** error_message);
+    void file(const std::filesystem::path& path, std::ios_base::openmode flags, char** error_message);
     void file(
-        std::filesystem::path path, std::ios_base::openmode flags, const char* content, size_t length, bool compress,
+        const std::filesystem::path& path, std::ios_base::openmode flags, const char* content, size_t length, bool compress,
         char** error_message);
-    bool        dir(std::filesystem::path path, char** error_message);
-    std::string content(std::filesystem::path file_path, bool decompress, bool ignore_pattern, char** error_message);
+    std::string content(const std::filesystem::path& path, bool decompress, bool ignore_pattern, char** error_message);
     std::vector<std::string>
-    content_lines(std::filesystem::path file_path, bool decompress, bool ignore_pattern, char** error_message);
+    content_lines(const std::filesystem::path& path, bool decompress, bool ignore_pattern, char** error_message);
 }
 
 inline std::string get_category(const std::string& pattern) {

@@ -4,7 +4,7 @@ void operation::create(
     Paths& paths, const std::string& dest_workspace_name, const std::string& src_workspace_name, operation::type type,
     LvcConflictArray* conflicts, std::string sync, char** error_message) {
     const std::filesystem::path operation = paths.local / dest_workspace_name;
-    io::dir(operation, error_message);
+    std::filesystem::create_directory(operation);
     if (type == operation::type::merge)
         io::file(
             operation / filename_merge, std::ios::binary | std::ios::trunc, src_workspace_name.data(),
