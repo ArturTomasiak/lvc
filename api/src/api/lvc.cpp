@@ -23,7 +23,8 @@ extern "C" LVC_API void lvc_create(LvcCreateInput input, char** error_message) n
             pending_workspace.src, std::ios::binary | std::ios::trunc, input.workspace_name,
             charplen(input.workspace_name), 0, error_message);
         paths.move_pending(pending_workspace);
-        const Pending pending_current = {.type = PendingType::rename, .src = paths.get_tmp_file(), .dest = paths.current};
+        const Pending pending_current = {
+            .type = PendingType::rename, .src = paths.get_tmp_file(), .dest = paths.current};
         io::file(
             pending_current.src, std::ios::binary | std::ios::trunc, input.workspace_name,
             charplen(input.workspace_name), 0, error_message);

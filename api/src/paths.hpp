@@ -52,8 +52,8 @@ class Paths {
 
     Paths(const char* lvc_c_str, char** error_message);
     ~Paths();
-    void move_pending(const Pending& entry);
-    std::filesystem::path get_tmp_file();
+    void                     move_pending(const Pending& entry);
+    std::filesystem::path    get_tmp_file();
     std::vector<std::string> resolve(
         const std::vector<std::string>& inputs, const std::string version_id, bool prefix_deleted,
         bool include_folders);

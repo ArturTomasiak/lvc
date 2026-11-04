@@ -19,33 +19,33 @@ static std::filesystem::path tmp_directory(const std::filesystem::path& tmp_base
 }
 
 Paths::Paths(const char* lvc_c_str, char** error_message)
-        : error_message(error_message),
-          lvc(lvc_c_str),
-          root(lvc.parent_path()),
-          object(lvc / foldername_object),
-          workspace(lvc / foldername_workspace),
-          current(lvc / filename_current),
-          storage(root / filename_storage),
-          ignore(root / filename_ignore),
-          local(workspace / foldername_local),
-          name(lvc / filename_name),
-          tmp_base(tmp_base_directory(root, local)),
-          tmp(tmp_directory(tmp_base, error_message)) {
-        pending.reserve(PREALLOCATE);
-    };
+    : error_message(error_message),
+      lvc(lvc_c_str),
+      root(lvc.parent_path()),
+      object(lvc / foldername_object),
+      workspace(lvc / foldername_workspace),
+      current(lvc / filename_current),
+      storage(root / filename_storage),
+      ignore(root / filename_ignore),
+      local(workspace / foldername_local),
+      name(lvc / filename_name),
+      tmp_base(tmp_base_directory(root, local)),
+      tmp(tmp_directory(tmp_base, error_message)) {
+    pending.reserve(PREALLOCATE);
+};
 
-    Paths::~Paths() {
-        if (*error_message) [[unlikely]] {
-            std::filesystem::remove_all(tmp);
-            return;
-        }
-
-        for (Pending& entry : pending)
-            handle_pending(entry);
-
+Paths::~Paths() {
+    if (*error_message) [[unlikely]] {
         std::filesystem::remove_all(tmp);
+        return;
+    }
+
+    for (Pending& entry : pending)
+        handle_pending(entry);
+
+    std::filesystem::remove_all(tmp);
 
 #ifdef LVC_LINUX
-        sync();
+    sync();
 #endif
-    };
+};
