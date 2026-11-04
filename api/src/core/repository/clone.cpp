@@ -47,8 +47,8 @@ static void clone_local(Paths& paths, std::filesystem::path path, bool clone_ver
 
         const std::filesystem::path tmp_current = paths.tmp_file();
         io::file(
-            tmp_current, std::ios::binary | std::ios::trunc, default_workspace_name.c_str(), default_workspace_name.size(), 0,
-            error_message);
+            tmp_current, std::ios::binary | std::ios::trunc, default_workspace_name.c_str(),
+            default_workspace_name.size(), 0, error_message);
         paths.add_pending({.type = PendingType::rename, .src = tmp_current, .dest = paths.current});
     }
 

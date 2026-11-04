@@ -92,12 +92,12 @@ class Paths {
 
         for (Pending& entry : pending)
             handle_pending(entry);
-        
+
         std::filesystem::remove_all(tmp);
 
-        #ifdef LVC_LINUX
-            sync();
-        #endif
+#ifdef LVC_LINUX
+        sync();
+#endif
     };
 
     void add_pending(const Pending entry) { pending.emplace_back(std::move(entry)); }

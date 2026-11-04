@@ -83,15 +83,16 @@ bool test::merge() {
         {{std::string("a\0b", 3)}, {std::string("a\0c", 3)}, {std::string("a\0b", 3)}, std::string("a\0c\n", 4), false},
     };
 
-    std::error_code             error;
-    const std::filesystem::path root = std::filesystem::temp_directory_path(error);
+    std::error_code error;
     if (error) {
         std::cout << "MERGE TEST FAILURE: could not create temporary directory\n";
         return false;
     }
     const std::chrono::nanoseconds::rep stamp = std::chrono::system_clock::now().time_since_epoch().count();
-    const std::filesystem::path         path  = root / ("lvc-test-merge-" + std::to_string(stamp));
-    std::filesystem::create_directory(path, error);
+    std::filesystem::path               path;
+    do {
+        path = std::filesystem::temp_directory_path(error) / ("lvc-test-merge-" + std::to_string(stamp));
+    } while (!std::filesystem::create_directory(path, error));
     if (path.empty() || error) {
         std::cout << "MERGE TEST FAILURE: could not create temporary directory\n";
         return false;
