@@ -20,12 +20,12 @@ extern "C" LVC_API void lvc_create(LvcCreateInput input, char** error_message) n
         const std::filesystem::path tmp_workspace = paths.tmp_file();
         io::file(tmp_workspace, std::ios::binary | std::ios::trunc, input.workspace_name, charplen(input.workspace_name), 0, error_message);
         paths.add_pending({.type = PendingType::rename, .src = tmp_workspace, .dest = paths.lvc / filename_default});
+        const std::filesystem::path tmp_current = paths.tmp_file();
+        io::file(
+            tmp_current, std::ios::binary | std::ios::trunc, input.workspace_name, charplen(input.workspace_name), 0,
+            error_message);
+        paths.add_pending({.type = PendingType::rename, .src = tmp_current, .dest = paths.current});
     }
-    const std::filesystem::path tmp_current = paths.tmp_file();
-    io::file(
-        tmp_current, std::ios::binary | std::ios::trunc, input.workspace_name, charplen(input.workspace_name), 0,
-        error_message);
-    paths.add_pending({.type = PendingType::rename, .src = tmp_current, .dest = paths.current});
 }
 
 extern "C" LVC_API char* lvc_current(const char* lvc, char** error_message) noexcept {
