@@ -12,21 +12,22 @@ extern "C" LVC_API void lvc_create(LvcCreateInput input, char** error_message) n
     if (input.clone_repository)
         repository::clone(paths, input.clone_repository, input.clone_versioning, error_message);
     if (!input.clone_versioning) {
-        paths.add_pending({.type = PendingType::create_directory, .dest = paths.lvc});
-        paths.add_pending({.type = PendingType::create_directory, .dest = paths.workspace});
-        paths.add_pending({.type = PendingType::create_directory, .dest = paths.object});
+        paths.move_pending({.type = PendingType::create_directory, .dest = paths.lvc});
+        paths.move_pending({.type = PendingType::create_directory, .dest = paths.workspace});
+        paths.move_pending({.type = PendingType::create_directory, .dest = paths.object});
         repository::rename(paths, input.repository_name, error_message);
         workspace::create(paths, input.workspace_name, std::string{}, error_message);
-        const std::filesystem::path tmp_workspace = paths.tmp_file();
+        const Pending pending_workspace = {
+            .type = PendingType::rename, .src = paths.tmp_file(), .dest = paths.lvc / filename_default};
         io::file(
-            tmp_workspace, std::ios::binary | std::ios::trunc, input.workspace_name, charplen(input.workspace_name), 0,
-            error_message);
-        paths.add_pending({.type = PendingType::rename, .src = tmp_workspace, .dest = paths.lvc / filename_default});
-        const std::filesystem::path tmp_current = paths.tmp_file();
+            pending_workspace.src, std::ios::binary | std::ios::trunc, input.workspace_name,
+            charplen(input.workspace_name), 0, error_message);
+        paths.move_pending(pending_workspace);
+        const Pending pending_current = {.type = PendingType::rename, .src = paths.tmp_file(), .dest = paths.current};
         io::file(
-            tmp_current, std::ios::binary | std::ios::trunc, input.workspace_name, charplen(input.workspace_name), 0,
-            error_message);
-        paths.add_pending({.type = PendingType::rename, .src = tmp_current, .dest = paths.current});
+            pending_current.src, std::ios::binary | std::ios::trunc, input.workspace_name,
+            charplen(input.workspace_name), 0, error_message);
+        paths.move_pending(pending_current);
     }
 }
 

@@ -29,18 +29,11 @@ std::filesystem::path prepare_path(Paths& paths, const std::string& workspace_na
 namespace io {
     void file(const std::filesystem::path& path, std::ios_base::openmode flags, char** error_message);
     void file(
-        const std::filesystem::path& path, std::ios_base::openmode flags, const char* content, size_t length, bool compress,
-        char** error_message);
+        const std::filesystem::path& path, std::ios_base::openmode flags, const char* content, size_t length,
+        bool compress, char** error_message);
     std::string content(const std::filesystem::path& path, bool decompress, bool ignore_pattern, char** error_message);
     std::vector<std::string>
     content_lines(const std::filesystem::path& path, bool decompress, bool ignore_pattern, char** error_message);
-}
-
-inline std::string get_category(const std::string& pattern) {
-    const auto first = pattern.find(' ');
-    const auto start = pattern.find(' ', first + 1) + 1;
-    const auto end   = pattern.find('\n', start);
-    return pattern.substr(start, end - start);
 }
 
 inline void error_message_creator(const std::string message, char** dest) {

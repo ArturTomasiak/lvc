@@ -19,7 +19,6 @@ inline constexpr std::string filename_name          = "name";
 inline constexpr std::string filename_ignore        = "lvc.ignore";
 inline constexpr std::string filename_storage       = "lvc.storage";
 inline constexpr std::string filename_tmp           = "tmp";
-inline constexpr std::string filename_sync          = "sync";
 inline constexpr std::string filename_merge         = "merge";
 inline constexpr std::string filename_conflict      = "conflict";
 
@@ -100,7 +99,7 @@ class Paths {
 #endif
     };
 
-    void add_pending(const Pending entry) { pending.emplace_back(std::move(entry)); }
+    void move_pending(const Pending& entry) { pending.emplace_back(std::move(entry)); }
 
     std::filesystem::path tmp_file() { return tmp / std::to_string(tmp_counter++); }
 

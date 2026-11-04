@@ -51,7 +51,7 @@ LvcCategoryList* category::list(Paths& paths, char** error_message) {
         const std::string           name = path.filename();
         LvcCategory*                current;
         const std::string           buffer   = io::content(path, 1, 0, error_message);
-        const std::string           category = get_category(buffer);
+        const std::string           category = category::get(buffer);
         if (category.empty()) {
             if (uncategorized_created == 0) {
                 current               = add_category(out, LVC_CATEGORY_UNCATEGORIZED, error_message);

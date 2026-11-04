@@ -171,14 +171,13 @@ void version::create(Paths& paths, std::string message, std::string author, char
     const std::vector<std::string> workspace_content = io::content_lines(workspace, 1, 0, error_message);
     const std::filesystem::path    prepare_dir       = prepare_path(paths, workspace_name);
     const std::string              version_id = workspace_content.size() <= 1 ? std::string{} : workspace_content[1];
-    const std::string              category   = get_category(workspace_content[0]);
+    const std::string              category   = category::get(workspace_content[0]);
     if (!std::filesystem::is_regular_file(prepare_dir)) [[unlikely]] {
         error_message_creator("No files prepared", error_message);
         return;
     }
     const std::filesystem::path local    = paths.local / workspace_name;
     const std::filesystem::path merge    = local / filename_merge;
-    const std::filesystem::path sync     = local / filename_sync;
     const std::filesystem::path conflict = local / filename_conflict;
     std::string                 merged_workspace;
     if (std::filesystem::is_regular_file(merge)) {
@@ -209,11 +208,6 @@ void version::create(Paths& paths, std::string message, std::string author, char
     new_workspace.reserve(65 * (workspace_content.size() + 3));
     object::create(paths.object, TYPE_VERSION, buffer, new_workspace, error_message);
     new_workspace += '\n';
-    if (std::filesystem::is_regular_file(sync)) {
-        const std::vector<std::string> synced_versions = io::content_lines(sync, 0, 0, error_message);
-        for (const std::string& version : synced_versions)
-            new_workspace += version + '\n';
-    }
     for (size_t i = 1; i < workspace_content.size(); i++)
         new_workspace += workspace_content[i] + '\n';
     insert_pattern(new_workspace, TYPE_WORKSPACE, category.empty() ? nullptr : category.c_str());

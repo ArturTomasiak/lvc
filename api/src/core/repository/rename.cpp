@@ -1,7 +1,7 @@
 #include <core.hpp>
 
 void repository::rename(Paths& paths, const char* name, char** error_message) {
-    const std::filesystem::path tmp = paths.tmp_file();
-    io::file(tmp, std::ios::binary | std::ios::trunc, name, charplen(name), 0, error_message);
-    paths.add_pending({.type = PendingType::rename, .src = tmp, .dest = paths.name});
+    const Pending pending = {.type = PendingType::rename, .src = paths.tmp_file(), .dest = paths.name};
+    io::file(pending.src, std::ios::binary | std::ios::trunc, name, charplen(name), 0, error_message);
+    paths.move_pending(pending);
 }

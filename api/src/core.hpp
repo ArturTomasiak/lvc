@@ -10,16 +10,17 @@
 
 namespace category {
     void             change(Paths& paths, std::string workspace_name, const char* name, char** error_message);
+    std::string      get(const std::string& pattern);
     LvcCategoryList* list(Paths& paths, char** error_message);
     void             free_category_list(LvcCategoryList* list);
 }
 
 namespace operation {
-    enum class type : uint8_t { sync, merge, none };
+    enum class type : uint8_t { merge, none };
 
     void create(
         Paths& paths, const std::string& dest_workspace_name, const std::string& src_workspace_name,
-        operation::type type, LvcConflictArray* conflicts, std::string sync, char** error_message);
+        operation::type type, LvcConflictArray* conflicts, char** error_message);
     bool conflicts_handled(
         const std::filesystem::path& root_path, const std::filesystem::path& conflict_path, char** error_message);
     void revert(Paths& paths, std::string version_id, std::vector<std::string>& input_raw, char** error_message);

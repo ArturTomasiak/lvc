@@ -60,7 +60,7 @@ std::string io::content(const std::filesystem::path& path, bool decompress, bool
                 inflated += skipped;
                 inflated_len -= skipped;
             } else {
-                error_message_creator("Decompressed file has no header: " + file_path.string(), error_message);
+                error_message_creator("Decompressed file has no header: " + path.string(), error_message);
             }
         }
         std::string out = std::string(inflated, inflated_len);

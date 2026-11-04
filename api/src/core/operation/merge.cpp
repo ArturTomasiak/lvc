@@ -42,12 +42,14 @@ LvcConflictArray* operation::merge(
     const std::filesystem::path dest_workspace = dest_paths.workspace / dest_workspace_name;
     const std::filesystem::path conflict_path  = dest_paths.local / dest_workspace_name / filename_conflict;
     const Lines                 src_versions   = io::content_lines(src_workspace, 1, 1, error_message);
-    const Lines                 dest_versions  = io::content_lines(dest_workspace, 1, 1, error_message);
-    const std::string           src_id         = src_versions.empty() ? "" : src_versions[0];
-    const std::string           dest_id        = dest_versions.empty() ? "" : dest_versions[0];
-    std::string                 common_id      = src_id;
-    bool                        common_exists  = false;
-    bool                        up_to_date     = true;
+    Lines                       dest_versions  = io::content_lines(dest_workspace, 1, 0, error_message);
+    const std::string           dest_category  = category::get(dest_versions[0]);
+    dest_versions.erase(dest_versions.begin());
+    const std::string src_id        = src_versions.empty() ? "" : src_versions[0];
+    const std::string dest_id       = dest_versions.empty() ? "" : dest_versions[0];
+    bool              common_exists = false;
+    bool              up_to_date    = true;
+    std::string       common_id;
     CHECKERROR(error_message, out);
 
     if (!conflicts_handled(dest_paths.root, conflict_path, error_message)) [[unlikely]] {
@@ -102,7 +104,7 @@ LvcConflictArray* operation::merge(
         const Lines dest = io::content_lines(dest_paths.object / dest_info->id, 1, 1, error_message);
         CHECKERROR(error_message, out);
 
-        const bool conflict = merge3(dest_paths.root / src_info.path, common, src, dest);
+        const bool conflict = merge3(dest_paths.root / src_info.path, common, dest, src);
         if (conflict)
             add_path(out, src_info.path, error_message);
         else {
@@ -140,21 +142,25 @@ LvcConflictArray* operation::merge(
         up_to_date = false;
     }
 
-    std::string added_versions;
-    if (src_paths.root != dest_paths.root) {
+    if (src_workspace_name == dest_workspace_name) {
+        std::string workspace;
         for (const std::string& version : src_versions) {
             if (version == common_id)
                 break;
-            added_versions += version + '\n';
+            workspace += version + '\n';
         }
+        for (const std::string& version : dest_versions)
+            workspace += version + '\n';
+        insert_pattern(workspace, TYPE_WORKSPACE, dest_category.empty() ? 0 : dest_category.c_str());
+        io::file(
+            dest_workspace, std::ios::binary | std::ios::trunc, workspace.data(), workspace.size(), 1, error_message);
     }
 
     if (up_to_date) {
         std::cout << "Already up to date with " << src_workspace_name << '\n';
     } else {
         operation::create(
-            dest_paths, dest_workspace_name, src_workspace_name, operation::type::merge, out, added_versions,
-            error_message);
+            dest_paths, dest_workspace_name, src_workspace_name, operation::type::merge, out, error_message);
     }
 
     return out;

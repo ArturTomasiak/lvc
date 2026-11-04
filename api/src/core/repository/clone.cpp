@@ -18,7 +18,7 @@ static void clone_local(Paths& paths, std::filesystem::path path, bool clone_ver
     }
 
     if (clone_versioning) {
-        paths.add_pending({.type = PendingType::create_directory, .dest = paths.lvc});
+        paths.move_pending({.type = PendingType::create_directory, .dest = paths.lvc});
         try {
             std::filesystem::recursive_directory_iterator iterator(their_paths.lvc);
             for (const std::filesystem::directory_entry& entry : iterator) {
@@ -28,13 +28,13 @@ static void clone_local(Paths& paths, std::filesystem::path path, bool clone_ver
                         iterator.disable_recursion_pending();
                         continue;
                     }
-                    paths.add_pending({.type = PendingType::create_directory, .dest = dest});
+                    paths.move_pending({.type = PendingType::create_directory, .dest = dest});
                     continue;
                 }
-                const std::filesystem::path tmp = paths.tmp_file();
-                std::error_code             ec;
-                std::filesystem::copy(entry.path(), tmp, std::filesystem::copy_options::overwrite_existing, ec);
-                paths.add_pending({.type = PendingType::rename, .src = tmp, .dest = dest});
+                const Pending   pending = {.type = PendingType::rename, .src = paths.tmp_file(), .dest = dest};
+                std::error_code ec;
+                std::filesystem::copy(entry.path(), pending.src, std::filesystem::copy_options::overwrite_existing, ec);
+                paths.move_pending(pending);
                 if (ec) {
                     error_message_creator("Failed to copy the lvc folder", error_message);
                     return;
@@ -45,11 +45,11 @@ static void clone_local(Paths& paths, std::filesystem::path path, bool clone_ver
             return;
         }
 
-        const std::filesystem::path tmp_current = paths.tmp_file();
+        const Pending pending = {.type = PendingType::rename, .src = paths.tmp_file(), .dest = paths.current};
         io::file(
-            tmp_current, std::ios::binary | std::ios::trunc, default_workspace_name.c_str(),
+            pending.src, std::ios::binary | std::ios::trunc, default_workspace_name.c_str(),
             default_workspace_name.size(), 0, error_message);
-        paths.add_pending({.type = PendingType::rename, .src = tmp_current, .dest = paths.current});
+        paths.move_pending(pending);
     }
 
     if (!version.empty()) {
@@ -57,12 +57,13 @@ static void clone_local(Paths& paths, std::filesystem::path path, bool clone_ver
         for (const object::info& object : objects) {
             const std::filesystem::path path = paths.root / object.path;
             if (object.type == object::type::blob) {
-                const std::filesystem::path tmp    = paths.tmp_file();
-                std::string                 buffer = io::content(their_paths.object / object.id, 1, 1, error_message);
-                io::file(tmp, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 0, error_message);
-                paths.add_pending({.type = PendingType::rename, .src = tmp, .dest = path});
+                const Pending pending = {.type = PendingType::rename, .src = paths.tmp_file(), .dest = path};
+                std::string   buffer  = io::content(their_paths.object / object.id, 1, 1, error_message);
+                io::file(
+                    pending.src, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 0, error_message);
+                paths.move_pending(pending);
             } else if (object.type == object::type::tree)
-                paths.add_pending({.type = PendingType::create_directory, .dest = path});
+                paths.move_pending({.type = PendingType::create_directory, .dest = path});
         }
     }
 }
