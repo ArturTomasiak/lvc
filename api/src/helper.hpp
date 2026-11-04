@@ -3,8 +3,9 @@
 #include <filesystem>
 #include <fstream>
 #include <lvc.hpp>
-#include <paths.hpp>
 #include <vector>
+
+struct Paths;
 
 #define CHECKALLOC(dest, error_message, ...)                                                                           \
     do {                                                                                                               \

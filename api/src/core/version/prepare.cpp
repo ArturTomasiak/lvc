@@ -20,10 +20,10 @@ void version::prepare(Paths& paths, std::vector<std::string>& input_raw, char***
     const std::vector<std::string> workspace_content = io::content_lines(workspace, 1, 1, error_message);
     const std::string              version_id        = workspace_content.empty() ? "" : workspace_content[0];
     std::vector<std::string>       ignore_raw        = io::content_lines(paths.ignore, 0, 0, error_message);
-    std::vector<std::string>       ignore            = paths.resolve(ignore_raw, version_id, 1, 1, error_message);
+    std::vector<std::string>       ignore            = paths.resolve(ignore_raw, version_id, 1, 1);
     CHECKERROR(error_message);
 
-    std::vector<std::string> input = paths.resolve(input_raw, version_id, 1, 1, error_message);
+    std::vector<std::string> input = paths.resolve(input_raw, version_id, 1, 1);
     CHECKERROR(error_message);
     if (input.empty())
         return;

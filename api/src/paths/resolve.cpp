@@ -1,8 +1,6 @@
-#include <core.hpp>
-#include <helper.hpp>
-#include <paths.hpp>
-
 #include <algorithm>
+#include <core.hpp>
+#include <paths.hpp>
 
 struct ProcessedInput {
     bool                     root      = false;
@@ -176,8 +174,7 @@ static std::vector<std::string> resolve_processed(
 }
 
 std::vector<std::string> Paths::resolve(
-    const std::vector<std::string>& inputs, const std::string version_id, bool prefix_deleted, bool include_folders,
-    char** error_message) {
+    const std::vector<std::string>& inputs, const std::string version_id, bool prefix_deleted, bool include_folders) {
     std::vector<ProcessedInput> processed = process_input(inputs);
 
     std::vector<ProcessedInput> included;

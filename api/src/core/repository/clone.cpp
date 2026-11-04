@@ -6,7 +6,7 @@ static void validate_local(std::filesystem::path& path, char** error_message) {
 }
 
 static void clone_local(Paths& paths, std::filesystem::path path, bool clone_versioning, char** error_message) {
-    Paths             their_paths((path / ".lvc").c_str());
+    Paths             their_paths((path / ".lvc").c_str(), error_message);
     const std::string default_workspace_name = io::content(their_paths.lvc / filename_default, 0, 0, error_message);
     const std::vector<std::string> default_workspace =
         io::content_lines(their_paths.workspace / default_workspace_name, 1, 1, error_message);

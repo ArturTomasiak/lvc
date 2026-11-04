@@ -18,7 +18,7 @@ void workspace::_goto(Paths& paths, std::string dest_name, char** error_message)
     const std::string               src_id         = src_versions.empty() ? "" : src_versions[0];
     const std::filesystem::path     dest_tmp       = dest_operation / filename_tmp;
     const std::vector<std::string>  ignore_raw     = io::content_lines(paths.ignore, 0, 0, error_message);
-    const std::vector<std::string>  ignore         = paths.resolve(ignore_raw, dest_id, 0, 1, error_message);
+    const std::vector<std::string>  ignore         = paths.resolve(ignore_raw, dest_id, 0, 1);
     const std::vector<object::info> src_objects    = version::all_objects(paths.object, src_id, {}, error_message);
     std::vector<object::info>       dest_objects   = version::all_objects(paths.object, dest_id, {}, error_message);
     bool                            remove_tmp     = false;

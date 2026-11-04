@@ -18,7 +18,7 @@ bool lvc::merge(int argc, char* argv[]) {
     }
 
     std::filesystem::path src_lvc;
-    if (argc == 4 && !helper::find_repository(lvc, argv[3])) {
+    if (argc == 4 && !helper::find_repository(src_lvc, argv[3])) {
         helper::error("Couldn't find src LVC repository");
         return 0;
     }

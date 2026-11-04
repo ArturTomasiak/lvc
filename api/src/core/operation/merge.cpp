@@ -32,7 +32,7 @@ static void existance_conflict(
 LvcConflictArray* operation::merge(
     Paths& dest_paths, const std::string& src_workspace_name, const std::string& dest_workspace_name,
     const char* src_lvc, char** error_message) {
-    Paths             src_paths(src_lvc == 0 ? dest_paths.lvc.c_str() : src_lvc);
+    Paths             src_paths(src_lvc == 0 ? dest_paths.lvc.c_str() : src_lvc, error_message);
     LvcConflictArray* out                      = NULL;
     out                                        = static_cast<LvcConflictArray*>(malloc(sizeof(LvcConflictArray)));
     out->len                                   = 0;
@@ -47,11 +47,13 @@ LvcConflictArray* operation::merge(
     const std::string           dest_id        = dest_versions.empty() ? "" : dest_versions[0];
     std::string                 common_id      = src_id;
     bool                        common_exists  = false;
+    bool                        up_to_date     = true;
     CHECKERROR(error_message, out);
 
-    if (!conflicts_handled(dest_paths.root, conflict_path, error_message))
+    if (!conflicts_handled(dest_paths.root, conflict_path, error_message)) [[unlikely]] {
         error_message_creator("Unhandled conflicts. Use lvc conflict for the list of conflicts.", error_message);
-    CHECKERROR(error_message, out);
+        return out;
+    }
 
     for (const auto& src_version : src_versions) {
         if (std::find(dest_versions.begin(), dest_versions.end(), src_version) != dest_versions.end()) {
@@ -103,8 +105,10 @@ LvcConflictArray* operation::merge(
         const bool conflict = merge3(dest_paths.root / src_info.path, common, src, dest);
         if (conflict)
             add_path(out, src_info.path, error_message);
-        else
+        else {
             std::cout << "MERGED:  " << src_info.path << '\n';
+            up_to_date = false;
+        }
 
         if (dest_info != nullptr)
             dest_objects.erase(src_info.path);
@@ -127,14 +131,31 @@ LvcConflictArray* operation::merge(
                 dest_paths.root / info.path, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 0,
                 error_message);
             std::cout << "NEW:  " << info.path << '\n';
+            up_to_date = false;
         }
     }
 
     for (size_t i = 0; i < out->len; i++) {
         std::cout << "CONFLICT: " << out->paths[i] << '\n';
+        up_to_date = false;
     }
 
-    operation::create(dest_paths, dest_workspace_name, src_workspace_name, operation::type::merge, out, error_message);
+    std::string added_versions;
+    if (src_paths.root != dest_paths.root) {
+        for (const std::string& version : src_versions) {
+            if (version == common_id)
+                break;
+            added_versions += version + '\n';
+        }
+    }
+
+    if (up_to_date) {
+        std::cout << "Already up to date with " << src_workspace_name << '\n';
+    } else {
+        operation::create(
+            dest_paths, dest_workspace_name, src_workspace_name, operation::type::merge, out, added_versions,
+            error_message);
+    }
 
     return out;
 }
