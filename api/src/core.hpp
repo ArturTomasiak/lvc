@@ -9,7 +9,7 @@
 #include <paths.hpp>
 
 namespace category {
-    void             change(std::filesystem::path workspace, const char* name, char** error_message);
+    void             change(Paths& paths, std::string workspace_name, const char* name, char** error_message);
     LvcCategoryList* list(Paths& paths, char** error_message);
     void             free_category_list(LvcCategoryList* list);
 }

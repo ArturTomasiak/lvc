@@ -51,7 +51,7 @@ lvc_workspace(const char* lvc, const char* workspace_name, LVC_BOOL clean, char*
 extern "C" LVC_API void lvc_change_category(
     const char* lvc, const char* workspace_name, const char* category_name, char** error_message) noexcept {
     Paths paths(lvc, error_message);
-    category::change(paths.workspace / workspace_name, category_name, error_message);
+    category::change(paths, workspace_name, category_name, error_message);
 }
 
 extern "C" LVC_API void lvc_goto(const char* lvc, const char* workspace_name, char** error_message) noexcept {
