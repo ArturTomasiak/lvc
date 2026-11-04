@@ -46,9 +46,17 @@ static StorageBehaviour ask_storage() {
 }
 
 static void ask_clone(std::string& clone, LVC_BOOL& clone_versioning) {
-    clone = ask_line("Clone repository path/link (leave empty to start from scratch): ", 1);
-    if (clone.empty())
-        return;
+
+    std::filesystem::path clone_lvc;
+    while (true) {
+        clone = ask_line("Clone repository path/link (leave empty to start from scratch): ", 1);
+        if (clone.empty())
+            return;
+        if (helper::find_repository(clone_lvc, clone))
+            break;
+        std::cout << "Not a valid lvc repository" << '\n';
+    }
+    clone = clone_lvc;
 
     std::string answer;
     while (true) {

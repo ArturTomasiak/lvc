@@ -17,15 +17,21 @@
 #include <iostream>
 #endif
 
+#ifdef _WIN32
+#define LVC_WINDOWS
+#elif defined(__GNUC__) || defined(__clang__)
+#define LVC_LINUX
+#endif
+
 #if defined(LVC_STATIC)
 #define LVC_API
-#elif defined(_WIN32)
+#elif (LVC_WINDOWS)
 #if defined(LVC_MAKE_DLL)
 #define LVC_API __declspec(dllexport) lvc
 #else
 #define LVC_API __declspec(dllimport)
 #endif
-#elif defined(__GNUC__) || defined(__clang__)
+#elif defined(LVC_LINUX)
 #define LVC_API __attribute__((visibility("default")))
 #else
 #define LVC_API

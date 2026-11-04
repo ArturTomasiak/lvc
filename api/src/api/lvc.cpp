@@ -3,10 +3,8 @@
 #include <test.hpp>
 
 extern "C" LVC_API void lvc_create(LvcCreateInput input, char** error_message) noexcept {
-    bool                  already_exists = false;
-    std::filesystem::path lvc            = input.location;
-    lvc /= ".lvc";
-    Paths paths(lvc.c_str(), error_message);
+    const std::filesystem::path root = input.location;
+    Paths                       paths((root / ".lvc").c_str(), error_message);
     if (std::filesystem::is_directory(paths.lvc)) {
         error_message_creator("Repository already exists", error_message);
         return;
@@ -14,16 +12,20 @@ extern "C" LVC_API void lvc_create(LvcCreateInput input, char** error_message) n
     if (input.clone_repository)
         repository::clone(paths, input.clone_repository, input.clone_versioning, error_message);
     if (!input.clone_versioning) {
-        repository::create(paths, error_message);
+        paths.add_pending({.type = PendingType::create_directory, .dest = paths.lvc});
+        paths.add_pending({.type = PendingType::create_directory, .dest = paths.workspace});
+        paths.add_pending({.type = PendingType::create_directory, .dest = paths.object});
         repository::rename(paths, input.repository_name, error_message);
         workspace::create(paths, input.workspace_name, std::string{}, error_message);
-        io::file(
-            paths.current, std::ios::binary | std::ios::trunc, input.workspace_name, charplen(input.workspace_name), 0,
-            error_message);
-        workspace::_default(paths, input.workspace_name, error_message);
+        const std::filesystem::path tmp_workspace = paths.tmp_file();
+        io::file(tmp_workspace, std::ios::binary | std::ios::trunc, input.workspace_name, charplen(input.workspace_name), 0, error_message);
+        paths.add_pending({.type = PendingType::rename, .src = tmp_workspace, .dest = paths.lvc / filename_default});
     }
-    if (*error_message)
-        std::filesystem::remove_all(lvc);
+    const std::filesystem::path tmp_current = paths.tmp_file();
+    io::file(
+        tmp_current, std::ios::binary | std::ios::trunc, input.workspace_name, charplen(input.workspace_name), 0,
+        error_message);
+    paths.add_pending({.type = PendingType::rename, .src = tmp_current, .dest = paths.current});
 }
 
 extern "C" LVC_API char* lvc_current(const char* lvc, char** error_message) noexcept {

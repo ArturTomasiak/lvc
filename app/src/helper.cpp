@@ -4,9 +4,8 @@ bool helper::find_repository(std::filesystem::path& out, std::filesystem::path i
     out                            = in;
     std::filesystem::path previous = "";
     while (true) {
-        std::filesystem::path lvc = out / ".lvc";
-        if (out == previous) {
-            helper::error("Not in a valid lvc repository");
+        const std::filesystem::path lvc = out / ".lvc";
+        if (out == previous || out.empty()) {
             return false;
         }
         if (std::filesystem::is_directory(lvc)) {

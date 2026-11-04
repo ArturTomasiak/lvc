@@ -44,7 +44,6 @@ namespace object {
 }
 
 namespace repository {
-    void create(Paths& paths, char** error_message);
     void clone(Paths& paths, std::string path, bool clone_versioning, char** error_message);
     void rename(Paths& paths, const char* name, char** error_message);
     void storage_template(Paths& paths, StorageBehaviour option, char** error_message);

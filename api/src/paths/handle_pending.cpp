@@ -14,10 +14,12 @@ void Paths::handle_pending(const Pending& pending) {
             break;
         case PendingType::create_directories:
             std::filesystem::create_directories(pending.dest, ec);
+            break;
         case PendingType::rename:
             std::filesystem::rename(pending.src, pending.dest, ec);
             break;
     }
-    if (ec)
-        error_message_creator(ec.message(), error_message);
+    if (ec) {
+        error_message_creator("Filesystem error: " + ec.message() + " " + pending.dest.string(), error_message);
+    }
 }

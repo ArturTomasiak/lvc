@@ -11,5 +11,7 @@ void workspace::create(
     if (!copy_workspace_name.empty())
         buffer = io::content(paths.workspace / copy_workspace_name, 1, 1, error_message);
     insert_pattern(buffer, TYPE_WORKSPACE, nullptr);
-    io::file(workspace, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 1, error_message);
+    const std::filesystem::path tmp = paths.tmp_file();
+    io::file(tmp, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 1, error_message);
+    paths.add_pending({.type = PendingType::rename, .src = tmp, .dest = workspace});
 }
