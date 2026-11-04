@@ -31,7 +31,7 @@ static void clone_local(Paths& paths, std::filesystem::path path, bool clone_ver
                     paths.move_pending({.type = PendingType::create_directory, .dest = dest});
                     continue;
                 }
-                const Pending   pending = {.type = PendingType::rename, .src = paths.tmp_file(), .dest = dest};
+                const Pending   pending = {.type = PendingType::rename, .src = paths.get_tmp_file(), .dest = dest};
                 std::error_code ec;
                 std::filesystem::copy(entry.path(), pending.src, std::filesystem::copy_options::overwrite_existing, ec);
                 paths.move_pending(pending);
@@ -45,7 +45,7 @@ static void clone_local(Paths& paths, std::filesystem::path path, bool clone_ver
             return;
         }
 
-        const Pending pending = {.type = PendingType::rename, .src = paths.tmp_file(), .dest = paths.current};
+        const Pending pending = {.type = PendingType::rename, .src = paths.get_tmp_file(), .dest = paths.current};
         io::file(
             pending.src, std::ios::binary | std::ios::trunc, default_workspace_name.c_str(),
             default_workspace_name.size(), 0, error_message);
@@ -57,7 +57,7 @@ static void clone_local(Paths& paths, std::filesystem::path path, bool clone_ver
         for (const object::info& object : objects) {
             const std::filesystem::path path = paths.root / object.path;
             if (object.type == object::type::blob) {
-                const Pending pending = {.type = PendingType::rename, .src = paths.tmp_file(), .dest = path};
+                const Pending pending = {.type = PendingType::rename, .src = paths.get_tmp_file(), .dest = path};
                 std::string   buffer  = io::content(their_paths.object / object.id, 1, 1, error_message);
                 io::file(
                     pending.src, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 0, error_message);

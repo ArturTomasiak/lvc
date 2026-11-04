@@ -1,7 +1,7 @@
 #include <core.hpp>
 
 void repository::storage_template(Paths& paths, StorageBehaviour option, char** error_message) {
-    const Pending pending = {.type = PendingType::rename, .src = paths.tmp_file(), .dest = paths.storage};
+    const Pending pending = {.type = PendingType::rename, .src = paths.get_tmp_file(), .dest = paths.storage};
     switch (option) {
         case HYBRID:
             io::file(

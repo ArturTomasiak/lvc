@@ -61,7 +61,7 @@ void version::prepare(Paths& paths, std::vector<std::string>& input_raw, char***
         buffer += path + "\n";
 
     insert_pattern(buffer, TYPE_PREPARE, nullptr);
-    const Pending pending = {.type = PendingType::rename, .src = paths.tmp_file(), .dest = prepare_dir};
+    const Pending pending = {.type = PendingType::rename, .src = paths.get_tmp_file(), .dest = prepare_dir};
     io::file(pending.src, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 1, error_message);
     paths.move_pending(pending);
 

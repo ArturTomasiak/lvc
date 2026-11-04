@@ -6,7 +6,7 @@ void workspace::_default(Paths& paths, const char* workspace_name, char** error_
         return;
     }
     const Pending pending = {
-        .type = PendingType::rename, .src = paths.tmp_file(), .dest = paths.lvc / filename_default};
+        .type = PendingType::rename, .src = paths.get_tmp_file(), .dest = paths.lvc / filename_default};
     io::file(
         pending.src, std::ios::binary | std::ios::trunc, workspace_name, charplen(workspace_name), 0, error_message);
     paths.move_pending(pending);

@@ -18,12 +18,12 @@ extern "C" LVC_API void lvc_create(LvcCreateInput input, char** error_message) n
         repository::rename(paths, input.repository_name, error_message);
         workspace::create(paths, input.workspace_name, std::string{}, error_message);
         const Pending pending_workspace = {
-            .type = PendingType::rename, .src = paths.tmp_file(), .dest = paths.lvc / filename_default};
+            .type = PendingType::rename, .src = paths.get_tmp_file(), .dest = paths.lvc / filename_default};
         io::file(
             pending_workspace.src, std::ios::binary | std::ios::trunc, input.workspace_name,
             charplen(input.workspace_name), 0, error_message);
         paths.move_pending(pending_workspace);
-        const Pending pending_current = {.type = PendingType::rename, .src = paths.tmp_file(), .dest = paths.current};
+        const Pending pending_current = {.type = PendingType::rename, .src = paths.get_tmp_file(), .dest = paths.current};
         io::file(
             pending_current.src, std::ios::binary | std::ios::trunc, input.workspace_name,
             charplen(input.workspace_name), 0, error_message);
