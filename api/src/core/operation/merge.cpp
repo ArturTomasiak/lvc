@@ -83,9 +83,10 @@ LvcConflictArray* operation::merge(
     size_t d = 0, s = 0;
     bool   dend = false, send = false;
     while (!dend && !send) {
-        const object::info&         dest            = dest_objects[d];
-        const object::info&         src             = src_objects[s];
-        const std::filesystem::path src_object_path = src_paths.object / src.id;
+        const object::info&         dest             = dest_objects[d];
+        const object::info&         src              = src_objects[s];
+        const std::filesystem::path src_object_path  = src_paths.object / src.id;
+        const std::filesystem::path dest_object_path = dest_paths.object / dest.id;
 
         if (remote_src) {
             const std::filesystem::path src_object_dest_path = dest_paths.object / src.id;
@@ -107,9 +108,9 @@ LvcConflictArray* operation::merge(
                 bool conflict = merge3(
                     dest.path,
                     common == nullptr ? Lines{}
-                                      : io::content_lines(dest_paths.root / common->path, 1, 1, error_message),
-                    io::content_lines(dest_paths.root / dest.path, 1, 1, error_message),
-                    io::content_lines(src_paths.root / src.path, 1, 1, error_message));
+                                      : io::content_lines(dest_paths.object / common->id, 1, 1, error_message),
+                    io::content_lines(dest_object_path, 1, 1, error_message),
+                    io::content_lines(src_object_path, 1, 1, error_message));
                 if (conflict)
                     add_path(out, dest.path, error_message);
                 else
@@ -130,7 +131,7 @@ LvcConflictArray* operation::merge(
                 } else if (common_it->second.id == src.id) {
                 } else {
                     existance_conflict(
-                        dest_paths, out, src.path, io::content(src_paths.root / src.path, 1, 1, error_message), false,
+                        dest_paths, out, src.path, io::content(src_object_path, 1, 1, error_message), false,
                         error_message);
                 }
             }
@@ -143,7 +144,7 @@ LvcConflictArray* operation::merge(
                     std::filesystem::remove(dest_paths.root / src.path, ec);
                 } else {
                     existance_conflict(
-                        dest_paths, out, dest.path, io::content(dest_paths.root / dest.path, 1, 1, error_message), true,
+                        dest_paths, out, dest.path, io::content(dest_object_path, 1, 1, error_message), true,
                         error_message);
                 }
             }
