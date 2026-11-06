@@ -24,6 +24,7 @@ inline constexpr std::string filename_conflict      = "conflict";
 
 enum class PendingType : uint8_t {
     remove,
+    remove_conditional,
     remove_all,
     create_directory,
     create_directory_conditional,

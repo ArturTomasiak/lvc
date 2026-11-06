@@ -40,55 +40,54 @@ void workspace::_goto(Paths& paths, std::string dest_name, char** error_message)
         dest_object_dir = paths.object;
     }
 
-    CHECKERROR(error_message);
+    {
+        std::vector<std::filesystem::path> remove_paths;
+        remove_paths.reserve(PREALLOCATE);
 
-    std::vector<std::filesystem::path> remove_paths;
-
-    try {
-        std::filesystem::recursive_directory_iterator iterator(paths.root);
-        for (const std::filesystem::directory_entry& entry : iterator) {
-            if (entry.is_directory() && entry.path().filename() == ".lvc") {
-                iterator.disable_recursion_pending();
-                continue;
-            }
-            std::filesystem::path relative = entry.path().lexically_relative(paths.root);
-            if (ignore_set.contains(relative.string())) {
-                if (entry.is_directory())
+        try {
+            std::filesystem::recursive_directory_iterator iterator(paths.root);
+            for (const std::filesystem::directory_entry& entry : iterator) {
+                if (entry.is_directory() && entry.path().filename() == ".lvc") {
                     iterator.disable_recursion_pending();
-                continue;
+                    continue;
+                }
+                std::filesystem::path relative = entry.path().lexically_relative(paths.root);
+                if (ignore_set.contains(relative.string())) {
+                    if (entry.is_directory())
+                        iterator.disable_recursion_pending();
+                    continue;
+                }
+                remove_paths.push_back(entry.path());
             }
-            remove_paths.push_back(entry.path());
+        } catch (const std::filesystem::filesystem_error& error) {
+            error_message_creator("Directory iteration failure", error_message);
+            return;
         }
-    } catch (const std::filesystem::filesystem_error& error) {
-        error_message_creator("Directory iteration failure", error_message);
-        return;
-    }
 
+        for (size_t i = remove_paths.size(); i > 0;)
+            paths.move_pending({.type = PendingType::remove_conditional, .dest = remove_paths[--i]});
+    }
     CHECKERROR(error_message);
-
-    for (size_t i = remove_paths.size(); i > 0;) {
-        const std::filesystem::path& path = remove_paths[--i];
-        if (std::filesystem::is_regular_file(path) || std::filesystem::is_empty(path))
-            std::filesystem::remove(path);
-    }
-
     for (object::info& object : dest_objects) {
-        const std::filesystem::path path   = paths.root / object.path;
-        const std::filesystem::path parent = path.parent_path();
-        if (!std::filesystem::is_directory(parent))
-            std::filesystem::create_directories(path.parent_path());
+        const std::filesystem::path path = paths.root / object.path;
+
+        paths.move_pending({.type = PendingType::create_directories_conditional, .dest = path.parent_path()});
         if (object.type == object::type::blob) {
-            std::string buffer = io::content(dest_object_dir / object.id, 1, 1, error_message);
-            io::file(
-                paths.root / path, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 0, error_message);
+            const Pending pending = {.type = PendingType::rename, .src = paths.get_tmp_file(), .dest = path};
+            std::string   buffer  = io::content(dest_object_dir / object.id, 1, 1, error_message);
+            io::file(pending.src, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 0, error_message);
+            paths.move_pending(pending);
         } else if (object.type == object::type::tree)
-            std::filesystem::create_directory(path);
+            paths.move_pending({.type = PendingType::create_directory_conditional, .dest = path});
     }
-    CHECKERROR(error_message);
-    io::file(paths.current, std::ios::binary | std::ios::trunc, dest_name.c_str(), dest_name.size(), 0, error_message);
-    CHECKERROR(error_message);
+
+    const Pending pending = {.type = PendingType::rename, .src = paths.get_tmp_file(), .dest = paths.current};
+    io::file(pending.src, std::ios::binary | std::ios::trunc, dest_name.c_str(), dest_name.size(), 0, error_message);
+    paths.move_pending(pending);
+
     if (remove_tmp) {
-        std::filesystem::remove(dest_tmp);
-        std::filesystem::remove_all(dest_object_dir);
+        paths.move_pending({.type = PendingType::remove, .dest = dest_tmp});
+        paths.move_pending({.type = PendingType::remove_all, .dest = dest_object_dir});
     }
+    CHECKERROR(error_message);
 }
