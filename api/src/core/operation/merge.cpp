@@ -3,7 +3,7 @@
 static void add_path(LvcConflictArray* out, const std::filesystem::path& path, char** error_message) {
     if (out->len == out->alloc) {
         out->alloc *= 2;
-        out->paths = static_cast<char**>(realloc(out, out->alloc * sizeof(char*)));
+        out->paths = static_cast<char**>(realloc(out->paths, out->alloc * sizeof(char*)));
         CHECKALLOC(out->paths, error_message);
     }
     size_t len = charplen(path.c_str()) + 1;
@@ -65,88 +65,109 @@ LvcConflictArray* operation::merge(
         }
     }
 
-    const std::vector<object::info> dest_objects = version::all_objects(dest_paths.object, dest_id, {}, error_message);
-    const std::vector<object::info> src_objects  = version::all_objects(src_paths.object, src_id, {}, error_message);
     std::unordered_map<std::filesystem::path, object::info> dest_map;
     std::unordered_map<std::filesystem::path, object::info> src_map;
     std::unordered_map<std::filesystem::path, object::info> common_map =
         common_id.empty() ? std::unordered_map<std::filesystem::path, object::info>{}
                           : version::map_all_objects(dest_paths, common_id, {}, error_message);
-    dest_map.reserve(dest_objects.size());
-    src_map.reserve(src_objects.size());
-    for (const object::info& object : dest_objects)
-        dest_map.insert({object.path, object});
-    for (const object::info& object : src_objects)
-        src_map.insert({object.path, object});
+    std::vector<std::filesystem::path> all_paths;
+
+    {
+        const std::vector<object::info> dest_objects =
+            version::all_objects(dest_paths.object, dest_id, {}, error_message);
+        const std::vector<object::info> src_objects = version::all_objects(src_paths.object, src_id, {}, error_message);
+
+        dest_map.reserve(dest_objects.size());
+        src_map.reserve(src_objects.size());
+        all_paths.reserve(dest_objects.size() + src_objects.size());
+
+        for (const object::info& object : dest_objects) {
+            dest_map.insert({object.path, object});
+            all_paths.emplace_back(std::move(object.path));
+        }
+        for (const object::info& object : src_objects) {
+            src_map.insert({object.path, object});
+            if (!dest_map.contains(object.path))
+                all_paths.emplace_back(std::move(object.path));
+        }
+    }
     CHECKERROR(error_message, out);
 
-    size_t d = 0, s = 0;
-    bool   dend = false, send = false;
-    while (!dend && !send) {
-        const object::info&         dest             = dest_objects[d];
-        const object::info&         src              = src_objects[s];
-        const std::filesystem::path src_object_path  = src_paths.object / src.id;
-        const std::filesystem::path dest_object_path = dest_paths.object / dest.id;
+    for (const std::filesystem::path& path : all_paths) {
+        const auto dest_it   = dest_map.find(path);
+        const auto src_it    = src_map.find(path);
+        const auto common_it = common_map.find(path);
+
+        const object::info* dest   = dest_it == dest_map.end() ? nullptr : &dest_it->second;
+        const object::info* src    = src_it == src_map.end() ? nullptr : &src_it->second;
+        const object::info* common = common_it == common_map.end() ? nullptr : &common_it->second;
+
+        const bool dest_tree = dest ? dest->type == object::type::tree : false;
+        const bool src_tree  = src ? src->type == object::type::tree : false;
 
         if (remote_src) {
-            const std::filesystem::path src_object_dest_path = dest_paths.object / src.id;
-            if (!std::filesystem::is_regular_file(src_object_dest_path))
-                std::filesystem::copy(src_object_path, src_object_dest_path, ec);
+            const Pending pending = {
+                .type = PendingType::rename, .src = dest_paths.get_tmp_file(), .dest = dest_paths.object / src->id};
+            if (!std::filesystem::is_regular_file(pending.dest)) {
+                std::filesystem::copy(src_paths.object / src->id, pending.src, ec);
+                dest_paths.move_pending(pending);
+            }
         }
 
-        if (dest.path == src.path) {
-            dest_objects.size() - 1 > d ? d++ : dend = true;
-            src_objects.size() - 1 > s ? s++ : send = true;
-            const auto    common_it = common_map.find(dest.path);
-            object::info* common    = nullptr;
-            if (common_it != common_map.end())
-                common = &common_it->second;
+        if (dest && src && !dest_tree && !src_tree) {
+            if (dest->id == src->id)
+                continue;
+            up_to_date            = false;
+            const Pending pending = {
+                .type = PendingType::rename, .src = dest_paths.get_tmp_file(), .dest = dest_paths.root / dest->path};
+            bool conflict = merge3(
+                pending.src,
+                common == nullptr ? Lines{} : io::content_lines(dest_paths.object / common->id, 1, 1, error_message),
+                io::content_lines(dest_paths.object / dest->id, 1, 1, error_message),
+                io::content_lines(src_paths.object / src->id, 1, 1, error_message));
+            dest_paths.move_pending(pending);
+            if (conflict)
+                add_path(out, dest->path, error_message);
+            else
+                std::cout << "MERGED: " << dest->path << '\n';
+        }
 
-            if (dest.id == src.id) {
+        else if (dest && !dest_tree) {
+            if (common) {
+                up_to_date = false;
+                if (dest->id == common->id) {
+                    dest_paths.move_pending({.type = PendingType::remove, .dest = dest_paths.root / dest->path});
+                    std::cout << "REMOVED: " << dest->path << '\n';
+                } else
+                    up_to_date = false;
+                existance_conflict(
+                    dest_paths, out, dest_paths.root / dest->path,
+                    io::content(dest_paths.object / dest->id, 1, 1, error_message), 1, error_message);
+            }
+        }
+
+        else if (src && !src_tree) {
+            if (common) {
+                if (src->id != common->id) {
+                    up_to_date = false;
+                    existance_conflict(
+                        dest_paths, out, dest_paths.root / src->path,
+                        io::content(src_paths.object / src->id, 1, 1, error_message), 0, error_message);
+                }
             } else {
-                up_to_date    = false;
-                bool conflict = merge3(
-                    dest.path,
-                    common == nullptr ? Lines{}
-                                      : io::content_lines(dest_paths.object / common->id, 1, 1, error_message),
-                    io::content_lines(dest_object_path, 1, 1, error_message),
-                    io::content_lines(src_object_path, 1, 1, error_message));
-                if (conflict)
-                    add_path(out, dest.path, error_message);
-                else
-                    std::cout << "MERGED: " << dest.path << '\n';
-            }
-        } else {
-            const auto dest_it = dest_map.find(src.path);
-            const auto src_it  = src_map.find(dest.path);
-            if (dest_it == dest_map.end()) {
-                up_to_date = false;
-                src_objects.size() - 1 > s ? s++ : send = true;
-                const auto common_it = common_map.find(src.path);
-                if (common_it == common_map.end()) {
-                    const std::string buffer = io::content(src_object_path, 1, 1, error_message);
-                    io::file(
-                        dest_paths.root / src.path, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 0,
-                        error_message);
-                } else if (common_it->second.id == src.id) {
-                } else {
-                    existance_conflict(
-                        dest_paths, out, src.path, io::content(src_object_path, 1, 1, error_message), false,
-                        error_message);
-                }
-            }
-            if (src_it == src_map.end()) {
-                up_to_date = false;
-                dest_objects.size() - 1 > d ? d++ : dend = true;
-                const auto common_it = common_map.find(dest.path);
-                if (common_it == common_map.end()) {
-                } else if (common_it->second.id == dest.id) {
-                    std::filesystem::remove(dest_paths.root / src.path, ec);
-                } else {
-                    existance_conflict(
-                        dest_paths, out, dest.path, io::content(dest_object_path, 1, 1, error_message), true,
-                        error_message);
-                }
+                up_to_date            = false;
+                const Pending pending = {
+                    .type = PendingType::rename, .src = dest_paths.get_tmp_file(), .dest = dest_paths.root / src->path};
+                const std::string buffer = io::content(src_paths.object / src->id, 1, 1, error_message);
+
+                io::file(
+                    pending.dest, std::ios::binary | std::ios::trunc, buffer.c_str(), buffer.size(), 0, error_message);
+
+                dest_paths.move_pending(
+                    {.type = PendingType::create_directories_conditional, .dest = pending.dest.parent_path()});
+                dest_paths.move_pending(pending);
+
+                std::cout << "NEW: " << src->path << '\n';
             }
         }
     }
@@ -155,8 +176,14 @@ LvcConflictArray* operation::merge(
         std::cout << "CONFLICT: " << out->paths[i] << '\n';
     }
 
+    if (up_to_date) {
+        std::cout << "Already up to date with " << src_workspace_name << '\n';
+        return out;
+    }
+
     if (src_workspace_name == dest_workspace_name) {
-        std::string workspace;
+        const Pending pending = {.type = PendingType::rename, .src = dest_paths.get_tmp_file(), .dest = dest_workspace};
+        std::string   workspace;
         for (const std::string& version : src_versions) {
             if (version == common_id)
                 break;
@@ -165,16 +192,11 @@ LvcConflictArray* operation::merge(
         for (const std::string& version : dest_versions)
             workspace += version + '\n';
         insert_pattern(workspace, TYPE_WORKSPACE, dest_category.empty() ? 0 : dest_category.c_str());
-        io::file(
-            dest_workspace, std::ios::binary | std::ios::trunc, workspace.data(), workspace.size(), 1, error_message);
+        io::file(pending.src, std::ios::binary | std::ios::trunc, workspace.data(), workspace.size(), 1, error_message);
+        dest_paths.move_pending(pending);
     }
 
-    if (up_to_date) {
-        std::cout << "Already up to date with " << src_workspace_name << '\n';
-    } else {
-        operation::create(
-            dest_paths, dest_workspace_name, src_workspace_name, operation::type::merge, out, error_message);
-    }
+    operation::create(dest_paths, dest_workspace_name, src_workspace_name, operation::type::merge, out, error_message);
 
     return out;
 }

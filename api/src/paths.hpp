@@ -22,7 +22,14 @@ inline constexpr std::string filename_tmp           = "tmp";
 inline constexpr std::string filename_merge         = "merge";
 inline constexpr std::string filename_conflict      = "conflict";
 
-enum class PendingType : uint8_t { remove, remove_all, create_directory, create_directories, rename };
+enum class PendingType : uint8_t {
+    remove,
+    remove_all,
+    create_directory,
+    create_directories,
+    create_directories_conditional,
+    rename
+};
 
 struct Pending {
     const PendingType           type;
