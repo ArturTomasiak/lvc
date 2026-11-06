@@ -223,7 +223,7 @@ void version::create(Paths& paths, std::string message, std::string author, char
     CHECKERROR(error_message);
 
     paths.move_pending(pending);
-    paths.move_pending({.type = PendingType::remove, .dest = merge});
+    paths.move_pending({.type = PendingType::remove, .dest = prepare_dir});
 }
 
 void version::create_tmp(

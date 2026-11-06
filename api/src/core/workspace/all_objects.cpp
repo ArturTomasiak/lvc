@@ -18,13 +18,15 @@ std::vector<object::info> workspace::all_objects(Paths& paths, char** error_mess
             object.path = entry.path().lexically_relative(paths.root);
             object.type = std::filesystem::is_regular_file(entry.path()) ? object::type::blob : object::type::tree;
 
-            std::string buffer = io::content(entry.path(), 0, 0, error_message);
-            insert_pattern(buffer, TYPE_BLOB, nullptr);
+            if (object.type == object::type::blob) {
+                std::string buffer = io::content(entry.path(), 0, 0, error_message);
+                insert_pattern(buffer, TYPE_BLOB, nullptr);
 
-            char id[65];
-            sha256(buffer.data(), buffer.size(), id);
+                char id[65];
+                sha256(buffer.data(), buffer.size(), id);
+                object.id = id;
+            }
 
-            object.id = id;
             out.push_back(std::move(object));
         }
     } catch (const std::filesystem::filesystem_error& error) {

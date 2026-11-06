@@ -19,6 +19,10 @@ void Paths::handle_pending(const Pending& pending) {
         case PendingType::create_directory:
             std::filesystem::create_directory(pending.dest, ec);
             break;
+        case PendingType::create_directory_conditional:
+            if (!std::filesystem::is_directory(pending.dest))
+                std::filesystem::create_directory(pending.dest, ec);
+            break;
         case PendingType::rename:
             std::filesystem::rename(pending.src, pending.dest, ec);
             break;

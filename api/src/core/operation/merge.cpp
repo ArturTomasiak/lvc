@@ -77,6 +77,11 @@ LvcConflictArray* operation::merge(
             version::all_objects(dest_paths.object, dest_id, {}, error_message);
         const std::vector<object::info> src_objects = version::all_objects(src_paths.object, src_id, {}, error_message);
 
+        if (workspace::changed_since_ver(dest_paths, dest_objects, error_message)) {
+            error_message_creator("Unsaved changes. Create a new version before merging.", error_message);
+            return out;
+        }
+
         dest_map.reserve(dest_objects.size());
         src_map.reserve(src_objects.size());
         all_paths.reserve(dest_objects.size() + src_objects.size());
@@ -105,7 +110,7 @@ LvcConflictArray* operation::merge(
         const bool dest_tree = dest ? dest->type == object::type::tree : false;
         const bool src_tree  = src ? src->type == object::type::tree : false;
 
-        if (remote_src) {
+        if (remote_src && src) {
             const Pending pending = {
                 .type = PendingType::rename, .src = dest_paths.get_tmp_file(), .dest = dest_paths.object / src->id};
             if (!std::filesystem::is_regular_file(pending.dest)) {
@@ -172,31 +177,33 @@ LvcConflictArray* operation::merge(
         }
     }
 
-    for (size_t i = 0; i < out->len; i++) {
-        std::cout << "CONFLICT: " << out->paths[i] << '\n';
-    }
-
     if (up_to_date) {
         std::cout << "Already up to date with " << src_workspace_name << '\n';
         return out;
     }
 
-    if (src_workspace_name == dest_workspace_name) {
-        const Pending pending = {.type = PendingType::rename, .src = dest_paths.get_tmp_file(), .dest = dest_workspace};
-        std::string   workspace;
-        for (const std::string& version : src_versions) {
-            if (version == common_id)
-                break;
-            workspace += version + '\n';
-        }
-        for (const std::string& version : dest_versions)
-            workspace += version + '\n';
-        insert_pattern(workspace, TYPE_WORKSPACE, dest_category.empty() ? 0 : dest_category.c_str());
-        io::file(pending.src, std::ios::binary | std::ios::trunc, workspace.data(), workspace.size(), 1, error_message);
-        dest_paths.move_pending(pending);
-    }
+    const Pending operation = {
+        .type = PendingType::create_directory_conditional, .dest = dest_paths.local / dest_workspace_name};
+    const Pending merge = {
+        .type = PendingType::rename, .src = dest_paths.get_tmp_file(), .dest = operation.dest / filename_merge};
+    const Pending conflict = {
+        .type = PendingType::rename, .src = dest_paths.get_tmp_file(), .dest = operation.dest / filename_conflict};
+    dest_paths.move_pending(operation);
 
-    operation::create(dest_paths, dest_workspace_name, src_workspace_name, operation::type::merge, out, error_message);
+    const std::string merge_buffer = src_workspace_name + '\n' + src_id;
+    io::file(merge.src, std::ios::binary | std::ios::trunc, merge_buffer.data(), merge_buffer.size(), 0, error_message);
+    dest_paths.move_pending(merge);
+
+    if (out->len != 0) {
+        std::ofstream conflict_stream(conflict.src, std::ios::binary | std::ios::trunc | std::ios::out);
+        for (size_t i = 0; i < out->len; i++) {
+            conflict_stream << out->paths[i];
+            conflict_stream << '\n';
+            std::cout << "CONFLICT: " << out->paths[i] << '\n';
+        }
+        conflict_stream.close();
+        dest_paths.move_pending(conflict);
+    }
 
     return out;
 }

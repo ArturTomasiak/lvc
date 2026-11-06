@@ -26,6 +26,7 @@ enum class PendingType : uint8_t {
     remove,
     remove_all,
     create_directory,
+    create_directory_conditional,
     create_directories,
     create_directories_conditional,
     rename
