@@ -121,11 +121,12 @@ static std::string build(
     Paths& paths, const std::filesystem::path& object_dir, const std::filesystem::path& working_dir,
     const std::string& tree_id, const std::vector<std::string>& status, char** error_message) {
     std::vector<Tree> trees;
-    trees.emplace_back();
     trees.reserve(PREALLOCATE);
 
     if (!tree_id.empty())
         tree_from_version(object_dir, trees, tree_id, {}, error_message);
+    else
+        trees.emplace_back();
 
     for (std::string path : status) {
         bool deleted = path.starts_with(PREFIX_DELETED);
