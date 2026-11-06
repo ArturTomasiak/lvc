@@ -5,7 +5,7 @@
 // pattern is written file content
 
 void object::create(
-    const std::filesystem::path& object, const std::string& type, std::string& content, std::string& id,
+    Paths& paths, const std::filesystem::path& object, const std::string& type, std::string& content, std::string& id,
     char** error_message) {
     insert_pattern(content, type, nullptr);
 

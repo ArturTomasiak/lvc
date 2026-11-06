@@ -161,7 +161,7 @@ LvcConflictArray* operation::merge(
                 const std::string buffer = io::content(src_paths.object / src->id, 1, 1, error_message);
 
                 io::file(
-                    pending.dest, std::ios::binary | std::ios::trunc, buffer.c_str(), buffer.size(), 0, error_message);
+                    pending.src, std::ios::binary | std::ios::trunc, buffer.c_str(), buffer.size(), 0, error_message);
 
                 dest_paths.move_pending(
                     {.type = PendingType::create_directories_conditional, .dest = pending.dest.parent_path()});

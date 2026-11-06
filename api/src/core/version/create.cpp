@@ -20,15 +20,15 @@ struct TreeRelation {
 };
 
 static void add_object(
-    std::filesystem::path& path, const std::filesystem::path& object_dir, std::vector<VersionObject>& objects,
-    char** error_message) {
+    Paths& paths, std::filesystem::path& path, const std::filesystem::path& object_dir,
+    std::vector<VersionObject>& objects, char** error_message) {
     std::string filename = path.filename();
     std::erase_if(objects, [&](const VersionObject& object) { return object.name == filename; });
     VersionObject object;
     object.name        = filename;
     object.type        = TYPE_BLOB;
     std::string buffer = io::content(path, 0, 0, error_message);
-    object::create(object_dir, TYPE_BLOB, buffer, object.id, error_message);
+    object::create(paths, object_dir, TYPE_BLOB, buffer, object.id, error_message);
     objects.push_back(std::move(object));
 }
 
@@ -37,7 +37,8 @@ rem_object(std::filesystem::path path, const std::filesystem::path& object_dir, 
     std::erase_if(objects, [&](const VersionObject& object) { return object.name == path.filename(); });
 }
 
-static std::string tree_builder(TreeRelation& relation, const std::filesystem::path& object_dir, char** error_message) {
+static std::string
+tree_builder(Paths& paths, TreeRelation& relation, const std::filesystem::path& object_dir, char** error_message) {
     std::string tree_content;
     std::string type;
     std::string id;
@@ -45,7 +46,7 @@ static std::string tree_builder(TreeRelation& relation, const std::filesystem::p
 
     type = TYPE_TREE;
     for (TreeRelation& child : relation.children) {
-        id   = tree_builder(child, object_dir, error_message);
+        id   = tree_builder(paths, child, object_dir, error_message);
         name = child.tree.relative.filename();
         tree_content += type + " " + id + " " + name + "\n";
     }
@@ -57,7 +58,7 @@ static std::string tree_builder(TreeRelation& relation, const std::filesystem::p
         tree_content += type + " " + id + " " + name + "\n";
     }
 
-    object::create(object_dir, TYPE_TREE, tree_content, id, error_message);
+    object::create(paths, object_dir, TYPE_TREE, tree_content, id, error_message);
     return id;
 }
 
@@ -117,8 +118,8 @@ static void tree_from_version(
 }
 
 static std::string build(
-    const std::filesystem::path& object_dir, const std::filesystem::path& working_dir, const std::string& tree_id,
-    const std::vector<std::string>& status, char** error_message) {
+    Paths& paths, const std::filesystem::path& object_dir, const std::filesystem::path& working_dir,
+    const std::string& tree_id, const std::vector<std::string>& status, char** error_message) {
     std::vector<Tree> trees;
     trees.emplace_back();
     trees.reserve(PREALLOCATE);
@@ -150,7 +151,7 @@ static std::string build(
         }
 
         else if (std::filesystem::is_regular_file(working_path))
-            add_object(working_path, object_dir, tree->objects, error_message);
+            add_object(paths, working_path, object_dir, tree->objects, error_message);
 
         else if (deleted)
             rem_object(path, object_dir, tree->objects);
@@ -158,7 +159,7 @@ static std::string build(
 
     TreeRelation tree_relation = tree_relation_init(trees);
 
-    return tree_builder(tree_relation, object_dir, error_message);
+    return tree_builder(paths, tree_relation, object_dir, error_message);
 }
 
 void version::create(Paths& paths, std::string message, std::string author, char** error_message) {
@@ -182,7 +183,7 @@ void version::create(Paths& paths, std::string message, std::string author, char
     std::string                 merged_workspace;
     if (std::filesystem::is_regular_file(merge)) {
         merged_workspace = io::content(merge, 0, 0, error_message);
-        std::filesystem::remove(merge);
+        paths.move_pending({.type = PendingType::remove, .dest = merge});
     }
     if (!operation::conflicts_handled(paths.root, conflict, error_message)) {
         error_message_creator("Unhandled conflicts. Use lvc conflict for the list of conflicts.", error_message);
@@ -199,34 +200,40 @@ void version::create(Paths& paths, std::string message, std::string author, char
         }
         root_id = version_content[VERSION_ROOT_TREE];
     }
-    std::string       buffer = build(paths.object, paths.root, root_id, status, error_message);
+
+    std::string       buffer = build(paths, paths.object, paths.root, root_id, status, error_message);
     const std::string nl     = "\n";
     buffer += nl + message + nl + author;
     if (!merged_workspace.empty())
         buffer += nl + merged_workspace;
+
+    const Pending pending = {.type = PendingType::rename, .src = paths.get_tmp_file(), .dest = workspace};
+
     std::string new_workspace;
     new_workspace.reserve(65 * (workspace_content.size() + 3));
-    object::create(paths.object, TYPE_VERSION, buffer, new_workspace, error_message);
+    object::create(paths, paths.object, TYPE_VERSION, buffer, new_workspace, error_message);
     new_workspace += '\n';
     for (size_t i = 1; i < workspace_content.size(); i++)
         new_workspace += workspace_content[i] + '\n';
     insert_pattern(new_workspace, TYPE_WORKSPACE, category.empty() ? nullptr : category.c_str());
+
     io::file(
-        workspace, std::ios::binary | std::ios::trunc, new_workspace.data(), new_workspace.size(), 1, error_message);
+        pending.src, std::ios::binary | std::ios::trunc, new_workspace.data(), new_workspace.size(), 1, error_message);
+
     CHECKERROR(error_message);
 
-    std::error_code error;
-    bool            deleted = std::filesystem::remove(prepare_dir, error);
-    if (!deleted || error)
-        error_message_creator("Prepare reset failed", error_message);
+    paths.move_pending(pending);
+    paths.move_pending({.type = PendingType::remove, .dest = merge});
 }
 
 void version::create_tmp(
     Paths& paths, const std::filesystem::path& operation, std::unordered_set<std::string_view>& ignore,
     char** error_message) {
-    std::filesystem::path object_dir = operation / foldername_object;
+    const Pending pending = {
+        .type = PendingType::rename, .src = paths.get_tmp_file(), .dest = operation / filename_tmp};
+    const std::filesystem::path object_dir = operation / foldername_object;
 
-    std::filesystem::create_directories(object_dir);
+    paths.move_pending({.type = PendingType::create_directories, .dest = object_dir});
 
     std::vector<std::string> status;
     try {
@@ -251,12 +258,13 @@ void version::create_tmp(
     }
 
     std::string root_id;
-    std::string new_root_id = build(object_dir, paths.root, root_id, status, error_message);
+    std::string new_root_id = build(paths, object_dir, paths.root, root_id, status, error_message);
 
     const std::string nl     = "\n";
     std::string       buffer = new_root_id + nl + "tmp snapshot" + nl + "lvc";
 
     std::string id;
-    object::create(object_dir, TYPE_VERSION, buffer, id, error_message);
-    io::file(operation / filename_tmp, std::ios::binary | std::ios::trunc, id.data(), id.size(), 0, error_message);
+    object::create(paths, object_dir, TYPE_VERSION, buffer, id, error_message);
+    io::file(pending.src, std::ios::binary | std::ios::trunc, id.data(), id.size(), 0, error_message);
+    paths.move_pending(pending);
 }

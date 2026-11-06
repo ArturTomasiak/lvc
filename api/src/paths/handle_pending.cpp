@@ -9,15 +9,15 @@ void Paths::handle_pending(const Pending& pending) {
         case PendingType::remove:
             std::filesystem::remove(pending.dest, ec);
             break;
-        case PendingType::create_directory:
-            std::filesystem::create_directory(pending.dest, ec);
-            break;
         case PendingType::create_directories:
             std::filesystem::create_directories(pending.dest, ec);
             break;
         case PendingType::create_directories_conditional:
             if (!std::filesystem::is_directory(pending.dest))
                 std::filesystem::create_directories(pending.dest, ec);
+            break;
+        case PendingType::create_directory:
+            std::filesystem::create_directory(pending.dest, ec);
             break;
         case PendingType::rename:
             std::filesystem::rename(pending.src, pending.dest, ec);

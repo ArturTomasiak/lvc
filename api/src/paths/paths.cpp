@@ -31,7 +31,7 @@ Paths::Paths(const char* lvc_c_str, char** error_message)
       name(lvc / filename_name),
       tmp_base(tmp_base_directory(root, local)),
       tmp(tmp_directory(tmp_base, error_message)) {
-    pending.reserve(PREALLOCATE);
+    pending.reserve(PREALLOCATE_SMALL);
 };
 
 Paths::~Paths() {
