@@ -17,7 +17,8 @@ static void add_path(LvcConflictArray* out, const std::filesystem::path& path, c
 static void existance_conflict(
     Paths& paths, LvcConflictArray* out, const std::filesystem::path& dest, const std::string& buffer, bool ours,
     char** error_message) {
-    std::ofstream file(paths.root / dest, std::ios::binary | std::ios::trunc | std::ios::out);
+    const Pending pending = {.type = PendingType::rename, .src = paths.get_tmp_file(), .dest = paths.root / dest};
+    std::ofstream file(pending.src, std::ios::binary | std::ios::trunc | std::ios::out);
     file << ours_label << '\n';
     if (ours)
         file << buffer << '\n';
@@ -25,8 +26,9 @@ static void existance_conflict(
     if (!ours)
         file << buffer << '\n';
     file << end_label << '\n';
-    add_path(out, dest, error_message);
     file.close();
+    add_path(out, dest, error_message);
+    paths.move_pending(pending);
 }
 
 LvcConflictArray* operation::merge(
@@ -144,10 +146,9 @@ LvcConflictArray* operation::merge(
                     dest_paths.move_pending({.type = PendingType::remove, .dest = dest_paths.root / dest->path});
                     std::cout << "REMOVED: " << dest->path << '\n';
                 } else
-                    up_to_date = false;
-                existance_conflict(
-                    dest_paths, out, dest_paths.root / dest->path,
-                    io::content(dest_paths.object / dest->id, 1, 1, error_message), 1, error_message);
+                    existance_conflict(
+                        dest_paths, out, dest->path, io::content(dest_paths.object / dest->id, 1, 1, error_message), 1,
+                        error_message);
             }
         }
 
@@ -156,8 +157,8 @@ LvcConflictArray* operation::merge(
                 if (src->id != common->id) {
                     up_to_date = false;
                     existance_conflict(
-                        dest_paths, out, dest_paths.root / src->path,
-                        io::content(src_paths.object / src->id, 1, 1, error_message), 0, error_message);
+                        dest_paths, out, src->path, io::content(src_paths.object / src->id, 1, 1, error_message), 0,
+                        error_message);
                 }
             } else {
                 up_to_date            = false;
