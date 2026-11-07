@@ -1,5 +1,15 @@
 #include <core.hpp>
 
+static bool valid_tree_name(std::string& name) {
+    if (name.empty() || name == "." || name == "..")
+        return false;
+
+    if (name.find_first_of("/\\\0\n") != std::string_view::npos)
+        return false;
+
+    return true;
+}
+
 static void get_all_paths(
     const std::filesystem::path& object_folder, std::vector<object::info>& out, const std::string tree_id,
     const std::filesystem::path current, std::unordered_set<std::string_view>& ignore, char** error_message) {
@@ -21,8 +31,12 @@ static void get_all_paths(
 
         if (!ignore.contains(object.path.string()))
             out.push_back(object);
-        if (object.type == object::type::tree)
+        if (object.type == object::type::tree) {
+            if (valid_tree_name(name) == false) {
+                error_message_creator("Invalid tree name: " + name + "\nSuspected tampering within .lvc", error_message);
+            }
             get_all_paths(object_folder, out, object.id, object.path, ignore, error_message);
+        }
     }
 }
 
@@ -62,8 +76,12 @@ static void map_get_all_paths(
 
         if (!ignore.contains(object.path.string()))
             out.insert({object.path, object});
-        if (object.type == object::type::tree)
+        if (object.type == object::type::tree) {
+            if (valid_tree_name(name) == false) {
+                error_message_creator("Invalid tree name: " + name + "\nSuspected tampering within .lvc", error_message);
+            }
             map_get_all_paths(object_folder, out, object.id, object.path, ignore, error_message);
+        }
     }
 }
 
