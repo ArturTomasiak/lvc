@@ -1,6 +1,6 @@
 #include <core.hpp>
 
-static bool valid_tree_name(std::string& name) {
+static bool valid_name(std::string& name) {
     if (name.empty() || name == "." || name == "..")
         return false;
 
@@ -28,15 +28,14 @@ static void get_all_paths(
         std::string name = object.id.substr(position + 1);
         object.id        = object.id.substr(0, position);
         object.path      = current / name;
+        
+        if (valid_name(name) == false)
+            error_message_creator("Invalid " + type + " name: " + name + "\nSuspected tampering within .lvc", error_message);
 
         if (!ignore.contains(object.path.string()))
             out.push_back(object);
-        if (object.type == object::type::tree) {
-            if (valid_tree_name(name) == false) {
-                error_message_creator("Invalid tree name: " + name + "\nSuspected tampering within .lvc", error_message);
-            }
+        if (object.type == object::type::tree)
             get_all_paths(object_folder, out, object.id, object.path, ignore, error_message);
-        }
     }
 }
 
@@ -74,14 +73,13 @@ static void map_get_all_paths(
         object.id        = object.id.substr(0, position);
         object.path      = current / name;
 
+        if (valid_name(name) == false)
+            error_message_creator("Invalid " + type + " name: " + name + "\nSuspected tampering within .lvc", error_message);
+
         if (!ignore.contains(object.path.string()))
             out.insert({object.path, object});
-        if (object.type == object::type::tree) {
-            if (valid_tree_name(name) == false) {
-                error_message_creator("Invalid tree name: " + name + "\nSuspected tampering within .lvc", error_message);
-            }
+        if (object.type == object::type::tree)
             map_get_all_paths(object_folder, out, object.id, object.path, ignore, error_message);
-        }
     }
 }
 
