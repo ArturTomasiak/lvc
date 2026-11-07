@@ -13,8 +13,11 @@ void object::create(
     sha256(content.data(), content.size(), content_id);
     id = content_id;
 
-    if (std::filesystem::is_regular_file(object / id))
+    const Pending pending = {.type = PendingType::rename, .src = paths.get_tmp_file(), .dest = object / id};
+
+    if (std::filesystem::is_regular_file(pending.dest))
         return;
 
-    io::file(object / id, std::ios::binary | std::ios::trunc, content.data(), content.size(), 1, error_message);
+    io::file(pending.src, std::ios::binary | std::ios::trunc, content.data(), content.size(), 1, error_message);
+    paths.move_pending(pending);
 }

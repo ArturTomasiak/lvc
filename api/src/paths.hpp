@@ -7,7 +7,6 @@
 #include <unistd.h>
 #include <vector>
 
-inline constexpr std::string workspacename_inactive = "inactive";
 inline constexpr std::string foldername_workspace   = "workspace";
 inline constexpr std::string foldername_local       = "local";
 inline constexpr std::string foldername_object      = "object";
@@ -56,10 +55,9 @@ class Paths {
     const std::filesystem::path ignore;
     const std::filesystem::path local;
     const std::filesystem::path name;
-    const std::filesystem::path tmp_base;
     const std::filesystem::path tmp;
 
-    Paths(const char* lvc_c_str, char** error_message);
+    Paths(const char* lvc_c_str, bool preallocate, char** error_message);
     ~Paths();
     void                     move_pending(const Pending& entry);
     std::filesystem::path    get_tmp_file();

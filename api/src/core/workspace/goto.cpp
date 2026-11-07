@@ -67,6 +67,7 @@ void workspace::_goto(Paths& paths, std::string dest_name, char** error_message)
         for (size_t i = remove_paths.size(); i > 0;)
             paths.move_pending({.type = PendingType::remove_conditional, .dest = remove_paths[--i]});
     }
+
     CHECKERROR(error_message);
     for (object::info& object : dest_objects) {
         const std::filesystem::path path = paths.root / object.path;

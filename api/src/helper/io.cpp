@@ -1,7 +1,6 @@
 #include <helper.hpp>
 
 void io::file(const std::filesystem::path& path, std::ios_base::openmode flags, char** error_message) {
-    std::filesystem::create_directories(path.parent_path());
     std::ofstream file(path, std::ios::out | flags);
     if (!file) {
         error_message_creator("Could not create file " + path.string(), error_message);
@@ -13,7 +12,6 @@ void io::file(const std::filesystem::path& path, std::ios_base::openmode flags, 
 void io::file(
     const std::filesystem::path& path, std::ios_base::openmode flags, const char* content, size_t length, bool compress,
     char** error_message) {
-    std::filesystem::create_directories(path.parent_path());
     std::ofstream file(path, std::ios::out | flags);
     if (!file) {
         error_message_creator("Could not create file " + path.string(), error_message);

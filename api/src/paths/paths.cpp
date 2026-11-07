@@ -1,17 +1,13 @@
 #include <paths.hpp>
 
-static std::filesystem::path tmp_base_directory(
-    const std::filesystem::path& root, const std::filesystem::path& lvc, const std::filesystem::path& local) {
-    return std::filesystem::exists(lvc) ? local / foldername_tmp : root;
-}
-
-static std::filesystem::path tmp_directory(const std::filesystem::path& tmp_base, char** error_message) {
-    if (!std::filesystem::exists(tmp_base))
-        std::filesystem::create_directories(tmp_base);
+static std::filesystem::path tmp_directory(const std::filesystem::path& root, const std::filesystem::path& lvc, const std::filesystem::path& local, char** error_message) {
+    const std::filesystem::path& base = std::filesystem::is_directory(lvc) ? local / filename_tmp : root;
+    if (!std::filesystem::is_directory(base))
+        std::filesystem::create_directories(base);
     std::random_device                           rng;
     std::uniform_int_distribution<std::uint32_t> dist(0, std::numeric_limits<std::uint32_t>::max());
     for (uint8_t i = 0; i < 100; i++) {
-        const std::filesystem::path tmp = tmp_base / ("lvc-tmp-" + std::to_string(dist(rng)));
+        const std::filesystem::path tmp = base / ("lvc-tmp-" + std::to_string(dist(rng)));
         if (std::filesystem::create_directory(tmp))
             return tmp;
     }
@@ -19,7 +15,7 @@ static std::filesystem::path tmp_directory(const std::filesystem::path& tmp_base
     return std::filesystem::path{};
 }
 
-Paths::Paths(const char* lvc_c_str, char** error_message)
+Paths::Paths(const char* lvc_c_str, bool preallocate, char** error_message)
     : error_message(error_message),
       lvc(lvc_c_str),
       root(lvc.parent_path()),
@@ -30,9 +26,9 @@ Paths::Paths(const char* lvc_c_str, char** error_message)
       ignore(root / filename_ignore),
       local(workspace / foldername_local),
       name(lvc / filename_name),
-      tmp_base(tmp_base_directory(root, lvc, local)),
-      tmp(tmp_directory(tmp_base, error_message)) {
-    pending.reserve(PREALLOCATE_SMALL);
+      tmp(tmp_directory(root, lvc, local, error_message)) {
+    if (preallocate)
+        pending.reserve(PREALLOCATE);
 };
 
 Paths::~Paths() {

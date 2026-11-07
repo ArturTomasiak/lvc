@@ -34,7 +34,7 @@ static void existance_conflict(
 LvcConflictArray* operation::merge(
     Paths& dest_paths, const std::string& src_workspace_name, const std::string& dest_workspace_name,
     const char* src_lvc, char** error_message) {
-    Paths             src_paths(src_lvc == 0 ? dest_paths.lvc.c_str() : src_lvc, error_message);
+    Paths             src_paths(src_lvc == 0 ? dest_paths.lvc.c_str() : src_lvc, false, error_message);
     LvcConflictArray* out                      = NULL;
     out                                        = static_cast<LvcConflictArray*>(malloc(sizeof(LvcConflictArray)));
     out->len                                   = 0;
