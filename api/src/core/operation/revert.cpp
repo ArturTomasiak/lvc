@@ -44,6 +44,8 @@ void operation::revert(
     for (const object::info& entry : objects)
         objects_set.insert(entry.path);
 
+    std::vector<std::filesystem::path> remove;
+
     try {
         std::filesystem::recursive_directory_iterator iterator(paths.root);
         for (const std::filesystem::directory_entry& entry : iterator) {
@@ -51,19 +53,25 @@ void operation::revert(
             if (!input_set.contains(relative.string()))
                 continue;
             if (!objects_set.contains(relative.string()))
-                std::filesystem::remove_all(entry.path());
+                remove.emplace_back(std::move(entry.path()));
         }
     } catch (const std::filesystem::filesystem_error& error) {
         error_message_creator("Directory iteration failure", error_message);
         return;
     }
 
+    for (size_t i = remove.size(); i > 0;)
+        paths.move_pending({.type = PendingType::remove_conditional, .dest = std::move(remove[--i])});
+
     for (object::info& object : objects) {
         if (object.type == object::type::blob) {
-            std::string buffer = io::content(paths.object / object.id, 1, 1, error_message);
-            io::file(
-                paths.root / object.path, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 0,
-                error_message);
+            std::string buffer  = io::content(paths.object / object.id, 1, 1, error_message);
+            Pending     pending = {
+                    .type = PendingType::rename, .src = paths.get_tmp_file(), .dest = paths.root / object.path};
+            io::file(pending.src, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 0, error_message);
+            paths.move_pending(pending);
+        } else {
+            paths.move_pending({.type = PendingType::create_directory_conditional, .dest = paths.root / object.path});
         }
     }
 }
