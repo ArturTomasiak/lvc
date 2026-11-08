@@ -59,7 +59,7 @@ namespace version {
         char** error_message);
     std::vector<std::string> status_all(Paths& paths, char** error_message);
 
-    LvcVersion* history(Paths& paths, const std::string workspace_name, char** error_message);
+    LvcVersion* history(Paths& paths, const std::string& workspace_name, char** error_message);
     void        history_free(LvcVersion* version);
 
     std::unordered_set<std::string>

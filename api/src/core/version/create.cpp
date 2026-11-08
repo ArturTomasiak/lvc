@@ -211,6 +211,8 @@ void version::create(Paths& paths, std::string message, std::string author, char
     new_workspace.reserve(65 * (workspace_content.size() + 3));
     object::create(paths, paths.object, TYPE_VERSION, buffer, new_workspace, error_message);
     new_workspace += '\n';
+    for (const std::string& version : merge_buffer)
+        new_workspace += version + '\n';
     for (size_t i = 1; i < workspace_content.size(); i++)
         new_workspace += workspace_content[i] + '\n';
     insert_pattern(new_workspace, TYPE_WORKSPACE, category.empty() ? nullptr : category.c_str());

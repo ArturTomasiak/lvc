@@ -72,8 +72,10 @@ typedef struct {
 
 struct LvcVersion {
     size_t           len;
+    size_t           alloc;
     char*            workspace;
     LvcVersionEntry* entry;
+    LvcVersion*      previous;
 };
 
 typedef struct {

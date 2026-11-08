@@ -1,75 +1,67 @@
 #include "core.hpp"
 
-struct PendingNested {
-    LvcVersion** version;
-    std::string  workspace;
-};
+static LvcVersion* create_version(LvcVersion* previous, const std::string& workspace_name, char** error_message) {
+    LvcVersion* out = reinterpret_cast<LvcVersion*>(malloc(sizeof(LvcVersion)));
+    CHECKALLOC(out, error_message, {});
 
-static LvcVersion* history(
-    std::unordered_set<std::string>& saved_versions, Paths& paths, const std::string& workspace_name,
-    char** error_message) {
+    out->workspace = reinterpret_cast<char*>(malloc(workspace_name.size() + 1));
+    CHECKALLOC(out->workspace, error_message, {});
+    memcpy(out->workspace, workspace_name.c_str(), workspace_name.size() + 1);
+
+    out->len   = 0;
+    out->alloc = 10;
+    out->entry = reinterpret_cast<LvcVersionEntry*>(malloc(sizeof(LvcVersionEntry) * out->alloc));
+    CHECKALLOC(out->entry, error_message, {});
+
+    out->previous = previous;
+    return out;
+}
+
+static void add_entry(LvcVersion* version, const std::string& id, const std::string& desc, char** error_message) {
+    if (version->len == version->alloc) {
+        version->alloc *= 2;
+        version->entry = reinterpret_cast<LvcVersionEntry*>(realloc(version->entry, sizeof(LvcVersionEntry) * version->alloc));
+        CHECKALLOC(version->entry, error_message);
+    }
+    LvcVersionEntry* entry = &version->entry[version->len++];
+    entry->desc = reinterpret_cast<char*>(malloc(desc.size() + 1));
+    CHECKALLOC(entry->desc, error_message);
+    memcpy(entry->id, id.c_str(), id.size() + 1);
+    memcpy(entry->desc, desc.c_str(), desc.size() + 1);
+    entry->nested = nullptr;
+}
+
+LvcVersion* version::history(Paths& paths, const std::string& workspace_name, char** error_message) {
     const std::filesystem::path workspace = paths.workspace / workspace_name;
     if (!std::filesystem::exists(workspace))
         return {};
 
-    std::vector<PendingNested> pending;
-    std::vector<std::string>   buffer = io::content_lines(workspace, 1, 1, error_message);
-    size_t                     alloc  = 0;
+    LvcVersion* current = create_version(nullptr, workspace_name, error_message);
+    
+    const std::vector<std::string> buffer = io::content_lines(workspace, 1, 1, error_message);
+    for (const std::string& version : buffer) {
 
-    for (std::string& line : buffer) {
-        if (!line.empty() && line.back() == '\r')
-            line.pop_back();
-        alloc++;
-    }
+        std::vector<std::string> version_content = io::content_lines(paths.object / version, 1, 0, error_message);
+        const std::string& version_workspace = version_content[VERSION_WORKSPACE];
 
-    LvcVersion* version = static_cast<LvcVersion*>(malloc(sizeof(LvcVersion)));
-    version->entry      = static_cast<LvcVersionEntry*>(malloc(alloc * sizeof(LvcVersionEntry)));
-    version->workspace  = static_cast<char*>(malloc(workspace_name.size() + 1));
-    version->len        = 0;
-    memcpy(version->workspace, workspace_name.data(), workspace_name.size() + 1);
-
-    for (std::string& line : buffer) {
-        if (saved_versions.contains(line))
-            break;
-
-        std::vector<std::string> version_content = io::content_lines(paths.object / line, 1, 0, error_message);
-
-        if (version_content.size() <= VERSION_AUTHOR || line.size() != 64) {
-            continue;
+        if (current->workspace != version_workspace) {
+            if (current->previous != nullptr && current->previous->workspace == version_workspace) {
+                current = current->previous;
+            } else {
+                LvcVersionEntry* entry = &current->entry[current->len - 1];
+                current = create_version(current, version_workspace, error_message);
+                entry->nested = current;
+            }
         }
 
-        LvcVersionEntry* entry = &version->entry[version->len++];
-        entry->nested          = nullptr;
-        memcpy(entry->id, line.c_str(), 65);
-
-        size_t desc_size = version_content[VERSION_MESSAGE].size();
-        entry->desc      = static_cast<char*>(malloc(desc_size + 1));
-        CHECKALLOC(entry->desc, error_message, version);
-        memcpy(entry->desc, version_content[VERSION_MESSAGE].c_str(), desc_size + 1);
-
-        saved_versions.insert(line);
-
-        if (version_content.size() > VERSION_WORKSPACE)
-            pending.push_back({&entry->nested, version_content[VERSION_WORKSPACE]});
+        add_entry(current, version, version_content[VERSION_MESSAGE], error_message);
     }
-    for (PendingNested& entry : pending)
-        (*entry.version) = history(saved_versions, paths, entry.workspace, error_message);
-    return version;
-}
 
-LvcVersion* version::history(Paths& paths, const std::string workspace_name, char** error_message) {
-    std::unordered_set<std::string> saved_versions;
-    saved_versions.reserve(PREALLOCATE);
-    return history(saved_versions, paths, workspace_name, error_message);
+    while (current->previous)
+        current = current->previous;
+    return current;
 }
 
 void version::history_free(LvcVersion* version) {
-    for (size_t i = 0; i < version->len; i++) {
-        LvcVersionEntry* entry = &version->entry[i];
-        free(entry->desc);
-        if (entry->nested)
-            history_free(entry->nested);
-    }
-    free(version->entry);
-    free(version);
+
 }

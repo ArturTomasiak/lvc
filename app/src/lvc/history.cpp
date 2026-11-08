@@ -6,7 +6,7 @@
 // workspace <string> - specify workspace  (default current)
 // all                - no limit to depth nor length
 
-static void print_history(LvcVersion* version, size_t depth, size_t length) {
+static void print_history(LvcVersion* version, size_t depth, size_t& length) {
     for (size_t i = 0; i < version->len; i++) {
         if (length == 0)
             return;
