@@ -3,7 +3,7 @@
 static bool is_binary(const std::string& buffer) {
     size_t index = 0;
     while (index <= 100 && index < buffer.size())
-        if (buffer[index] == '\0')
+        if (buffer[index++] == '\0')
             return true;
     return false;
 }
