@@ -127,8 +127,8 @@ LvcConflictArray* operation::merge(
 
         bool        dest_binary = false;
         bool        src_binary  = false;
-        bool        dest_tree;
-        bool        src_tree;
+        bool        dest_tree   = false;
+        bool        src_tree    = false;
         Lines       dest_lines;
         Lines       src_lines;
         Lines       common_lines;
@@ -136,23 +136,23 @@ LvcConflictArray* operation::merge(
         std::string src_buffer;  // access buffers only if binary
 
         if (dest) {
+            dest_tree   = dest->type == object::type::tree;
             dest_buffer = io::content(dest_paths.object / dest->id, 1, 1, error_message);
             if (is_binary(dest_buffer)) {
                 dest_binary = true;
             } else {
                 std::istringstream stream(std::move(dest_buffer));
                 dest_lines = io::stream_to_lines(stream);
-                dest_tree  = dest->type == object::type::tree;
             }
         }
         if (src) {
+            src_tree   = src->type == object::type::tree;
             src_buffer = io::content(src_paths.object / src->id, 1, 1, error_message);
             if (is_binary(src_buffer)) {
                 src_binary = true;
             } else {
                 std::istringstream stream(std::move(src_buffer));
                 src_lines = io::stream_to_lines(stream);
-                src_tree  = src->type == object::type::tree;
             }
         }
         if (common) {
@@ -199,25 +199,26 @@ LvcConflictArray* operation::merge(
                     std::cout << "REMOVED: " << dest->path << '\n';
                 } else {
                     add_path(out, dest->path, error_message);
-                    std::cout << "CONFLICT: OURS MODIFIED THEIRS REMOVED, ASSUMED OURS: " << src->path << '\n';
+                    std::cout << "CONFLICT: OURS MODIFIED THEIRS REMOVED, ASSUMED OURS: " << dest->path << '\n';
                 }
             }
         }
 
         else if (src && !src_tree) {
-            bool src_changed = src->id == common->id;
-            if (common && src_changed) {
+            if (common && src->id == common->id) {
             } else {
                 up_to_date            = false;
                 const Pending pending = {
                     .type = PendingType::rename, .src = dest_paths.get_tmp_file(), .dest = dest_paths.root / src->path};
-                std::filesystem::copy(src_paths.object / src->id, pending.src);
+
+                const std::string buffer = io::content(src_paths.object / src->id, 1, 1, error_message);
+                io::file(pending.src, std::ios::app | std::ios::trunc, buffer.data(), buffer.size(), 0, error_message);
 
                 dest_paths.move_pending(
                     {.type = PendingType::create_directories_conditional, .dest = pending.dest.parent_path()});
                 dest_paths.move_pending(pending);
 
-                if (!src_changed) {
+                if (common) {
                     add_path(out, src->path, error_message);
                     std::cout << "CONFLICT: THEIRS MODIFIED OURS REMOVED, ASSUMED THEIRS: " << src->path << '\n';
                 } else
