@@ -1,6 +1,8 @@
 #include <paths.hpp>
 
-static std::filesystem::path tmp_directory(const std::filesystem::path& root, const std::filesystem::path& lvc, const std::filesystem::path& local, char** error_message) {
+static std::filesystem::path tmp_directory(
+    const std::filesystem::path& root, const std::filesystem::path& lvc, const std::filesystem::path& local,
+    char** error_message) {
     const std::filesystem::path& base = std::filesystem::is_directory(lvc) ? local / filename_tmp : root;
     if (!std::filesystem::is_directory(base))
         std::filesystem::create_directories(base);

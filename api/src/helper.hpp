@@ -34,6 +34,7 @@ namespace io {
     std::string content(const std::filesystem::path& path, bool decompress, bool ignore_pattern, char** error_message);
     std::vector<std::string>
     content_lines(const std::filesystem::path& path, bool decompress, bool ignore_pattern, char** error_message);
+    std::vector<std::string> stream_to_lines(std::istream& stream);
 }
 
 inline void error_message_creator(const std::string message, char** dest) {

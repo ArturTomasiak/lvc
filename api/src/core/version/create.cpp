@@ -178,14 +178,13 @@ void version::create(Paths& paths, std::string message, std::string author, char
         error_message_creator("No files prepared", error_message);
         return;
     }
-    const std::filesystem::path local    = paths.local / workspace_name;
-    const std::filesystem::path merge    = local / filename_merge;
-    const std::filesystem::path conflict = local / filename_conflict;
-    std::string                 merged_workspace;
-    if (std::filesystem::is_regular_file(merge)) {
-        merged_workspace = io::content(merge, 0, 0, error_message);
-        paths.move_pending({.type = PendingType::remove, .dest = merge});
-    }
+    const std::filesystem::path    local        = paths.local / workspace_name;
+    const std::filesystem::path    merge        = local / filename_merge;
+    const std::filesystem::path    conflict     = local / filename_conflict;
+    const std::vector<std::string> merge_buffer = std::filesystem::is_regular_file(merge)
+                                                      ? io::content_lines(merge, 0, 0, error_message)
+                                                      : std::vector<std::string>{};
+
     if (!operation::conflicts_handled(paths.root, conflict, error_message)) {
         error_message_creator("Unhandled conflicts. Use lvc conflict for the list of conflicts.", error_message);
         return;
@@ -204,9 +203,7 @@ void version::create(Paths& paths, std::string message, std::string author, char
 
     std::string       buffer = build(paths, paths.object, paths.root, root_id, status, error_message);
     const std::string nl     = "\n";
-    buffer += nl + message + nl + author;
-    if (!merged_workspace.empty())
-        buffer += nl + merged_workspace;
+    buffer += nl + message + nl + author + nl + workspace_name;
 
     const Pending pending = {.type = PendingType::rename, .src = paths.get_tmp_file(), .dest = workspace};
 

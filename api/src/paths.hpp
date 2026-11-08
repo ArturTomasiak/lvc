@@ -7,19 +7,19 @@
 #include <unistd.h>
 #include <vector>
 
-inline constexpr std::string foldername_workspace   = "workspace";
-inline constexpr std::string foldername_local       = "local";
-inline constexpr std::string foldername_object      = "object";
-inline constexpr std::string foldername_tmp         = "tmp";
-inline constexpr std::string filename_default       = "default";
-inline constexpr std::string filename_current       = "current";
-inline constexpr std::string filename_prepare       = "prepare";
-inline constexpr std::string filename_name          = "name";
-inline constexpr std::string filename_ignore        = "lvc.ignore";
-inline constexpr std::string filename_storage       = "lvc.storage";
-inline constexpr std::string filename_tmp           = "tmp";
-inline constexpr std::string filename_merge         = "merge";
-inline constexpr std::string filename_conflict      = "conflict";
+inline constexpr std::string foldername_workspace = "workspace";
+inline constexpr std::string foldername_local     = "local";
+inline constexpr std::string foldername_object    = "object";
+inline constexpr std::string foldername_tmp       = "tmp";
+inline constexpr std::string filename_default     = "default";
+inline constexpr std::string filename_current     = "current";
+inline constexpr std::string filename_prepare     = "prepare";
+inline constexpr std::string filename_name        = "name";
+inline constexpr std::string filename_ignore      = "lvc.ignore";
+inline constexpr std::string filename_storage     = "lvc.storage";
+inline constexpr std::string filename_tmp         = "tmp";
+inline constexpr std::string filename_merge       = "merge";
+inline constexpr std::string filename_conflict    = "conflict";
 
 enum class PendingType : uint8_t {
     remove,

@@ -28,9 +28,10 @@ static void get_all_paths(
         std::string name = object.id.substr(position + 1);
         object.id        = object.id.substr(0, position);
         object.path      = current / name;
-        
+
         if (valid_name(name) == false)
-            error_message_creator("Invalid " + type + " name: " + name + "\nSuspected tampering within .lvc", error_message);
+            error_message_creator(
+                "Invalid " + type + " name: " + name + "\nSuspected tampering within .lvc", error_message);
 
         if (!ignore.contains(object.path.string()))
             out.push_back(object);
@@ -74,7 +75,8 @@ static void map_get_all_paths(
         object.path      = current / name;
 
         if (valid_name(name) == false)
-            error_message_creator("Invalid " + type + " name: " + name + "\nSuspected tampering within .lvc", error_message);
+            error_message_creator(
+                "Invalid " + type + " name: " + name + "\nSuspected tampering within .lvc", error_message);
 
         if (!ignore.contains(object.path.string()))
             out.insert({object.path, object});

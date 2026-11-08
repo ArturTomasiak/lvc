@@ -68,7 +68,7 @@ std::string io::content(const std::filesystem::path& path, bool decompress, bool
     return buffer.str();
 }
 
-static std::vector<std::string> stream_to_lines(std::istream& stream) {
+std::vector<std::string> io::stream_to_lines(std::istream& stream) {
     std::vector<std::string> result;
     result.reserve(PREALLOCATE_SMALL);
     std::string line;
