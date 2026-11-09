@@ -39,12 +39,7 @@ void operation::revert(
     std::erase_if(
         objects, [&input_set](const object::info& entry) { return !input_set.contains(entry.path.string()); });
 
-    std::unordered_set<std::string> objects_set;
-    objects_set.reserve(input.size());
-    for (const object::info& entry : objects)
-        objects_set.insert(entry.path);
-
-    std::vector<std::filesystem::path> remove;
+    std::vector<std::filesystem::path> remove_dir;
 
     try {
         std::filesystem::recursive_directory_iterator iterator(paths.root);
@@ -52,23 +47,31 @@ void operation::revert(
             std::filesystem::path relative = entry.path().lexically_relative(paths.root);
             if (!input_set.contains(relative.string()))
                 continue;
-            if (!objects_set.contains(relative.string()))
-                remove.emplace_back(std::move(entry.path()));
+            if (std::filesystem::is_directory(entry.path()))
+                remove_dir.emplace_back(std::move(entry.path()));
+            else
+                paths.move_pending({.type = PendingType::remove, .dest = std::move(entry.path())});
         }
     } catch (const std::filesystem::filesystem_error& error) {
         error_message_creator("Directory iteration failure", error_message);
         return;
     }
 
-    for (size_t i = remove.size(); i > 0;)
-        paths.move_pending({.type = PendingType::remove_conditional, .dest = std::move(remove[--i])});
+    for (size_t i = remove_dir.size(); i > 0;)
+        paths.move_pending({.type = PendingType::remove_conditional, .dest = std::move(remove_dir[--i])});
 
     for (object::info& object : objects) {
         if (object.type == object::type::blob) {
-            std::string buffer  = io::content(paths.object / object.id, 1, 1, error_message);
+            const std::filesystem::path blob = paths.object / object.id;
+            if (!std::filesystem::is_regular_file(blob)) {
+                error_message_creator("Missing blob: " + object.id, error_message);
+                return;
+            }
+            std::string buffer  = io::content(blob, 1, 1, error_message);
             Pending     pending = {
                     .type = PendingType::rename, .src = paths.get_tmp_file(), .dest = paths.root / object.path};
             io::file(pending.src, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 0, error_message);
+            paths.move_pending({.type = PendingType::create_directories_conditional, .dest = pending.dest.parent_path()});
             paths.move_pending(pending);
         } else {
             paths.move_pending({.type = PendingType::create_directory_conditional, .dest = paths.root / object.path});

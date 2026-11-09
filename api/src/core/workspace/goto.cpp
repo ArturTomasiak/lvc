@@ -41,8 +41,8 @@ void workspace::_goto(Paths& paths, std::string dest_name, char** error_message)
     }
 
     {
-        std::vector<std::filesystem::path> remove_paths;
-        remove_paths.reserve(PREALLOCATE);
+        std::vector<std::filesystem::path> remove_dir;
+        remove_dir.reserve(PREALLOCATE);
 
         try {
             std::filesystem::recursive_directory_iterator iterator(paths.root);
@@ -57,15 +57,18 @@ void workspace::_goto(Paths& paths, std::string dest_name, char** error_message)
                         iterator.disable_recursion_pending();
                     continue;
                 }
-                remove_paths.push_back(entry.path());
+                if (std::filesystem::is_directory(entry.path()))
+                    remove_dir.push_back(std::move(entry.path()));
+                else
+                    paths.move_pending({.type = PendingType::remove, .dest = std::move(entry.path())});
             }
         } catch (const std::filesystem::filesystem_error& error) {
             error_message_creator("Directory iteration failure", error_message);
             return;
         }
 
-        for (size_t i = remove_paths.size(); i > 0;)
-            paths.move_pending({.type = PendingType::remove_conditional, .dest = remove_paths[--i]});
+        for (size_t i = remove_dir.size(); i > 0;)
+            paths.move_pending({.type = PendingType::remove_conditional, .dest = remove_dir[--i]});
     }
 
     CHECKERROR(error_message);
