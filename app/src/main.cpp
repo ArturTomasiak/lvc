@@ -9,7 +9,8 @@ constexpr Command commands[] = {
     {"create", lvc::create},     {"version", lvc::version},   {"history", lvc::history},     {"prepare", lvc::prepare},
     {"checkout", lvc::checkout}, {"status", lvc::status},     {"default", lvc::_default},    {"goto", lvc::_goto},
     {"revert", lvc::revert},     {"category", lvc::category}, {"workspace", lvc::workspace}, {"diff", lvc::diff},
-    {"current", lvc::current},   {"merge", lvc::merge},       {"list", lvc::list},           {"test", lvc::test}};
+    {"current", lvc::current},   {"merge", lvc::merge},       {"list", lvc::list},           {"test", lvc::test},
+    {"help", lvc::help}};
 
 static bool (*command(std::string input))(int argc, char* argv[]) {
     for (const Command& cmd : commands)

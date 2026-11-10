@@ -31,4 +31,5 @@ namespace lvc {
     bool list(int argc, char* argv[]);
     bool merge(int argc, char* argv[]);
     bool test(int argc, char* argv[]);
+    bool help(int argc, char* argv[]);
 }
