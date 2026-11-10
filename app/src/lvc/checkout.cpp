@@ -7,8 +7,7 @@ bool lvc::checkout(int argc, char* argv[]) {
         return 0;
     }
 
-    char** checkout;
-    lvc_checkout(lvc.c_str(), &error_message);
+    char** checkout = lvc_checkout(lvc.c_str(), &error_message);
     if (error_message)
         return 0;
 
