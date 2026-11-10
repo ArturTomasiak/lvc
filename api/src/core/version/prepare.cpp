@@ -43,7 +43,8 @@ void version::prepare(Paths& paths, std::vector<std::string>& input_raw, char***
 
     std::erase_if(current, [&ignore_entries](const std::string& entry) { return ignore_entries.contains(entry); });
 
-    std::unordered_map<std::filesystem::path, object::info> version = version::map_all_objects(paths, version_id, ignore_entries, error_message);
+    std::unordered_map<std::filesystem::path, object::info> version =
+        version::map_all_objects(paths, version_id, ignore_entries, error_message);
     std::erase_if(current, [&version, &paths, &error_message](std::string& entry) {
         if (entry.starts_with(PREFIX_DELETED))
             return false;

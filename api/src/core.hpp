@@ -59,8 +59,9 @@ namespace version {
         char** error_message);
     std::vector<std::string> status_all(Paths& paths, char** error_message);
 
-    LvcVersion*
-    history(Paths& paths, const std::string& workspace_name, char** error_message, std::string from = "", std::string to = "");
+    LvcVersion* history(
+        Paths& paths, const std::string& workspace_name, char** error_message, std::string from = "",
+        std::string to = "");
     void history_free(LvcVersion* version);
 
     std::unordered_set<std::string>
@@ -79,6 +80,9 @@ namespace workspace {
     void _default(Paths& paths, const char* workspace_name, char** error_message);
     std::vector<object::info> all_objects(Paths& paths, char** error_message);
     bool changed_since_ver(Paths& paths, const std::vector<object::info>& objects_version, char** error_message);
+    void all_versions(
+        Paths& paths, const std::string& workspace_path, std::vector<std::string>& dest, char** error_message,
+        std::string from = "", std::string to = "");
 }
 
 inline void free_charpp(char** arr) {

@@ -51,10 +51,12 @@ LvcConflictArray* operation::merge(
     const std::filesystem::path src_workspace  = src_paths.workspace / src_workspace_name;
     const std::filesystem::path dest_workspace = dest_paths.workspace / dest_workspace_name;
     const std::filesystem::path conflict_path  = dest_paths.local / dest_workspace_name / filename_conflict;
-    const Lines                 src_versions   = io::content_lines(src_workspace, 1, 1, error_message);
-    Lines                       dest_versions  = io::content_lines(dest_workspace, 1, 0, error_message);
-    const std::string           dest_category  = category::get(dest_versions[0]);
-    dest_versions.erase(dest_versions.begin());
+    const std::string           dest_category  = category::get(io::content(dest_workspace, 1, 0, error_message));
+
+    Lines src_versions;
+    Lines dest_versions;
+    workspace::all_versions(src_paths, src_workspace, src_versions, error_message);
+    workspace::all_versions(dest_paths, dest_workspace, dest_versions, error_message);
 
     if (src_versions.empty()) [[unlikely]] {
         error_message_creator("Workspace " + src_workspace_name + " has no version history", error_message);
