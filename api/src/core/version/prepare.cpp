@@ -45,10 +45,8 @@ void version::prepare(Paths& paths, std::vector<std::string>& input_raw, char***
 
     std::unordered_set<std::string> version = version::all_ids(paths, version_id, ignore_entries, error_message);
     std::erase_if(current, [&version, &paths, &error_message](std::string& entry) {
-        if (entry.starts_with(PREFIX_DELETED)) {
-            entry.erase(0, std::strlen(PREFIX_DELETED));
+        if (entry.starts_with(PREFIX_DELETED))
             return false;
-        }
         std::string buffer = io::content(paths.root / entry, 0, 0, error_message);
         insert_pattern(buffer, TYPE_BLOB, nullptr);
         char id[65];

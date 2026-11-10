@@ -71,7 +71,8 @@ void operation::revert(
             Pending     pending = {
                     .type = PendingType::rename, .src = paths.get_tmp_file(), .dest = paths.root / object.path};
             io::file(pending.src, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 0, error_message);
-            paths.move_pending({.type = PendingType::create_directories_conditional, .dest = pending.dest.parent_path()});
+            paths.move_pending(
+                {.type = PendingType::create_directories_conditional, .dest = pending.dest.parent_path()});
             paths.move_pending(pending);
         } else {
             paths.move_pending({.type = PendingType::create_directory_conditional, .dest = paths.root / object.path});

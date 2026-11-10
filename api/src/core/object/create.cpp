@@ -11,7 +11,7 @@ void object::create(
 
     char content_id[65];
     sha256(content.data(), content.size(), content_id);
-    id = content_id;
+    id += content_id;
 
     const std::filesystem::path dest = object / id;
 
