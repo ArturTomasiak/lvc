@@ -1,15 +1,5 @@
 #include <core.hpp>
 
-static bool valid_name(std::string& name) {
-    if (name.empty() || name == "." || name == "..")
-        return false;
-
-    if (name.find_first_of("/\\\0\n") != std::string_view::npos)
-        return false;
-
-    return true;
-}
-
 static void get_all_paths(
     const std::filesystem::path& object_folder, std::vector<object::info>& out, const std::string tree_id,
     const std::filesystem::path current, std::unordered_set<std::string_view>& ignore, char** error_message) {

@@ -43,7 +43,7 @@ void version::prepare(Paths& paths, std::vector<std::string>& input_raw, char***
 
     std::erase_if(current, [&ignore_entries](const std::string& entry) { return ignore_entries.contains(entry); });
 
-    std::unordered_set<std::string> version = version::all_ids(paths, version_id, ignore_entries, error_message);
+    std::unordered_map<std::filesystem::path, object::info> version = version::map_all_objects(paths, version_id, ignore_entries, error_message);
     std::erase_if(current, [&version, &paths, &error_message](std::string& entry) {
         if (entry.starts_with(PREFIX_DELETED))
             return false;
@@ -51,7 +51,10 @@ void version::prepare(Paths& paths, std::vector<std::string>& input_raw, char***
         insert_pattern(buffer, TYPE_BLOB, nullptr);
         char id[65];
         sha256(buffer.c_str(), buffer.size(), id);
-        return version.contains(id);
+        const auto it = version.find(entry);
+        if (it == version.end())
+            return false;
+        return id == it->second.id;
     });
 
     std::string buffer;

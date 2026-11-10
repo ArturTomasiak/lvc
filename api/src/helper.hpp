@@ -37,6 +37,16 @@ namespace io {
     std::vector<std::string> stream_to_lines(std::istream& stream);
 }
 
+inline bool valid_name(std::string& name) {
+    if (name.empty() || name == "." || name == "..")
+        return false;
+
+    if (name.find_first_of("/\\\0\n") != std::string_view::npos)
+        return false;
+
+    return true;
+}
+
 inline void error_message_creator(const std::string message, char** dest) {
     if (*dest)
         return;

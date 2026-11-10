@@ -115,8 +115,6 @@ LVC_API LvcConflictArray*
 lvc_merge(const char* lvc, const char* src_workspace_name, const char* src_lvc, char** error_message) LVC_NOEXCEPT;
 LVC_API void
 lvc_revert(const char* lvc, char* version_id, size_t input_count, char** input, char** error_message) LVC_NOEXCEPT;
-LVC_API void     lvc_push_local(const char* lvc, const char* tmp_lvc, char** error_message) LVC_NOEXCEPT;
-LVC_API void     lvc_push_server(const char* lvc, char** error_message) LVC_NOEXCEPT;
 LVC_API LVC_BOOL lvc_version_exists(const char* lvc, const char* id) LVC_NOEXCEPT;
 LVC_API LVC_BOOL lvc_workspace_exists(const char* lvc, const char* name, char** error_message) LVC_NOEXCEPT;
 LVC_API void     lvc_free_charpp(char** arr) LVC_NOEXCEPT;
