@@ -119,9 +119,10 @@ bool lvc::test(int argc, char* argv[]) {
     TEST_MS_MEASURE(
         lvc_prepare(lvc.c_str(), argc_example, argv_example, &error_message), "LVC PREPARE TEST",
         "LVC PREPARE SUCCESS IN: ");
-    
+
     TEST_MS_MEASURE(
-        lvc_version(lvc.c_str(), "merge", "", &error_message), "LVC VERSION TEST", "LVC VERSION SUCCESS IN: ");;
+        lvc_version(lvc.c_str(), "merge", "", &error_message), "LVC VERSION TEST", "LVC VERSION SUCCESS IN: ");
+    ;
 
     TEST_MS_MEASURE(
         lvc_history(lvc.c_str(), main_workspace.c_str(), &error_message), "LVC HISTORY TEST",

@@ -55,12 +55,22 @@ LvcConflictArray* operation::merge(
     Lines                       dest_versions  = io::content_lines(dest_workspace, 1, 0, error_message);
     const std::string           dest_category  = category::get(dest_versions[0]);
     dest_versions.erase(dest_versions.begin());
-    const std::string src_id     = src_versions.empty() ? "" : src_versions[0];
-    const std::string dest_id    = dest_versions.empty() ? "" : dest_versions[0];
+
+    if (src_versions.empty()) [[unlikely]] {
+        error_message_creator("Workspace " + src_workspace_name + " has no version history", error_message);
+        return out;
+    }
+
+    if (dest_versions.empty()) [[unlikely]] {
+        error_message_creator("Workspace " + dest_workspace_name + " has no version history", error_message);
+        return out;
+    }
+
+    const std::string src_id     = src_versions[0];
+    const std::string dest_id    = dest_versions[0];
     bool              up_to_date = true;
     bool              remote_src = dest_paths.root != src_paths.root;
     std::string       common_id;
-    std::string       merge_buffer;
     std::error_code   ec;
     CHECKERROR(error_message, out);
 
@@ -74,7 +84,6 @@ LvcConflictArray* operation::merge(
             common_id = src_version;
             break;
         }
-        merge_buffer += src_version + '\n';
         if (remote_src) {
             const Pending pending = {
                 .type = PendingType::rename, .src = dest_paths.get_tmp_file(), .dest = dest_paths.object / src_version};
@@ -82,6 +91,8 @@ LvcConflictArray* operation::merge(
             dest_paths.move_pending(pending);
         }
     }
+
+    const std::string merge_buffer = src_workspace_name + '\n' + src_id + '\n' + common_id;
 
     std::unordered_map<std::filesystem::path, object::info> dest_map;
     std::unordered_map<std::filesystem::path, object::info> src_map;

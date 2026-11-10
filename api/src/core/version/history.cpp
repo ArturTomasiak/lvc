@@ -1,6 +1,6 @@
 #include "core.hpp"
 
-static LvcVersion* create_version(LvcVersion* previous, const std::string& workspace_name, char** error_message) {
+static LvcVersion* create_version(const std::string& workspace_name, char** error_message) {
     LvcVersion* out = reinterpret_cast<LvcVersion*>(malloc(sizeof(LvcVersion)));
     CHECKALLOC(out, error_message, {});
 
@@ -13,7 +13,6 @@ static LvcVersion* create_version(LvcVersion* previous, const std::string& works
     out->entry = reinterpret_cast<LvcVersionEntry*>(malloc(sizeof(LvcVersionEntry) * out->alloc));
     CHECKALLOC(out->entry, error_message, {});
 
-    out->previous = previous;
     return out;
 }
 
@@ -32,34 +31,35 @@ static void add_entry(LvcVersion* version, const std::string& id, const std::str
     entry->nested = nullptr;
 }
 
-LvcVersion* version::history(Paths& paths, const std::string& workspace_name, char** error_message) {
+LvcVersion* version::history(
+    Paths& paths, const std::string& workspace_name, char** error_message, std::string from, std::string to) {
     const std::filesystem::path workspace = paths.workspace / workspace_name;
     if (!std::filesystem::exists(workspace))
         return {};
 
-    LvcVersion* current = create_version(nullptr, workspace_name, error_message);
+    LvcVersion* out = create_version(workspace_name, error_message);
 
-    const std::vector<std::string> buffer = io::content_lines(workspace, 1, 1, error_message);
+    std::vector<std::string> buffer = io::content_lines(workspace, 1, 1, error_message);
+
+    if (!from.empty())
+        while (!buffer.empty() && buffer[0] != from)
+            buffer.erase(buffer.begin());
+
     for (const std::string& version : buffer) {
+        if (!to.empty() && version == to)
+            break;
+
         std::vector<std::string> version_content   = io::content_lines(paths.object / version, 1, 0, error_message);
         const std::string&       version_workspace = version_content[VERSION_WORKSPACE];
+        if (version_content.size() > VERSION_WORKSPACE_TO)
+            version::history(
+                paths, version_content[VERSION_WORKSPACE], error_message, version_content[VERSION_WORKSPACE_FROM],
+                version_content[VERSION_WORKSPACE_TO]);
 
-        if (current->workspace != version_workspace) {
-            if (current->previous != nullptr && current->previous->workspace == version_workspace) {
-                current = current->previous;
-            } else {
-                LvcVersionEntry* entry = &current->entry[current->len - 1];
-                current                = create_version(current, version_workspace, error_message);
-                entry->nested          = current;
-            }
-        }
-
-        add_entry(current, version, version_content[VERSION_MESSAGE], error_message);
+        add_entry(out, version, version_content[VERSION_MESSAGE], error_message);
     }
 
-    while (current->previous)
-        current = current->previous;
-    return current;
+    return out;
 }
 
 void version::history_free(LvcVersion* version) {

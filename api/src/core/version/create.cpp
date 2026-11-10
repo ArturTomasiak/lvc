@@ -178,12 +178,11 @@ void version::create(Paths& paths, std::string message, std::string author, char
         error_message_creator("No files prepared", error_message);
         return;
     }
-    const std::filesystem::path    local        = paths.local / workspace_name;
-    const std::filesystem::path    merge        = local / filename_merge;
-    const std::filesystem::path    conflict     = local / filename_conflict;
-    const std::vector<std::string> merge_buffer = std::filesystem::is_regular_file(merge)
-                                                      ? io::content_lines(merge, 0, 0, error_message)
-                                                      : std::vector<std::string>{};
+    const std::filesystem::path local    = paths.local / workspace_name;
+    const std::filesystem::path merge    = local / filename_merge;
+    const std::filesystem::path conflict = local / filename_conflict;
+    const std::string           merge_buffer =
+        std::filesystem::is_regular_file(merge) ? io::content(merge, 0, 0, error_message) : std::string{};
 
     if (!operation::conflicts_handled(paths.root, conflict, error_message)) {
         error_message_creator("Unhandled conflicts. Use lvc conflict for the list of conflicts.", error_message);
@@ -203,7 +202,10 @@ void version::create(Paths& paths, std::string message, std::string author, char
 
     std::string       buffer = build(paths, paths.object, paths.root, root_id, status, error_message);
     const std::string nl     = "\n";
-    buffer += nl + message + nl + author + nl + workspace_name;
+    buffer += nl + message + nl + author;
+    if (!merge_buffer.empty()) {
+        buffer += nl + merge_buffer;
+    }
 
     const Pending pending = {.type = PendingType::rename, .src = paths.get_tmp_file(), .dest = workspace};
 
@@ -211,8 +213,6 @@ void version::create(Paths& paths, std::string message, std::string author, char
     new_workspace.reserve(65 * (workspace_content.size() + 3));
     object::create(paths, paths.object, TYPE_VERSION, buffer, new_workspace, error_message);
     new_workspace += '\n';
-    for (const std::string& version : merge_buffer)
-        new_workspace += version + '\n';
     for (size_t i = 1; i < workspace_content.size(); i++)
         new_workspace += workspace_content[i] + '\n';
     insert_pattern(new_workspace, TYPE_WORKSPACE, category.empty() ? nullptr : category.c_str());

@@ -8,18 +8,8 @@ void workspace::create(
         return;
     }
     std::string buffer;
-    if (!copy_workspace_name.empty()) {
-        const std::vector<std::string> copy =
-            io::content_lines(paths.workspace / copy_workspace_name, 1, 1, error_message);
-        for (const std::string& id : copy) {
-            const std::vector<std::string> old_version = io::content_lines(paths.object / id, 1, 0, error_message);
-            if (old_version[VERSION_WORKSPACE] != copy_workspace_name)
-                continue;
-            std::string new_version = old_version[VERSION_ROOT_TREE] + '\n' + old_version[VERSION_MESSAGE] + '\n' +
-                                      old_version[VERSION_AUTHOR] + '\n' + workspace_name;
-            object::create(paths, paths.object, TYPE_VERSION, new_version, buffer, error_message);
-        }
-    }
+    if (!copy_workspace_name.empty())
+        buffer = io::content(paths.workspace / copy_workspace_name, 1, 1, error_message);
     insert_pattern(buffer, TYPE_WORKSPACE, nullptr);
     const Pending pending = {.type = PendingType::rename, .src = paths.get_tmp_file(), .dest = workspace};
     io::file(pending.src, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 1, error_message);

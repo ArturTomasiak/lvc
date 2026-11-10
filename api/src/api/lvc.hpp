@@ -75,7 +75,6 @@ struct LvcVersion {
     size_t           alloc;
     char*            workspace;
     LvcVersionEntry* entry;
-    LvcVersion*      previous;
 };
 
 typedef struct {
@@ -127,11 +126,13 @@ LVC_API void     lvc_run_tests(char** error_message) LVC_NOEXCEPT;
 #endif
 
 // defines which line of deflated version has what content
-#define VERSION_PATTERN   0
-#define VERSION_ROOT_TREE 1
-#define VERSION_MESSAGE   2
-#define VERSION_AUTHOR    3
-#define VERSION_WORKSPACE 4
+#define VERSION_PATTERN        0
+#define VERSION_ROOT_TREE      1
+#define VERSION_MESSAGE        2
+#define VERSION_AUTHOR         3
+#define VERSION_WORKSPACE      4
+#define VERSION_WORKSPACE_FROM 5
+#define VERSION_WORKSPACE_TO   6
 
 // type string defines
 #define TYPE_VERSION   "version"
