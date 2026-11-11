@@ -226,6 +226,8 @@ void version::create(Paths& paths, std::string message, std::string author, char
 
     paths.move_pending(pending);
     paths.move_pending({.type = PendingType::remove, .dest = prepare_dir});
+    paths.move_pending({.type = PendingType::remove_conditional, .dest = merge});
+    paths.move_pending({.type = PendingType::remove_conditional, .dest = conflict});
 }
 
 void version::create_tmp(
