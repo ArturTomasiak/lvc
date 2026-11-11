@@ -68,7 +68,7 @@ void workspace::_goto(Paths& paths, std::string dest_name, char** error_message)
         }
 
         for (size_t i = remove_dir.size(); i > 0;)
-            paths.move_pending({.type = PendingType::remove_conditional, .dest = remove_dir[--i]});
+            paths.move_pending({.type = PendingType::remove_conditional_empty, .dest = remove_dir[--i]});
     }
 
     CHECKERROR(error_message);

@@ -127,6 +127,13 @@ static Tree& ensure_tree(std::vector<Tree>& trees, const std::filesystem::path& 
     return trees.emplace_back(Tree{.relative = relative});
 }
 
+static void remove_subtree(std::vector<Tree>& trees, const std::filesystem::path& relative) {
+    std::erase_if(trees, [&](const Tree& tree) {
+        return std::mismatch(relative.begin(), relative.end(), tree.relative.begin(), tree.relative.end()).first ==
+               relative.end();
+    });
+}
+
 static std::string build(
     const std::filesystem::path& object_dir, const std::filesystem::path& working_dir, const std::string& tree_id,
     const std::vector<std::string>& status, char** error_message) {
@@ -139,25 +146,26 @@ static std::string build(
         trees.emplace_back();
 
     for (std::string relative_str : status) {
-        bool deleted = relative_str.starts_with(PREFIX_DELETED);
-        if (deleted)
+        if (relative_str.starts_with(PREFIX_DELETED))
             relative_str.erase(0, strlen(PREFIX_DELETED));
 
         const std::filesystem::path relative{relative_str};
         const std::filesystem::path path = working_dir / relative;
 
-        if (std::filesystem::is_directory(path)) {
-            if (deleted)
-                std::erase_if(trees, [&](const Tree& tree) { return tree.relative == relative; });
-            else
-                ensure_tree(trees, relative);
-        } else if (std::filesystem::is_regular_file(path)) {
+        const auto file_status = std::filesystem::status(path);
+        if (file_status.type() == std::filesystem::file_type::directory) {
+            ensure_tree(trees, relative);
+        } else if (file_status.type() == std::filesystem::file_type::regular) {
+            if (!tree_id.empty())
+                remove_subtree(trees, relative);
             Tree& parent = ensure_tree(trees, relative.parent_path());
             add_object(path, object_dir, parent.objects, error_message);
-        } else if (deleted)
+        } else if (file_status.type() == std::filesystem::file_type::not_found) {
+            remove_subtree(trees, relative);
             for (Tree& tree : trees)
                 if (tree.relative == relative.parent_path())
                     rem_object(relative, tree.objects);
+        }
     }
 
     TreeRelation tree_relation = tree_relation_init(trees);
@@ -226,8 +234,8 @@ void version::create(Paths& paths, std::string message, std::string author, char
 
     paths.move_pending(pending);
     paths.move_pending({.type = PendingType::remove, .dest = prepare_dir});
-    paths.move_pending({.type = PendingType::remove_conditional, .dest = merge});
-    paths.move_pending({.type = PendingType::remove_conditional, .dest = conflict});
+    paths.move_pending({.type = PendingType::remove_conditional_exists, .dest = merge});
+    paths.move_pending({.type = PendingType::remove_conditional_exists, .dest = conflict});
 }
 
 void version::create_tmp(

@@ -58,7 +58,7 @@ void operation::revert(
     }
 
     for (size_t i = remove_dir.size(); i > 0;)
-        paths.move_pending({.type = PendingType::remove_conditional, .dest = std::move(remove_dir[--i])});
+        paths.move_pending({.type = PendingType::remove_conditional_empty, .dest = std::move(remove_dir[--i])});
 
     for (object::info& object : objects) {
         if (object.type == object::type::blob) {

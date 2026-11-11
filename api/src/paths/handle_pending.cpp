@@ -9,8 +9,12 @@ void Paths::handle_pending(const Pending& pending) {
         case PendingType::remove:
             std::filesystem::remove(pending.dest, ec);
             break;
-        case PendingType::remove_conditional:
+        case PendingType::remove_conditional_empty:
             if (std::filesystem::is_empty(pending.dest))
+                std::filesystem::remove(pending.dest, ec);
+            break;
+        case PendingType::remove_conditional_exists:
+            if (std::filesystem::exists(pending.dest))
                 std::filesystem::remove(pending.dest, ec);
             break;
         case PendingType::create_directories:
