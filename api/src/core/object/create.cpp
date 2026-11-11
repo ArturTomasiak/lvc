@@ -5,15 +5,15 @@
 // pattern is written file content
 
 void object::create(
-    Paths& paths, const std::filesystem::path& object, const std::string& type, std::string& content, std::string& id,
+    const std::filesystem::path& object, const std::string& type, std::string& content, std::string& out_id,
     char** error_message) {
     insert_pattern(content, type, nullptr);
 
     char content_id[65];
     sha256(content.data(), content.size(), content_id);
-    id = content_id;
+    out_id = content_id;
 
-    const std::filesystem::path dest = object / id;
+    const std::filesystem::path dest = object / out_id;
 
     if (std::filesystem::is_regular_file(dest))
         return;

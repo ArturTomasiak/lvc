@@ -34,8 +34,8 @@ namespace object {
     };
 
     void create(
-        Paths& paths, const std::filesystem::path& object, const std::string& type, std::string& content,
-        std::string& out_id, char** error_message);
+        const std::filesystem::path& object, const std::string& type, std::string& content, std::string& out_id,
+        char** error_message);
     bool exists(Paths& paths, char id[65]);
 }
 
