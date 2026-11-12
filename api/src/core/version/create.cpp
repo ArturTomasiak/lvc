@@ -173,33 +173,74 @@ static std::string build(
     return tree_builder(tree_relation, object_dir, error_message);
 }
 
-void version::create(Paths& paths, std::string message, std::string author, char** error_message) {
-    if (message.empty()) {
-        error_message_creator("No version message recieved", error_message);
-        return;
+static std::vector<std::string> process_input(
+    Paths& paths, const std::vector<std::string>& input_raw, const std::string& version_id, char** error_message) {
+    std::vector<std::string>       input = paths.resolve(input_raw, version_id, 0, 1);
+    const std::vector<std::string> ignore =
+        paths.resolve(io::content_lines(paths.ignore, 0, 0, error_message), version_id, 1, 1);
+
+    std::unordered_set<std::string_view> ignore_entries;
+    ignore_entries.reserve(ignore.size());
+    for (const std::string& entry : ignore)
+        ignore_entries.insert(entry);
+    std::erase_if(input, [&ignore_entries](const std::string& entry) { return ignore_entries.contains(entry); });
+
+    std::unordered_map<std::filesystem::path, object::info> version =
+        version::map_all_objects(paths, version_id, ignore_entries, error_message);
+    std::erase_if(input, [&version, &paths, &error_message](std::string& entry) {
+        const auto it = version.find(entry);
+        if (it == version.end())
+            return false;
+        std::string buffer = io::content(paths.root / entry, 0, 0, error_message);
+        insert_pattern(buffer, TYPE_BLOB, nullptr);
+        char id[65];
+        sha256(buffer.c_str(), buffer.size(), id);
+        return id == it->second.id;
+    });
+
+    return input;
+}
+
+static void confirm_input(const std::vector<std::string>& input) {
+    std::cout << "Snapshot contents:\n";
+    for (const std::string path : input)
+        if (std::filesystem::is_regular_file(path))
+            std::cout << path << '\n';
+    while (true) {
+        std::string answer;
+        std::cout << "Confirm snapshot (Y/N): ";
+        std::getline(std::cin, answer);
+        const char charanswer = std::tolower(answer[0]);
+        if (charanswer == 'y')
+            break;
+        else if (charanswer == 'n')
+            return;
+        std::cout << "Invalid answer.\n";
     }
+}
+
+void version::create(
+    Paths& paths, const std::vector<std::string>& input_raw, std::string message, std::string author,
+    char** error_message) {
     const std::string              workspace_name    = io::content(paths.current, 0, 0, error_message);
     const std::filesystem::path    workspace         = paths.workspace / workspace_name;
     const std::vector<std::string> workspace_content = io::content_lines(workspace, 1, 0, error_message);
-    const std::filesystem::path    prepare_dir       = prepare_path(paths, workspace_name);
     const std::string              version_id = workspace_content.size() <= 1 ? std::string{} : workspace_content[1];
     const std::string              category   = category::get(workspace_content[0]);
-    if (!std::filesystem::is_regular_file(prepare_dir)) [[unlikely]] {
-        error_message_creator("No files prepared", error_message);
-        return;
-    }
-    const std::filesystem::path local    = paths.local / workspace_name;
-    const std::filesystem::path merge    = local / filename_merge;
-    const std::filesystem::path conflict = local / filename_conflict;
-    const std::string           merge_buffer =
+    const std::vector<std::string> input      = process_input(paths, input_raw, version_id, error_message);
+    const std::filesystem::path    local      = paths.local / workspace_name;
+    const std::filesystem::path    merge      = local / filename_merge;
+    const std::filesystem::path    conflict   = local / filename_conflict;
+    const std::string              merge_buffer =
         std::filesystem::is_regular_file(merge) ? io::content(merge, 0, 0, error_message) : std::string{};
+
+    confirm_input(input);
 
     if (!operation::conflicts_handled(paths.root, conflict, error_message)) {
         error_message_creator("Unhandled conflicts. Use lvc conflict for the list of conflicts.", error_message);
         return;
     }
-    std::vector<std::string> status = version::status(paths, prepare_dir, version_id, error_message);
-    std::string              root_id;
+    std::string root_id;
     if (!version_id.empty()) {
         std::vector<std::string> version_content = io::content_lines(paths.object / version_id, 1, 0, error_message);
         if (version_content.empty()) {
@@ -210,7 +251,7 @@ void version::create(Paths& paths, std::string message, std::string author, char
         root_id = version_content[VERSION_ROOT_TREE];
     }
 
-    std::string       buffer = build(paths.object, paths.root, root_id, status, error_message);
+    std::string       buffer = build(paths.object, paths.root, root_id, input, error_message);
     const std::string nl     = "\n";
     buffer += nl + message + nl + author;
     if (!merge_buffer.empty()) {
@@ -233,7 +274,6 @@ void version::create(Paths& paths, std::string message, std::string author, char
     CHECKERROR(error_message);
 
     paths.move_pending(pending);
-    paths.move_pending({.type = PendingType::remove, .dest = prepare_dir});
     paths.move_pending({.type = PendingType::remove_conditional_exists, .dest = merge});
     paths.move_pending({.type = PendingType::remove_conditional_exists, .dest = conflict});
 }

@@ -93,11 +93,15 @@ bool lvc::test(int argc, char* argv[]) {
     create_file(example_file_2_path, example_file_2);
     create_file(example_file_3_path, example_file_3);
 
+    char    trash[] = "aaa";
+    char    desc[]  = "desc";
+    char    init[]  = "init";
+    char    all[]   = "/";
+    char*   _argv[] = {trash, trash, desc, init, all};
+    uint8_t _argc   = 5;
+
     TEST_MS_MEASURE(
-        lvc_prepare(lvc.c_str(), argc_example, argv_example, &error_message), "LVC PREPARE TEST",
-        "LVC PREPARE SUCCESS IN: ");
-    TEST_MS_MEASURE(
-        lvc_version(lvc.c_str(), "init", "", &error_message), "LVC VERSION TEST", "LVC VERSION SUCCESS IN: ");
+        lvc_version(lvc.c_str(), _argc, _argv, "", &error_message), "LVC VERSION TEST", "LVC VERSION SUCCESS IN: ");
     TEST_MS_MEASURE(
         lvc_workspace(lvc.c_str(), feature_worksapce.c_str(), 0, &error_message), "LVC WORKSPACE TEST",
         "LVC WORKSPACE SUCCESS IN: ");
@@ -105,23 +109,17 @@ bool lvc::test(int argc, char* argv[]) {
         lvc_goto(lvc.c_str(), feature_worksapce.c_str(), &error_message), "LVC GOTO TEST", "LVC GOTO SUCCESS IN: ");
 
     modify_line(example_file_2_path, 2, "q");
-    lvc_prepare(lvc.c_str(), argc_example, argv_example, &error_message);
-    lvc_version(lvc.c_str(), "q", "", &error_message);
+    lvc_version(lvc.c_str(), _argc, _argv, "", &error_message);
     lvc_goto(lvc.c_str(), main_workspace.c_str(), &error_message);
     modify_line(example_file_2_path, 3, "f");
-    lvc_prepare(lvc.c_str(), argc_example, argv_example, &error_message);
-    lvc_version(lvc.c_str(), "f", "", &error_message);
+    lvc_version(lvc.c_str(), _argc, _argv, "", &error_message);
 
     TEST_MS_MEASURE(
         lvc_merge(lvc.c_str(), feature_worksapce.c_str(), 0, &error_message), "LVC MERGE TEST",
         "LVC MERGE SUCCESS IN: ");
 
     TEST_MS_MEASURE(
-        lvc_prepare(lvc.c_str(), argc_example, argv_example, &error_message), "LVC PREPARE TEST",
-        "LVC PREPARE SUCCESS IN: ");
-
-    TEST_MS_MEASURE(
-        lvc_version(lvc.c_str(), "merge", "", &error_message), "LVC VERSION TEST", "LVC VERSION SUCCESS IN: ");
+        lvc_version(lvc.c_str(), _argc, _argv, "", &error_message), "LVC VERSION TEST", "LVC VERSION SUCCESS IN: ");
     ;
 
     TEST_MS_MEASURE(

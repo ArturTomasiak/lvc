@@ -16,7 +16,7 @@ Files can be selected with wildcards, root-relative paths, exclusion rules and o
 
 ### Versioning
 
-Files are prepared using `lvc prepare ...`. Prepare saves paths locally, but not the state of the path at the time of prepare. After that one can create a new snapshot using `lvc version <desc>`. To revert the working directory or selected files to a state of the version, use `lvc revert`.
+Creating a new snapshot is as simple as one command where user specifies the description as well as path input. To revert the working directory or selected files to a state of the version, use `lvc revert`.
 
 ### Merging
 

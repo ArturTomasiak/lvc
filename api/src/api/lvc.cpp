@@ -73,45 +73,28 @@ extern "C" LVC_API char** lvc_checkout(const char* lvc, char** error_message) no
     return strvector_to_charpp(checkout);
 }
 
-extern "C" LVC_API char** lvc_status(const char* lvc, char** error_message) noexcept {
-    Paths                          paths(lvc, false, error_message);
-    const std::string              workspace_name    = io::content(paths.current, 0, 0, error_message);
-    const std::filesystem::path    workspace         = paths.workspace / workspace_name;
-    const std::filesystem::path    prepare           = prepare_path(paths, workspace);
-    const std::vector<std::string> workspace_content = io::content_lines(workspace, 1, 1, error_message);
-    const std::string              version_id        = workspace_content.empty() ? "" : workspace_content[0];
-    CHECKERROR(error_message, 0);
-    std::vector<std::string> status = version::status(paths, prepare, version_id, error_message);
-    return strvector_to_charpp(status);
-}
-
-extern "C" LVC_API char** lvc_status_all(const char* lvc, char** error_message) noexcept {
-    Paths                    paths(lvc, false, error_message);
-    std::vector<std::string> status_all = version::status_all(paths, error_message);
-    return strvector_to_charpp(status_all);
-}
-
-extern "C" LVC_API char** lvc_prepare(const char* lvc, int argc, char* argv[], char** error_message) noexcept {
-    Paths                    paths(lvc, false, error_message);
-    std::vector<std::string> input;
-    input.reserve(argc - 2);
-    for (size_t i = 2; i < argc; i++)
-        input.push_back(argv[i]);
-
-    char** out;
-    version::prepare(paths, input, &out, error_message);
-    return out;
-}
-
-extern "C" LVC_API void lvc_prepare_reset(const char* lvc, char** error_message) noexcept {
-    Paths paths(lvc, false, error_message);
-    version::prepare_reset(paths, error_message);
-}
-
 extern "C" LVC_API void
-lvc_version(const char* lvc, const char* message, const char* author, char** error_message) noexcept {
-    Paths paths(lvc, true, error_message);
-    version::create(paths, message, author, error_message);
+lvc_version(const char* lvc, int argc, char* argv[], const char* author, char** error_message) noexcept {
+    Paths                    paths(lvc, true, error_message);
+    std::vector<std::string> input;
+    std::string              message;
+    bool                     message_exists = false;
+    for (size_t i = 2; i < argc; i++) {
+        if (!message_exists && !std::strcmp(argv[i], "desc")) {
+            message        = std::move(argv[i + 1]);
+            message_exists = true;
+            i += 2;
+        } else {
+            input.emplace_back(std::move(argv[i]));
+        }
+    }
+    if (!message_exists || message.empty()) [[unlikely]] {
+        error_message_creator("No description given.", error_message);
+        return;
+    }
+    if (input.empty())
+        input.emplace_back("/");
+    version::create(paths, input, message, author, error_message);
 }
 
 extern "C" LVC_API LvcCategoryList* lvc_category_list(const char* lvc, char** error_message) noexcept {

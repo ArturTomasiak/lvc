@@ -7,22 +7,15 @@ lvc create
       Start the interactive setup in the current directory. Follow the prompts
       to create a repository from scratch or clone an existing repository.
 
-lvc prepare ...
-      Select one or more paths for the next version.
-      Example: lvc prepare src/main.cpp readme.md
-
-lvc prepare reset
-      Clear the list of prepared paths. Your working files stay on disk.
-
-lvc status
-      List prepared paths that have changed since the last version.
-
-lvc status all
-      List every prepared path, including unchanged ones.
-
-lvc version <description>
-      Record the prepared changes with a description.
-      Example: lvc version Add the help command
+lvc version ...
+      Use wildcards, root-relative paths, exclusion rules and or incomplete paths,
+      then approve the list of selected paths to record changes or cancel the operation.
+      Required Arguments:
+         desc "string"
+      Example: lvc version / ~*.launch desc "UI restart machine notification on error handler and hard fault"
+      Explanation: / selects all paths and ~*.launch unselects all .launch files
+      Example: lvc version -desc "clearing display at initialization" main.c
+      Explanation: will work despite main.c not being in the root folder
 
 lvc checkout
       List files that have changed since the last version.

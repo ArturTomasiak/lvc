@@ -46,18 +46,14 @@ namespace repository {
 }
 
 namespace version {
-    void create(Paths& paths, std::string message, std::string author, char** error_message);
+    void create(
+        Paths& paths, const std::vector<std::string>& input_raw, std::string message, std::string author,
+        char** error_message);
     void create_tmp(
         Paths& paths, const std::filesystem::path& operation, std::unordered_set<std::string_view>& ignore,
         char** error_message);
-    void prepare(Paths& paths, std::vector<std::string>& input, char*** prepared, char** error_message);
-    void prepare_reset(Paths& paths, char** error_message);
 
     std::vector<std::string> checkout(Paths& paths, char** error_message);
-    std::vector<std::string> status(
-        Paths& paths, const std::filesystem::path& prepare_dir, const std::string& latest_version,
-        char** error_message);
-    std::vector<std::string> status_all(Paths& paths, char** error_message);
 
     LvcVersion* history(
         Paths& paths, const std::string& workspace_name, char** error_message, std::string from = "",

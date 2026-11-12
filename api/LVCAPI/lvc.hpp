@@ -100,11 +100,8 @@ LVC_API void lvc_change_category(
 LVC_API void   lvc_goto(const char* lvc, const char* workspace_name, char** error_message) LVC_NOEXCEPT;
 LVC_API void   lvc_default(const char* lvc, const char* workspace_name, char** error_message) LVC_NOEXCEPT;
 LVC_API char** lvc_checkout(const char* lvc, char** error_message) LVC_NOEXCEPT;
-LVC_API char** lvc_status(const char* lvc, char** error_message) LVC_NOEXCEPT;
-LVC_API char** lvc_status_all(const char* lvc, char** error_message) LVC_NOEXCEPT;
-LVC_API char** lvc_prepare(const char* lvc, int argc, char* argv[], char** error_message) LVC_NOEXCEPT;
-LVC_API void   lvc_prepare_reset(const char* lvc, char** error_message) LVC_NOEXCEPT;
-LVC_API void   lvc_version(const char* lvc, const char* message, const char* author, char** error_message) LVC_NOEXCEPT;
+LVC_API void
+lvc_version(const char* lvc, int argc, char* argv[], const char* author, char** error_message) LVC_NOEXCEPT;
 LVC_API LvcCategoryList* lvc_category_list(const char* lvc, char** error_message) LVC_NOEXCEPT;
 LVC_API void             lvc_category_list_free(LvcCategoryList* list) LVC_NOEXCEPT;
 LVC_API LvcVersion*      lvc_history(const char* lvc, const char* workspace, char** error_message) LVC_NOEXCEPT;

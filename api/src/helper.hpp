@@ -23,8 +23,7 @@ void  sha256(const char* in, size_t in_len, char out[65]);
 char* deflate(const char* in, size_t in_len, size_t& out_len);
 char* inflate(const std::string& in, size_t& out_len);
 
-void                  insert_pattern(std::string& dest, const std::string& type, const char* category);
-std::filesystem::path prepare_path(Paths& paths, const std::string& workspace_name);
+void insert_pattern(std::string& dest, const std::string& type, const char* category);
 
 namespace io {
     void file(const std::filesystem::path& path, std::ios_base::openmode flags, char** error_message);

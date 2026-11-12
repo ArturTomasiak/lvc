@@ -33,7 +33,7 @@ bool lvc::history(int argc, char* argv[]) {
     if (error_message != 0)
         return 0;
 
-    for (int i = 3; i < argc - 1; i++) {
+    for (int i = 2; i < argc - 1; i++) {
         if (!std::strcmp(argv[i], "depth"))
             depth = std::stoll(argv[++i]);
         else if (!std::strcmp(argv[i], "length"))
