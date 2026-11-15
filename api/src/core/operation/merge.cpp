@@ -23,8 +23,7 @@ static void add_path(LvcConflictArray* out, const std::filesystem::path& path, c
 }
 
 static void existance_conflict(
-    Paths& paths, LvcConflictArray* out, const std::filesystem::path& dest, const std::string& buffer, bool ours,
-    char** error_message) {
+    Paths& paths, LvcConflictArray* out, const std::filesystem::path& dest, const std::string& buffer, bool ours, char** error_message) {
     const Pending pending = {.type = PendingType::rename, .src = paths.get_tmp_file(), .dest = paths.root / dest};
     std::ofstream file(pending.src, std::ios::binary | std::ios::trunc | std::ios::out);
     file << ours_label << '\n';
@@ -40,8 +39,8 @@ static void existance_conflict(
 }
 
 LvcConflictArray* operation::merge(
-    Paths& dest_paths, const std::string& src_workspace_name, const std::string& dest_workspace_name,
-    const char* src_lvc, char** error_message) {
+    Paths& dest_paths, const std::string& src_workspace_name, const std::string& dest_workspace_name, const char* src_lvc,
+    char** error_message) {
     Paths             src_paths(src_lvc == 0 ? dest_paths.lvc.c_str() : src_lvc, false, error_message);
     LvcConflictArray* out                      = NULL;
     out                                        = static_cast<LvcConflictArray*>(malloc(sizeof(LvcConflictArray)));
@@ -104,9 +103,8 @@ LvcConflictArray* operation::merge(
     std::vector<std::filesystem::path> all_paths;
 
     {
-        const std::vector<object::info> dest_objects =
-            version::all_objects(dest_paths.object, dest_id, {}, error_message);
-        const std::vector<object::info> src_objects = version::all_objects(src_paths.object, src_id, {}, error_message);
+        const std::vector<object::info> dest_objects = version::all_objects(dest_paths.object, dest_id, {}, error_message);
+        const std::vector<object::info> src_objects  = version::all_objects(src_paths.object, src_id, {}, error_message);
 
         if (workspace::changed_since_ver(dest_paths, dest_objects, error_message)) {
             error_message_creator("Unsaved changes. Create a new version before merging.", error_message);
@@ -177,8 +175,7 @@ LvcConflictArray* operation::merge(
         }
 
         if (remote_src && src) {
-            const Pending pending = {
-                .type = PendingType::rename, .src = dest_paths.get_tmp_file(), .dest = dest_paths.object / src->id};
+            const Pending pending = {.type = PendingType::rename, .src = dest_paths.get_tmp_file(), .dest = dest_paths.object / src->id};
             if (!std::filesystem::is_regular_file(pending.dest)) {
                 std::filesystem::copy(src_paths.object / src->id, pending.src, ec);
                 dest_paths.move_pending(pending);
@@ -189,8 +186,7 @@ LvcConflictArray* operation::merge(
             if (dest->id == src->id)
                 continue;
             up_to_date            = false;
-            const Pending pending = {
-                .type = PendingType::rename, .src = dest_paths.get_tmp_file(), .dest = dest_paths.root / dest->path};
+            const Pending pending = {.type = PendingType::rename, .src = dest_paths.get_tmp_file(), .dest = dest_paths.root / dest->path};
             if (src_binary || dest_binary) {
                 add_path(out, dest->path, error_message);
                 continue;
@@ -227,8 +223,7 @@ LvcConflictArray* operation::merge(
                 const std::string buffer = io::content(src_paths.object / src->id, 1, 1, error_message);
                 io::file(pending.src, std::ios::app | std::ios::trunc, buffer.data(), buffer.size(), 0, error_message);
 
-                dest_paths.move_pending(
-                    {.type = PendingType::create_directories_conditional, .dest = pending.dest.parent_path()});
+                dest_paths.move_pending({.type = PendingType::create_directories_conditional, .dest = pending.dest.parent_path()});
                 dest_paths.move_pending(pending);
 
                 if (common) {
@@ -245,12 +240,9 @@ LvcConflictArray* operation::merge(
         return out;
     }
 
-    const Pending operation = {
-        .type = PendingType::create_directory_conditional, .dest = dest_paths.local / dest_workspace_name};
-    const Pending merge = {
-        .type = PendingType::rename, .src = dest_paths.get_tmp_file(), .dest = operation.dest / filename_merge};
-    const Pending conflict = {
-        .type = PendingType::rename, .src = dest_paths.get_tmp_file(), .dest = operation.dest / filename_conflict};
+    const Pending operation = {.type = PendingType::create_directory_conditional, .dest = dest_paths.local / dest_workspace_name};
+    const Pending merge     = {.type = PendingType::rename, .src = dest_paths.get_tmp_file(), .dest = operation.dest / filename_merge};
+    const Pending conflict  = {.type = PendingType::rename, .src = dest_paths.get_tmp_file(), .dest = operation.dest / filename_conflict};
     dest_paths.move_pending(operation);
 
     io::file(merge.src, std::ios::binary | std::ios::trunc, merge_buffer.data(), merge_buffer.size(), 0, error_message);

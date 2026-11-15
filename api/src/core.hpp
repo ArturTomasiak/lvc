@@ -17,12 +17,11 @@ namespace category {
 }
 
 namespace operation {
-    bool conflicts_handled(
-        const std::filesystem::path& root_path, const std::filesystem::path& conflict_path, char** error_message);
+    bool conflicts_handled(const std::filesystem::path& root_path, const std::filesystem::path& conflict_path, char** error_message);
     void revert(Paths& paths, std::string version_id, std::vector<std::string>& input_raw, char** error_message);
     LvcConflictArray* merge(
-        Paths& dest_paths, const std::string& src_workspace_name, const std::string& dest_workspace_name,
-        const char* src_lvc, char** error_message);
+        Paths& dest_paths, const std::string& src_workspace_name, const std::string& dest_workspace_name, const char* src_lvc,
+        char** error_message);
 }
 
 namespace object {
@@ -34,9 +33,7 @@ namespace object {
         std::filesystem::path path;
     };
 
-    void create(
-        const std::filesystem::path& object, const std::string& type, std::string& content, std::string& out_id,
-        char** error_message);
+    void create(const std::filesystem::path& object, std::string& type, std::string& content, std::string& out_id, char** error_message);
     bool exists(Paths& paths, char id[65]);
 }
 
@@ -47,27 +44,21 @@ namespace repository {
 }
 
 namespace version {
-    void create(
-        Paths& paths, const std::vector<std::string>& input_raw, std::string message, std::string author,
-        char** error_message);
-    void create_tmp(
-        Paths& paths, const std::filesystem::path& operation, std::unordered_set<std::string_view>& ignore,
-        char** error_message);
+    void create(Paths& paths, const std::vector<std::string>& input_raw, std::string message, std::string author, char** error_message);
+    void
+    create_tmp(Paths& paths, const std::filesystem::path& operation, std::unordered_set<std::string_view>& ignore, char** error_message);
 
     std::vector<std::string> checkout(Paths& paths, char** error_message);
 
-    LvcVersion* history(
-        Paths& paths, const std::string& workspace_name, char** error_message, std::string from = "",
-        std::string to = "");
-    void history_free(LvcVersion* version);
+    LvcVersion* history(Paths& paths, const std::string& workspace_name, char** error_message, std::string from = "", std::string to = "");
+    void        history_free(LvcVersion* version);
 
     std::unordered_set<std::string>
     all_ids(Paths& paths, const std::string& id, std::unordered_set<std::string_view> ignore, char** error_message);
     std::vector<object::info> all_objects(
-        const std::filesystem::path& object, const std::string& id, std::unordered_set<std::string_view> ignore,
-        char** error_message);
-    std::unordered_map<std::filesystem::path, object::info> map_all_objects(
-        Paths& paths, const std::string& id, std::unordered_set<std::string_view> ignore, char** error_message);
+        const std::filesystem::path& object, const std::string& id, std::unordered_set<std::string_view> ignore, char** error_message);
+    std::unordered_map<std::filesystem::path, object::info>
+    map_all_objects(Paths& paths, const std::string& id, std::unordered_set<std::string_view> ignore, char** error_message);
     std::vector<std::filesystem::path> deleted_since(Paths& paths, std::string id, char** error_message);
 }
 
@@ -75,11 +66,12 @@ namespace workspace {
     void create(Paths& paths, std::string workspace_name, std::string copy_workspace_name, char** error_message);
     void _goto(Paths& paths, std::string dest_name, char** error_message);
     void _default(Paths& paths, const char* workspace_name, char** error_message);
-    std::vector<object::info> all_objects(Paths& paths, char** error_message);
     bool changed_since_ver(Paths& paths, const std::vector<object::info>& objects_version, char** error_message);
     void all_versions(
-        Paths& paths, const std::string& workspace_path, std::vector<std::string>& dest, char** error_message,
-        std::string from = "", std::string to = "");
+        Paths& paths, const std::string& workspace_path, std::vector<std::string>& dest, char** error_message, std::string from = "",
+        std::string to = "");
+
+    std::vector<object::info> all_objects(Paths& paths, char** error_message);
 }
 
 inline void free_charpp(char** arr) {

@@ -6,8 +6,8 @@ static void validate_local(std::filesystem::path& path, char** error_message) {
 }
 
 static void clone_local(Paths& paths, std::filesystem::path path, bool clone_versioning, char** error_message) {
-    Paths             their_paths(path.c_str(), false, error_message);
-    const std::string default_workspace_name = io::content(their_paths.lvc / filename_default, 0, 0, error_message);
+    Paths                          their_paths(path.c_str(), false, error_message);
+    const std::string              default_workspace_name = io::content(their_paths.lvc / filename_default, 0, 0, error_message);
     const std::vector<std::string> default_workspace =
         io::content_lines(their_paths.workspace / default_workspace_name, 1, 1, error_message);
     const std::string version = default_workspace.empty() ? std::string{} : default_workspace[0];
@@ -47,8 +47,8 @@ static void clone_local(Paths& paths, std::filesystem::path path, bool clone_ver
 
         const Pending pending = {.type = PendingType::rename, .src = paths.get_tmp_file(), .dest = paths.current};
         io::file(
-            pending.src, std::ios::binary | std::ios::trunc, default_workspace_name.c_str(),
-            default_workspace_name.size(), 0, error_message);
+            pending.src, std::ios::binary | std::ios::trunc, default_workspace_name.c_str(), default_workspace_name.size(), 0,
+            error_message);
         paths.move_pending(pending);
     }
 
@@ -59,8 +59,7 @@ static void clone_local(Paths& paths, std::filesystem::path path, bool clone_ver
             if (object.type == object::type::blob) {
                 const Pending pending = {.type = PendingType::rename, .src = paths.get_tmp_file(), .dest = path};
                 std::string   buffer  = io::content(their_paths.object / object.id, 1, 1, error_message);
-                io::file(
-                    pending.src, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 0, error_message);
+                io::file(pending.src, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 0, error_message);
                 paths.move_pending(pending);
             } else if (object.type == object::type::tree)
                 paths.move_pending({.type = PendingType::create_directory, .dest = path});

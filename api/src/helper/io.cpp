@@ -80,8 +80,7 @@ std::vector<std::string> io::stream_to_lines(std::istream& stream) {
     return result;
 }
 
-std::vector<std::string>
-io::content_lines(const std::filesystem::path& path, bool decompress, bool ignore_pattern, char** error_message) {
+std::vector<std::string> io::content_lines(const std::filesystem::path& path, bool decompress, bool ignore_pattern, char** error_message) {
     if (!std::filesystem::exists(path))
         return {};
     if (decompress) {

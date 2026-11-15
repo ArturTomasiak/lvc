@@ -21,9 +21,8 @@ static void append_match(std::vector<Match>& matches, size_t a, size_t b, size_t
     matches.push_back({a, b, length});
 }
 
-static Snake middle_snake(
-    const Lines& a, ptrdiff_t a_begin, ptrdiff_t a_end, const Lines& b, ptrdiff_t b_begin, ptrdiff_t b_end,
-    Scratch& scratch) {
+static Snake
+middle_snake(const Lines& a, ptrdiff_t a_begin, ptrdiff_t a_end, const Lines& b, ptrdiff_t b_begin, ptrdiff_t b_end, Scratch& scratch) {
     const ptrdiff_t n         = a_end - a_begin;
     const ptrdiff_t m         = b_end - b_begin;
     const ptrdiff_t delta     = n - m;
@@ -94,8 +93,8 @@ static Snake middle_snake(
 }
 
 static void find_matches(
-    const Lines& a, size_t a_begin, size_t a_end, const Lines& b, size_t b_begin, size_t b_end,
-    std::vector<Match>& matches, Scratch& scratch) {
+    const Lines& a, size_t a_begin, size_t a_end, const Lines& b, size_t b_begin, size_t b_end, std::vector<Match>& matches,
+    Scratch& scratch) {
     size_t prefix = 0;
     while (a_begin + prefix < a_end && b_begin + prefix < b_end && a[a_begin + prefix] == b[b_begin + prefix]) {
         prefix++;
@@ -192,8 +191,8 @@ void print_diff(const Lines& base, const Lines& side, std::string path) {
 }
 
 static Lines materialize_region(
-    const Lines& base, const Lines& side, const std::vector<Edit>& edits, size_t edit_begin, size_t edit_end,
-    size_t base_begin, size_t base_end) {
+    const Lines& base, const Lines& side, const std::vector<Edit>& edits, size_t edit_begin, size_t edit_end, size_t base_begin,
+    size_t base_end) {
     Lines  result;
     size_t position = base_begin;
     for (size_t i = edit_begin; i < edit_end; i++) {
@@ -242,8 +241,7 @@ bool merge3(const std::filesystem::path path, const Lines& base, const Lines& ou
     size_t                  base_position = 0;
     while (oi < ours_edits.size() || ti < theirs_edits.size()) {
         const bool ours_starts_first =
-            ti == theirs_edits.size() ||
-            (oi < ours_edits.size() && ours_edits[oi].base_begin < theirs_edits[ti].base_begin);
+            ti == theirs_edits.size() || (oi < ours_edits.size() && ours_edits[oi].base_begin < theirs_edits[ti].base_begin);
         if (ours_starts_first && (ti == theirs_edits.size() || !interacts(ours_edits[oi], theirs_edits[ti]))) {
             const Edit& edit = ours_edits[oi];
             emit_unchanged_base(edit.base_begin, base_position, base, out);
@@ -254,8 +252,7 @@ bool merge3(const std::filesystem::path path, const Lines& base, const Lines& ou
             continue;
         }
         const bool theirs_starts_first =
-            oi == ours_edits.size() ||
-            (ti < theirs_edits.size() && theirs_edits[ti].base_begin < ours_edits[oi].base_begin);
+            oi == ours_edits.size() || (ti < theirs_edits.size() && theirs_edits[ti].base_begin < ours_edits[oi].base_begin);
         if (theirs_starts_first && (oi == ours_edits.size() || !interacts(ours_edits[oi], theirs_edits[ti]))) {
             const Edit& edit = theirs_edits[ti];
             emit_unchanged_base(edit.base_begin, base_position, base, out);
@@ -306,9 +303,8 @@ bool merge3(const std::filesystem::path path, const Lines& base, const Lines& ou
             }
         }
         emit_unchanged_base(region_begin, base_position, base, out);
-        Lines ours_version = materialize_region(base, ours, ours_edits, ours_begin, oi, region_begin, region_end);
-        Lines theirs_version =
-            materialize_region(base, theirs, theirs_edits, theirs_begin, ti, region_begin, region_end);
+        Lines ours_version   = materialize_region(base, ours, ours_edits, ours_begin, oi, region_begin, region_end);
+        Lines theirs_version = materialize_region(base, theirs, theirs_edits, theirs_begin, ti, region_begin, region_end);
         if (ours_version == theirs_version) {
             for (std::string& line : ours_version)
                 out << line << '\n';

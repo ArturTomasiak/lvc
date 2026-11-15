@@ -10,18 +10,18 @@ void workspace::_goto(Paths& paths, std::string dest_name, char** error_message)
     CHECKERROR(error_message);
     if (src_name == dest_name)
         error_message_creator("Current workspace is already " + dest_name, error_message);
-    const std::filesystem::path     src_operation  = paths.local / src_name;
-    const std::filesystem::path     dest_operation = paths.local / dest_name;
-    const std::vector<std::string>  dest_versions  = io::content_lines(dest_path, 1, 1, error_message);
-    std::string                     dest_id        = dest_versions.empty() ? "" : dest_versions[0];
-    const std::vector<std::string>  src_versions   = io::content_lines(paths.workspace / src_name, 1, 1, error_message);
-    const std::string               src_id         = src_versions.empty() ? "" : src_versions[0];
-    const std::filesystem::path     dest_tmp       = dest_operation / filename_tmp;
-    const std::vector<std::string>  ignore_raw     = io::content_lines(paths.ignore, 0, 0, error_message);
-    const std::vector<std::string>  ignore         = paths.resolve(ignore_raw, dest_id, 0, 1);
-    const std::vector<object::info> src_objects    = version::all_objects(paths.object, src_id, {}, error_message);
-    std::vector<object::info>       dest_objects   = version::all_objects(paths.object, dest_id, {}, error_message);
-    bool                            remove_tmp     = false;
+    const std::filesystem::path          src_operation  = paths.local / src_name;
+    const std::filesystem::path          dest_operation = paths.local / dest_name;
+    const std::vector<std::string>       dest_versions  = io::content_lines(dest_path, 1, 1, error_message);
+    std::string                          dest_id        = dest_versions.empty() ? "" : dest_versions[0];
+    const std::vector<std::string>       src_versions   = io::content_lines(paths.workspace / src_name, 1, 1, error_message);
+    const std::string                    src_id         = src_versions.empty() ? "" : src_versions[0];
+    const std::filesystem::path          dest_tmp       = dest_operation / filename_tmp;
+    const std::vector<std::string>       ignore_raw     = io::content_lines(paths.ignore, 0, 0, error_message);
+    const std::vector<std::string>       ignore         = paths.resolve(ignore_raw, dest_id, 0, 1);
+    const std::vector<object::info>      src_objects    = version::all_objects(paths.object, src_id, {}, error_message);
+    std::vector<object::info>            dest_objects   = version::all_objects(paths.object, dest_id, {}, error_message);
+    bool                                 remove_tmp     = false;
     std::unordered_set<std::string_view> ignore_set;
     ignore_set.reserve(ignore.size());
     for (const std::string& entry : ignore)

@@ -2,17 +2,16 @@
 #include <chrono>
 #include <fstream>
 
-#define TEST_MS_MEASURE(test, pre_msg, success_msg)                                                                    \
-    do {                                                                                                               \
-        std::cout << pre_msg << "\n";                                                                                  \
-        const auto start = std::chrono::steady_clock::now();                                                           \
-        test;                                                                                                          \
-        const auto elapsed =                                                                                           \
-            std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();               \
-        if (error_message)                                                                                             \
-            return 0;                                                                                                  \
-        std::cout << success_msg << elapsed << " ms\n\n";                                                              \
-                                                                                                                       \
+#define TEST_MS_MEASURE(test, pre_msg, success_msg)                                                                                        \
+    do {                                                                                                                                   \
+        std::cout << pre_msg << "\n";                                                                                                      \
+        const auto start = std::chrono::steady_clock::now();                                                                               \
+        test;                                                                                                                              \
+        const auto elapsed = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - start).count();                  \
+        if (error_message)                                                                                                                 \
+            return 0;                                                                                                                      \
+        std::cout << success_msg << elapsed << " ms\n\n";                                                                                  \
+                                                                                                                                           \
     } while (0)
 
 static void create_file(const std::filesystem::path& path, const std::string& content) {
@@ -43,9 +42,9 @@ bool lvc::test(int argc, char* argv[]) {
     const std::string           name              = "lvctest";
     const std::string           main_workspace    = "main";
     const std::string           feature_worksapce = "feature";
-    const std::string           stamp = std::to_string(std::chrono::system_clock::now().time_since_epoch().count());
-    const std::filesystem::path tmp   = std::filesystem::temp_directory_path() / (name + stamp);
-    const std::filesystem::path lvc   = tmp / ".lvc";
+    const std::string           stamp             = std::to_string(std::chrono::system_clock::now().time_since_epoch().count());
+    const std::filesystem::path tmp               = std::filesystem::temp_directory_path() / (name + stamp);
+    const std::filesystem::path lvc               = tmp / ".lvc";
     std::filesystem::create_directories(tmp);
 
     const std::string example_file_1 =
@@ -85,8 +84,7 @@ bool lvc::test(int argc, char* argv[]) {
     input.repository_name  = name.c_str();
     input.workspace_name   = main_workspace.c_str();
 
-    TEST_MS_MEASURE(
-        lvc_run_tests(&error_message), "DIFF, MERGE AND SHA256 TESTS", "DIFF, MERGE AND SHA256 SUCCESS IN: ");
+    TEST_MS_MEASURE(lvc_run_tests(&error_message), "DIFF, MERGE AND SHA256 TESTS", "DIFF, MERGE AND SHA256 SUCCESS IN: ");
     TEST_MS_MEASURE(lvc_create(input, &error_message), "LVC CREATE TEST", "LVC CREATE SUCCESS IN: ");
 
     create_file(example_file_1_path, example_file_1);
@@ -100,13 +98,10 @@ bool lvc::test(int argc, char* argv[]) {
     char*   _argv[] = {trash, trash, desc, init, all};
     uint8_t _argc   = 5;
 
+    TEST_MS_MEASURE(lvc_version(lvc.c_str(), _argc, _argv, "", &error_message), "LVC VERSION TEST", "LVC VERSION SUCCESS IN: ");
     TEST_MS_MEASURE(
-        lvc_version(lvc.c_str(), _argc, _argv, "", &error_message), "LVC VERSION TEST", "LVC VERSION SUCCESS IN: ");
-    TEST_MS_MEASURE(
-        lvc_workspace(lvc.c_str(), feature_worksapce.c_str(), 0, &error_message), "LVC WORKSPACE TEST",
-        "LVC WORKSPACE SUCCESS IN: ");
-    TEST_MS_MEASURE(
-        lvc_goto(lvc.c_str(), feature_worksapce.c_str(), &error_message), "LVC GOTO TEST", "LVC GOTO SUCCESS IN: ");
+        lvc_workspace(lvc.c_str(), feature_worksapce.c_str(), 0, &error_message), "LVC WORKSPACE TEST", "LVC WORKSPACE SUCCESS IN: ");
+    TEST_MS_MEASURE(lvc_goto(lvc.c_str(), feature_worksapce.c_str(), &error_message), "LVC GOTO TEST", "LVC GOTO SUCCESS IN: ");
 
     modify_line(example_file_2_path, 2, "q");
     lvc_version(lvc.c_str(), _argc, _argv, "", &error_message);
@@ -114,17 +109,12 @@ bool lvc::test(int argc, char* argv[]) {
     modify_line(example_file_2_path, 3, "f");
     lvc_version(lvc.c_str(), _argc, _argv, "", &error_message);
 
-    TEST_MS_MEASURE(
-        lvc_merge(lvc.c_str(), feature_worksapce.c_str(), 0, &error_message), "LVC MERGE TEST",
-        "LVC MERGE SUCCESS IN: ");
+    TEST_MS_MEASURE(lvc_merge(lvc.c_str(), feature_worksapce.c_str(), 0, &error_message), "LVC MERGE TEST", "LVC MERGE SUCCESS IN: ");
 
-    TEST_MS_MEASURE(
-        lvc_version(lvc.c_str(), _argc, _argv, "", &error_message), "LVC VERSION TEST", "LVC VERSION SUCCESS IN: ");
+    TEST_MS_MEASURE(lvc_version(lvc.c_str(), _argc, _argv, "", &error_message), "LVC VERSION TEST", "LVC VERSION SUCCESS IN: ");
     ;
 
-    TEST_MS_MEASURE(
-        lvc_history(lvc.c_str(), main_workspace.c_str(), &error_message), "LVC HISTORY TEST",
-        "LVC HISTORY SUCCESS IN: ");
+    TEST_MS_MEASURE(lvc_history(lvc.c_str(), main_workspace.c_str(), &error_message), "LVC HISTORY TEST", "LVC HISTORY SUCCESS IN: ");
     TEST_MS_MEASURE(
         lvc_change_category(lvc.c_str(), main_workspace.c_str(), "main", &error_message), "LVC CATEGORY TEST",
         "LVC CHANGE CATEGORY SUCCESS IN: ");

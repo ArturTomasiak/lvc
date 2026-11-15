@@ -4,8 +4,7 @@
 // directory to the state of the version_id. Does not touch files specified by
 // lvc.ignore.
 
-void operation::revert(
-    Paths& paths, std::string version_id, std::vector<std::string>& input_raw, char** error_message) {
+void operation::revert(Paths& paths, std::string version_id, std::vector<std::string>& input_raw, char** error_message) {
     if (!lvc_version_exists(paths.lvc.c_str(), version_id.c_str(), error_message)) {
         error_message_creator("Invalid version ID " + version_id, error_message);
         return;
@@ -36,8 +35,7 @@ void operation::revert(
     for (const std::string& entry : ignore)
         input_set.erase(entry);
 
-    std::erase_if(
-        objects, [&input_set](const object::info& entry) { return !input_set.contains(entry.path.string()); });
+    std::erase_if(objects, [&input_set](const object::info& entry) { return !input_set.contains(entry.path.string()); });
 
     std::vector<std::filesystem::path> remove_dir;
 
@@ -68,11 +66,9 @@ void operation::revert(
                 return;
             }
             std::string buffer  = io::content(blob, 1, 1, error_message);
-            Pending     pending = {
-                    .type = PendingType::rename, .src = paths.get_tmp_file(), .dest = paths.root / object.path};
+            Pending     pending = {.type = PendingType::rename, .src = paths.get_tmp_file(), .dest = paths.root / object.path};
             io::file(pending.src, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 0, error_message);
-            paths.move_pending(
-                {.type = PendingType::create_directories_conditional, .dest = pending.dest.parent_path()});
+            paths.move_pending({.type = PendingType::create_directories_conditional, .dest = pending.dest.parent_path()});
             paths.move_pending(pending);
         } else {
             paths.move_pending({.type = PendingType::create_directory_conditional, .dest = paths.root / object.path});

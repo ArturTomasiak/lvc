@@ -26,8 +26,8 @@ static void insert_id(
     }
 }
 
-std::unordered_set<std::string> version::all_ids(
-    Paths& paths, const std::string& id, std::unordered_set<std::string_view> ignore, char** error_message) {
+std::unordered_set<std::string>
+version::all_ids(Paths& paths, const std::string& id, std::unordered_set<std::string_view> ignore, char** error_message) {
     if (id.empty())
         return {};
     std::vector<std::string> version_content = io::content_lines(paths.object / id, 1, 0, error_message);

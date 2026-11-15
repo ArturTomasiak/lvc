@@ -1,7 +1,6 @@
 #include "core.hpp"
 
-bool workspace::changed_since_ver(
-    Paths& paths, const std::vector<object::info>& objects_version, char** error_message) {
+bool workspace::changed_since_ver(Paths& paths, const std::vector<object::info>& objects_version, char** error_message) {
     const std::vector<object::info> working = workspace::all_objects(paths, error_message);
     if (working.size() != objects_version.size())
         return true;

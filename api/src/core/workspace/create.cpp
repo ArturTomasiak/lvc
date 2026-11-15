@@ -1,10 +1,8 @@
 #include <core.hpp>
 
-void workspace::create(
-    Paths& paths, std::string workspace_name, std::string copy_workspace_name, char** error_message) {
+void workspace::create(Paths& paths, std::string workspace_name, std::string copy_workspace_name, char** error_message) {
     if (!valid_name(workspace_name)) {
-        error_message_creator(
-            "Dangerous workspace name, potential write outside of destination attempt", error_message);
+        error_message_creator("Dangerous workspace name, potential write outside of destination attempt", error_message);
         return;
     }
     const std::filesystem::path workspace = paths.workspace / workspace_name;

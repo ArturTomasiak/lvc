@@ -20,8 +20,7 @@ struct TreeRelation {
 };
 
 static void add_object(
-    const std::filesystem::path& path, const std::filesystem::path& object_dir, std::vector<VersionObject>& objects,
-    char** error_message) {
+    const std::filesystem::path& path, const std::filesystem::path& object_dir, std::vector<VersionObject>& objects, char** error_message) {
     std::string filename = path.filename();
     std::erase_if(objects, [&](const VersionObject& object) { return object.name == filename; });
     VersionObject object;
@@ -60,8 +59,7 @@ static std::string tree_builder(TreeRelation& relation, const std::filesystem::p
     return id;
 }
 
-static void
-tree_relation_builder(std::vector<Tree>& trees, TreeRelation& tree_relation, std::filesystem::path current) {
+static void tree_relation_builder(std::vector<Tree>& trees, TreeRelation& tree_relation, std::filesystem::path current) {
     std::vector<Tree>::iterator iterator = trees.begin();
     while (iterator != trees.end()) {
         std::filesystem::path tree_parent = iterator->relative.parent_path();
@@ -89,8 +87,8 @@ static TreeRelation tree_relation_init(std::vector<Tree>& trees) {
 }
 
 static void tree_from_version(
-    const std::filesystem::path& object_dir, std::vector<Tree>& trees, const std::string& tree_id,
-    std::filesystem::path current, char** error_message) {
+    const std::filesystem::path& object_dir, std::vector<Tree>& trees, const std::string& tree_id, std::filesystem::path current,
+    char** error_message) {
     std::vector<std::string> tree_content = io::content_lines(object_dir / tree_id, 1, 0, error_message);
     size_t                   pos;
     Tree                     tree;
@@ -129,8 +127,7 @@ static Tree& ensure_tree(std::vector<Tree>& trees, const std::filesystem::path& 
 
 static void remove_subtree(std::vector<Tree>& trees, const std::filesystem::path& relative) {
     std::erase_if(trees, [&](const Tree& tree) {
-        return std::mismatch(relative.begin(), relative.end(), tree.relative.begin(), tree.relative.end()).first ==
-               relative.end();
+        return std::mismatch(relative.begin(), relative.end(), tree.relative.begin(), tree.relative.end()).first == relative.end();
     });
 }
 
@@ -173,11 +170,10 @@ static std::string build(
     return tree_builder(tree_relation, object_dir, error_message);
 }
 
-static std::vector<std::string> process_input(
-    Paths& paths, const std::vector<std::string>& input_raw, const std::string& version_id, char** error_message) {
-    std::vector<std::string>       input = paths.resolve(input_raw, version_id, 0, 1);
-    const std::vector<std::string> ignore =
-        paths.resolve(io::content_lines(paths.ignore, 0, 0, error_message), version_id, 1, 1);
+static std::vector<std::string>
+process_input(Paths& paths, const std::vector<std::string>& input_raw, const std::string& version_id, char** error_message) {
+    std::vector<std::string>       input  = paths.resolve(input_raw, version_id, 0, 1);
+    const std::vector<std::string> ignore = paths.resolve(io::content_lines(paths.ignore, 0, 0, error_message), version_id, 1, 1);
 
     std::unordered_set<std::string_view> ignore_entries;
     ignore_entries.reserve(ignore.size());
@@ -220,19 +216,17 @@ static bool confirm_input(const std::vector<std::string>& input) {
 }
 
 void version::create(
-    Paths& paths, const std::vector<std::string>& input_raw, std::string message, std::string author,
-    char** error_message) {
+    Paths& paths, const std::vector<std::string>& input_raw, std::string message, std::string author, char** error_message) {
     const std::string              workspace_name    = io::content(paths.current, 0, 0, error_message);
     const std::filesystem::path    workspace         = paths.workspace / workspace_name;
     const std::vector<std::string> workspace_content = io::content_lines(workspace, 1, 0, error_message);
-    const std::string              version_id = workspace_content.size() <= 1 ? std::string{} : workspace_content[1];
-    const std::string              category   = category::get(workspace_content[0]);
-    const std::vector<std::string> input      = process_input(paths, input_raw, version_id, error_message);
-    const std::filesystem::path    local      = paths.local / workspace_name;
-    const std::filesystem::path    merge      = local / filename_merge;
-    const std::filesystem::path    conflict   = local / filename_conflict;
-    const std::string              merge_buffer =
-        std::filesystem::is_regular_file(merge) ? io::content(merge, 0, 0, error_message) : std::string{};
+    const std::string              version_id        = workspace_content.size() <= 1 ? std::string{} : workspace_content[1];
+    const std::string              category          = category::get(workspace_content[0]);
+    const std::vector<std::string> input             = process_input(paths, input_raw, version_id, error_message);
+    const std::filesystem::path    local             = paths.local / workspace_name;
+    const std::filesystem::path    merge             = local / filename_merge;
+    const std::filesystem::path    conflict          = local / filename_conflict;
+    const std::string merge_buffer = std::filesystem::is_regular_file(merge) ? io::content(merge, 0, 0, error_message) : std::string{};
 
     if (!confirm_input(input))
         return;
@@ -245,8 +239,7 @@ void version::create(
     if (!version_id.empty()) {
         std::vector<std::string> version_content = io::content_lines(paths.object / version_id, 1, 0, error_message);
         if (version_content.empty()) {
-            error_message_creator(
-                "VERSION CREATION FAILURE: failed to read latest version, ID: " + version_id, error_message);
+            error_message_creator("VERSION CREATION FAILURE: failed to read latest version, ID: " + version_id, error_message);
             return;
         }
         root_id = version_content[VERSION_ROOT_TREE];
@@ -269,8 +262,7 @@ void version::create(
         new_workspace += workspace_content[i] + '\n';
     insert_pattern(new_workspace, TYPE_WORKSPACE, category.empty() ? nullptr : category.c_str());
 
-    io::file(
-        pending.src, std::ios::binary | std::ios::trunc, new_workspace.data(), new_workspace.size(), 1, error_message);
+    io::file(pending.src, std::ios::binary | std::ios::trunc, new_workspace.data(), new_workspace.size(), 1, error_message);
 
     CHECKERROR(error_message);
 
@@ -280,10 +272,8 @@ void version::create(
 }
 
 void version::create_tmp(
-    Paths& paths, const std::filesystem::path& operation, std::unordered_set<std::string_view>& ignore,
-    char** error_message) {
-    const Pending pending = {
-        .type = PendingType::rename, .src = paths.get_tmp_file(), .dest = operation / filename_tmp};
+    Paths& paths, const std::filesystem::path& operation, std::unordered_set<std::string_view>& ignore, char** error_message) {
+    const Pending               pending    = {.type = PendingType::rename, .src = paths.get_tmp_file(), .dest = operation / filename_tmp};
     const std::filesystem::path object_dir = operation / foldername_object;
 
     if (!std::filesystem::is_directory(object_dir))

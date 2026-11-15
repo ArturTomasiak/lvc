@@ -18,17 +18,15 @@ extern "C" LVC_API void lvc_create(LvcCreateInput input, char** error_message) n
         paths.move_pending({.type = PendingType::create_directory, .dest = paths.local});
         repository::rename(paths, input.repository_name, error_message);
         workspace::create(paths, input.workspace_name, std::string{}, error_message);
-        const Pending pending_workspace = {
-            .type = PendingType::rename, .src = paths.get_tmp_file(), .dest = paths.lvc / filename_default};
+        const Pending pending_workspace = {.type = PendingType::rename, .src = paths.get_tmp_file(), .dest = paths.lvc / filename_default};
         io::file(
-            pending_workspace.src, std::ios::binary | std::ios::trunc, input.workspace_name,
-            charplen(input.workspace_name), 0, error_message);
+            pending_workspace.src, std::ios::binary | std::ios::trunc, input.workspace_name, charplen(input.workspace_name), 0,
+            error_message);
         paths.move_pending(pending_workspace);
-        const Pending pending_current = {
-            .type = PendingType::rename, .src = paths.get_tmp_file(), .dest = paths.current};
+        const Pending pending_current = {.type = PendingType::rename, .src = paths.get_tmp_file(), .dest = paths.current};
         io::file(
-            pending_current.src, std::ios::binary | std::ios::trunc, input.workspace_name,
-            charplen(input.workspace_name), 0, error_message);
+            pending_current.src, std::ios::binary | std::ios::trunc, input.workspace_name, charplen(input.workspace_name), 0,
+            error_message);
         paths.move_pending(pending_current);
     }
 }
@@ -42,8 +40,7 @@ extern "C" LVC_API char* lvc_current(const char* lvc, char** error_message) noex
     return out;
 }
 
-extern "C" LVC_API void
-lvc_workspace(const char* lvc, const char* workspace_name, LVC_BOOL clean, char** error_message) noexcept {
+extern "C" LVC_API void lvc_workspace(const char* lvc, const char* workspace_name, LVC_BOOL clean, char** error_message) noexcept {
     Paths       paths(lvc, false, error_message);
     std::string cpy;
     if (!clean)
@@ -51,8 +48,8 @@ lvc_workspace(const char* lvc, const char* workspace_name, LVC_BOOL clean, char*
     workspace::create(paths, workspace_name, cpy, error_message);
 }
 
-extern "C" LVC_API void lvc_change_category(
-    const char* lvc, const char* workspace_name, const char* category_name, char** error_message) noexcept {
+extern "C" LVC_API void
+lvc_change_category(const char* lvc, const char* workspace_name, const char* category_name, char** error_message) noexcept {
     Paths paths(lvc, false, error_message);
     category::change(paths, workspace_name, category_name, error_message);
 }
@@ -73,8 +70,7 @@ extern "C" LVC_API char** lvc_checkout(const char* lvc, char** error_message) no
     return strvector_to_charpp(checkout);
 }
 
-extern "C" LVC_API void
-lvc_version(const char* lvc, int argc, char* argv[], const char* author, char** error_message) noexcept {
+extern "C" LVC_API void lvc_version(const char* lvc, int argc, char* argv[], const char* author, char** error_message) noexcept {
     Paths                    paths(lvc, true, error_message);
     std::vector<std::string> input;
     std::string              message;
@@ -143,8 +139,7 @@ extern "C" LVC_API void lvc_diff(const char* lvc, int argc, char* argv[], char**
 
     std::vector<std::string> input = paths.resolve(raw_input, version_id, 1, 0);
 
-    std::unordered_map<std::filesystem::path, object::info> version =
-        version::map_all_objects(paths, version_id, {}, error_message);
+    std::unordered_map<std::filesystem::path, object::info> version = version::map_all_objects(paths, version_id, {}, error_message);
 
     for (std::string& path : input) {
         bool                                                              deleted = path.starts_with(PREFIX_DELETED);
@@ -171,8 +166,7 @@ lvc_merge(const char* lvc, const char* src_workspace_name, const char* src_lvc, 
     return operation::merge(paths, src_workspace_name_string, dest_workspace_name, src_lvc, error_message);
 }
 
-extern "C" LVC_API void
-lvc_revert(const char* lvc, char* version_id, size_t input_count, char** input, char** error_message) noexcept {
+extern "C" LVC_API void lvc_revert(const char* lvc, char* version_id, size_t input_count, char** input, char** error_message) noexcept {
     Paths                    paths(lvc, true, error_message);
     std::vector<std::string> input_vector;
     input_vector.reserve(input_count);

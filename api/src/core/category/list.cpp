@@ -27,8 +27,7 @@ LvcCategory* add_category(LvcCategoryList* list, const std::string& name, char**
 void add_workspace(LvcCategory* category, const std::string& name, char** error_message) {
     if (category->workspaces_len == category->workspaces_alloc) {
         category->workspaces_alloc *= 2;
-        category->workspaces =
-            static_cast<char**>(realloc(category->workspaces, category->workspaces_alloc * sizeof(char*)));
+        category->workspaces = static_cast<char**>(realloc(category->workspaces, category->workspaces_alloc * sizeof(char*)));
         CHECKALLOC(category->workspaces, error_message);
     }
     char* workspace = static_cast<char*>(malloc(name.size() + 1));

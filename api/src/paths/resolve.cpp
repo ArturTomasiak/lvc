@@ -73,8 +73,7 @@ static bool match_glob(std::string_view pattern, std::string_view text) {
 }
 
 static bool matches_target(
-    const ProcessedInput& rule, const std::vector<std::string>& target, size_t target_component_count,
-    bool target_is_directory) {
+    const ProcessedInput& rule, const std::vector<std::string>& target, size_t target_component_count, bool target_is_directory) {
     const size_t pattern_count = rule.path_components.size();
     if (pattern_count == 0) {
         return target_is_directory && target_component_count == 0;
@@ -108,22 +107,20 @@ static bool rule_selects_file(const ProcessedInput& rule, const std::vector<std:
 }
 
 static void iterate(
-    const std::filesystem::path& relative_path, std::vector<std::string>& result,
-    const std::vector<ProcessedInput>& included, const std::vector<ProcessedInput>& excluded, bool prefix_deleted) {
+    const std::filesystem::path& relative_path, std::vector<std::string>& result, const std::vector<ProcessedInput>& included,
+    const std::vector<ProcessedInput>& excluded, bool prefix_deleted) {
     std::vector<std::string> components;
     components.reserve(PREALLOCATE_SMALL);
 
     for (const std::filesystem::path& component : relative_path)
         components.push_back(component.generic_string());
 
-    const bool included_match = std::any_of(included.begin(), included.end(), [&](const ProcessedInput& rule) {
-        return rule_selects_file(rule, components);
-    });
+    const bool included_match =
+        std::any_of(included.begin(), included.end(), [&](const ProcessedInput& rule) { return rule_selects_file(rule, components); });
 
     if (included_match) {
-        bool excluded_match = std::any_of(excluded.begin(), excluded.end(), [&](const ProcessedInput& rule) {
-            return rule_selects_file(rule, components);
-        });
+        bool excluded_match =
+            std::any_of(excluded.begin(), excluded.end(), [&](const ProcessedInput& rule) { return rule_selects_file(rule, components); });
 
         if (!excluded_match) {
             std::string out;
@@ -136,8 +133,8 @@ static void iterate(
 }
 
 static std::vector<std::string> resolve_processed(
-    Paths& paths, const std::vector<ProcessedInput>& included, const std::vector<ProcessedInput>& excluded,
-    const std::string& version_id, bool prefix_deleted, bool include_folders, char** error_message) {
+    Paths& paths, const std::vector<ProcessedInput>& included, const std::vector<ProcessedInput>& excluded, const std::string& version_id,
+    bool prefix_deleted, bool include_folders, char** error_message) {
     std::vector<std::string> result;
 
     if (included.empty())
@@ -173,8 +170,8 @@ static std::vector<std::string> resolve_processed(
     return result;
 }
 
-std::vector<std::string> Paths::resolve(
-    const std::vector<std::string>& inputs, const std::string version_id, bool prefix_deleted, bool include_folders) {
+std::vector<std::string>
+Paths::resolve(const std::vector<std::string>& inputs, const std::string version_id, bool prefix_deleted, bool include_folders) {
     std::vector<ProcessedInput> processed = process_input(inputs);
 
     std::vector<ProcessedInput> included;

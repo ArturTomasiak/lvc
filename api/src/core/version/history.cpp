@@ -19,8 +19,7 @@ static LvcVersion* create_version(const std::string& workspace_name, char** erro
 static void add_entry(LvcVersion* version, const std::string& id, const std::string& desc, char** error_message) {
     if (version->len == version->alloc) {
         version->alloc *= 2;
-        version->entry =
-            reinterpret_cast<LvcVersionEntry*>(realloc(version->entry, sizeof(LvcVersionEntry) * version->alloc));
+        version->entry = reinterpret_cast<LvcVersionEntry*>(realloc(version->entry, sizeof(LvcVersionEntry) * version->alloc));
         CHECKALLOC(version->entry, error_message);
     }
     LvcVersionEntry* entry = &version->entry[version->len++];
@@ -31,8 +30,7 @@ static void add_entry(LvcVersion* version, const std::string& id, const std::str
     entry->nested = nullptr;
 }
 
-LvcVersion* version::history(
-    Paths& paths, const std::string& workspace_name, char** error_message, std::string from, std::string to) {
+LvcVersion* version::history(Paths& paths, const std::string& workspace_name, char** error_message, std::string from, std::string to) {
     const std::filesystem::path workspace = paths.workspace / workspace_name;
     if (!std::filesystem::exists(workspace))
         return {};

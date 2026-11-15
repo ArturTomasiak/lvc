@@ -7,16 +7,16 @@
 
 struct Paths;
 
-#define CHECKALLOC(dest, error_message, ...)                                                                           \
-    do {                                                                                                               \
-        if ((dest) == nullptr) {                                                                                       \
-            error_message_creator("Memory allocation failed", error_message);                                          \
-            return __VA_ARGS__;                                                                                        \
-        }                                                                                                              \
+#define CHECKALLOC(dest, error_message, ...)                                                                                               \
+    do {                                                                                                                                   \
+        if ((dest) == nullptr) {                                                                                                           \
+            error_message_creator("Memory allocation failed", error_message);                                                              \
+            return __VA_ARGS__;                                                                                                            \
+        }                                                                                                                                  \
     } while (false)
 
-#define CHECKERROR(error_message, ...)                                                                                 \
-    if (*error_message) [[unlikely]]                                                                                   \
+#define CHECKERROR(error_message, ...)                                                                                                     \
+    if (*error_message) [[unlikely]]                                                                                                       \
     return __VA_ARGS__
 
 void  sha256(const char* in, size_t in_len, char out[65]);
@@ -28,11 +28,10 @@ void insert_pattern(std::string& dest, const std::string& type, const char* cate
 namespace io {
     void file(const std::filesystem::path& path, std::ios_base::openmode flags, char** error_message);
     void file(
-        const std::filesystem::path& path, std::ios_base::openmode flags, const char* content, size_t length,
-        bool compress, char** error_message);
-    std::string content(const std::filesystem::path& path, bool decompress, bool ignore_pattern, char** error_message);
-    std::vector<std::string>
-    content_lines(const std::filesystem::path& path, bool decompress, bool ignore_pattern, char** error_message);
+        const std::filesystem::path& path, std::ios_base::openmode flags, const char* content, size_t length, bool compress,
+        char** error_message);
+    std::string              content(const std::filesystem::path& path, bool decompress, bool ignore_pattern, char** error_message);
+    std::vector<std::string> content_lines(const std::filesystem::path& path, bool decompress, bool ignore_pattern, char** error_message);
     std::vector<std::string> stream_to_lines(std::istream& stream);
 }
 
