@@ -286,7 +286,8 @@ void version::create_tmp(
         .type = PendingType::rename, .src = paths.get_tmp_file(), .dest = operation / filename_tmp};
     const std::filesystem::path object_dir = operation / foldername_object;
 
-    paths.move_pending({.type = PendingType::create_directories, .dest = object_dir});
+    if (!std::filesystem::is_directory(object_dir))
+        std::filesystem::create_directories(object_dir);
 
     std::vector<std::string> status;
     try {
