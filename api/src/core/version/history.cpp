@@ -47,27 +47,32 @@ LvcVersion* version::history(Paths& paths, const std::string& workspace_name, ch
         if (!to.empty() && version == to)
             break;
 
-        std::vector<std::string> version_content   = io::content_lines(paths.object / version, 1, 0, error_message);
-        const std::string&       version_workspace = version_content[VERSION_WORKSPACE];
-        if (version_content.size() > VERSION_WORKSPACE_TO)
-            version::history(
-                paths, version_content[VERSION_WORKSPACE], error_message, version_content[VERSION_WORKSPACE_FROM],
-                version_content[VERSION_WORKSPACE_TO]);
-
-        add_entry(out, version, version_content[VERSION_MESSAGE], error_message);
+        const std::vector<std::string> content = io::content_lines(paths.object / version, 1, 0, error_message);
+        if (content.size() <= VERSION_MESSAGE) {
+            error_message_creator("Corrupted version data: " + version, error_message);
+            return out;
+        }
+        add_entry(out, version, content[VERSION_MESSAGE], error_message);
+        if (content.size() > VERSION_WORKSPACE_FROM) {
+            const std::string merge_to = content.size() > VERSION_WORKSPACE_TO ? content[VERSION_WORKSPACE_TO] : "";
+            out->entry[out->len - 1].nested =
+                version::history(paths, content[VERSION_WORKSPACE], error_message, content[VERSION_WORKSPACE_FROM], merge_to);
+        }
     }
 
     return out;
 }
 
 void version::history_free(LvcVersion* version) {
-    for (size_t i = 0; i < version->len; i++) {
-        LvcVersionEntry* entry = &version->entry[i];
-        if (entry->desc)
-            free(entry->desc);
-        if (entry->nested)
-            history_free(entry->nested);
+    if (!version)
+        return;
+
+    for (size_t i = 0; i < version->len; ++i) {
+        free(version->entry[i].desc);
+        history_free(version->entry[i].nested);
     }
-    if (version)
-        free(version);
+
+    free(version->entry);
+    free(version->workspace);
+    free(version);
 }
