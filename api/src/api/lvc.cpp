@@ -81,9 +81,12 @@ lvc_version(const char* lvc, int argc, char* argv[], const char* author, char** 
     bool                     message_exists = false;
     for (size_t i = 2; i < argc; i++) {
         if (!message_exists && !std::strcmp(argv[i], "desc")) {
-            message        = std::move(argv[i + 1]);
+            if (i + 1 >= argc) {
+                error_message_creator("No description given.", error_message);
+                return;
+            }
+            message        = std::move(argv[++i]);
             message_exists = true;
-            i += 2;
         } else {
             input.emplace_back(std::move(argv[i]));
         }
