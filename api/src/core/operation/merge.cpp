@@ -221,7 +221,7 @@ LvcConflictArray* operation::merge(
                     .type = PendingType::rename, .src = dest_paths.get_tmp_file(), .dest = dest_paths.root / src->path};
 
                 const std::string buffer = io::content(src_paths.object / src->id, 1, 1, error_message);
-                io::file(pending.src, std::ios::app | std::ios::trunc, buffer.data(), buffer.size(), 0, error_message);
+                io::file(pending.src, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 0, error_message);
 
                 dest_paths.move_pending({.type = PendingType::create_directories_conditional, .dest = pending.dest.parent_path()});
                 dest_paths.move_pending(pending);
