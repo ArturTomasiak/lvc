@@ -2,7 +2,11 @@
 
 void category::change(Paths& paths, std::string workspace_name, const char* name, char** error_message) {
     const std::string workspace = paths.workspace / workspace_name;
-    std::string       buffer    = io::content(workspace, 1, 1, error_message);
+    if (std::filesystem::is_regular_file(workspace)) [[unlikely]] {
+        error_message_creator("Workspace " + workspace_name + " does not exists.", error_message);
+        return;
+    }
+    std::string buffer = io::content(workspace, 1, 1, error_message);
     insert_pattern(buffer, TYPE_WORKSPACE, name);
     const Pending pending = {.type = PendingType::rename, .src = paths.get_tmp_file(), .dest = workspace};
     io::file(pending.src, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 1, error_message);
