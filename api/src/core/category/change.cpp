@@ -2,7 +2,7 @@
 
 void category::change(Paths& paths, std::string workspace_name, const char* name, char** error_message) {
     const std::string workspace = paths.workspace / workspace_name;
-    if (std::filesystem::is_regular_file(workspace)) [[unlikely]] {
+    if (!std::filesystem::is_regular_file(workspace)) [[unlikely]] {
         error_message_creator("Workspace " + workspace_name + " does not exists.", error_message);
         return;
     }

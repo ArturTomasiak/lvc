@@ -184,9 +184,15 @@ extern "C" LVC_API void lvc_push_server(const char* lvc, char** error_message) n
     Paths paths(lvc, false, error_message);
 }
 
-extern "C" LVC_API LVC_BOOL lvc_version_exists(const char* lvc, const char* id) noexcept {
+extern "C" LVC_API LVC_BOOL lvc_version_exists(const char* lvc, const char* id, char** error_message) noexcept {
     std::filesystem::path lvc_path = lvc;
-    return std::filesystem::is_regular_file(lvc_path / foldername_object / id);
+    std::filesystem::path version  = lvc_path / foldername_object / id;
+    if (std::filesystem::is_regular_file(version)) {
+        std::string  buffer = io::content(version, 1, 0, error_message);
+        const size_t pos    = buffer.find(' ');
+        return buffer.substr(0, pos) == std::string{TYPE_VERSION};
+    }
+    return false;
 }
 
 extern "C" LVC_API LVC_BOOL lvc_workspace_exists(const char* lvc, const char* name, char** error_message) noexcept {

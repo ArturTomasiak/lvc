@@ -2,7 +2,7 @@
 
 This repository is a playground for testing ideas in an environment where technical debt and vulnerabilities are acceptable.
 
-LVC is a *working* (I'll get there in a week) minimal viable product as well as the basis for my bachelor's thesis. Around march 2027 I will start over again in a new repository with a publicly available design document.
+LVC is a working minimal viable product as well as the basis for my bachelor's thesis. Around march 2027 I will start over again in a new repository with a publicly available design document.
 
 ## Brief Overview of Features
 
@@ -31,7 +31,7 @@ All external dependencies are handled in cmake with FetchContent. All lvc config
 ### API COMPILATION
 
 ```bash 
-cmake -S api -B api/build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=clang++
+cmake -S api -B api/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=clang++
 ```
 ```bash
 cmake --build api/build --parallel
@@ -40,7 +40,7 @@ cmake --build api/build --parallel
 ### APP COMPILATION 
 
 ```bash
-cmake -S app -B app/build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER=clang++
+cmake -S app -B app/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++
 ```
 ```bash
 cmake --build app/build --parallel

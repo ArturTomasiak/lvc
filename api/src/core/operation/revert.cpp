@@ -6,7 +6,7 @@
 
 void operation::revert(
     Paths& paths, std::string version_id, std::vector<std::string>& input_raw, char** error_message) {
-    if (!std::filesystem::is_regular_file(paths.object / version_id)) {
+    if (!lvc_version_exists(paths.lvc.c_str(), version_id.c_str(), error_message)) {
         error_message_creator("Invalid version ID " + version_id, error_message);
         return;
     }
