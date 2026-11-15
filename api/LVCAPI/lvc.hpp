@@ -1,8 +1,5 @@
 #pragma once
 
-// REMOVABLE
-#define TEST_PRINTS
-
 // MODIFIABLE
 #define PREALLOCATE_SMALL 10 // minimize vector allocations
 #define PREALLOCATE       30
@@ -12,10 +9,6 @@
 #include <stddef.h>
 #include <stdint.h>
 #define LVC_BOOL int8_t
-
-#ifdef TEST_PRINTS
-#include <iostream>
-#endif
 
 #ifdef _WIN32
 #define LVC_WINDOWS

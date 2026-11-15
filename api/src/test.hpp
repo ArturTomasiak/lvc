@@ -1,5 +1,6 @@
 #include "diff.hpp"
 #include "helper.hpp"
+#include <iostream>
 
 namespace test {
     bool sha256();
