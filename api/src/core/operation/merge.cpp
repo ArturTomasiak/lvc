@@ -143,8 +143,8 @@ LvcConflictArray* operation::merge(
         Lines       dest_lines;
         Lines       src_lines;
         Lines       common_lines;
-        std::string dest_buffer; // WARNING
-        std::string src_buffer;  // access buffers only if binary
+        std::string dest_buffer;
+        std::string src_buffer;
 
         if (dest) {
             dest_tree   = dest->type == object::type::tree;
@@ -152,7 +152,7 @@ LvcConflictArray* operation::merge(
             if (is_binary(dest_buffer)) {
                 dest_binary = true;
             } else {
-                std::istringstream stream(std::move(dest_buffer));
+                std::istringstream stream(dest_buffer);
                 dest_lines = io::stream_to_lines(stream);
             }
         }
@@ -162,7 +162,7 @@ LvcConflictArray* operation::merge(
             if (is_binary(src_buffer)) {
                 src_binary = true;
             } else {
-                std::istringstream stream(std::move(src_buffer));
+                std::istringstream stream(src_buffer);
                 src_lines = io::stream_to_lines(stream);
             }
         }
@@ -187,11 +187,22 @@ LvcConflictArray* operation::merge(
                 continue;
             up_to_date            = false;
             const Pending pending = {.type = PendingType::rename, .src = dest_paths.get_tmp_file(), .dest = dest_paths.root / dest->path};
+
+            if (src->id == common->id)
+                continue;
+
+            if (dest->id == common->id) {
+                io::file(pending.src, std::ios::binary | std::ios::trunc, src_buffer.c_str(), src_buffer.size(), 0, error_message);
+                dest_paths.move_pending(pending);
+                continue;
+            }
+
             if (src_binary || dest_binary) {
                 add_path(out, dest->path, error_message);
                 continue;
             }
-            bool conflict = merge3(pending.src, common_lines, dest_lines, src_lines);
+
+            const bool conflict = merge3(pending.src, common_lines, dest_lines, src_lines);
             dest_paths.move_pending(pending);
             if (conflict) {
                 add_path(out, dest->path, error_message);
@@ -220,8 +231,7 @@ LvcConflictArray* operation::merge(
                 const Pending pending = {
                     .type = PendingType::rename, .src = dest_paths.get_tmp_file(), .dest = dest_paths.root / src->path};
 
-                const std::string buffer = io::content(src_paths.object / src->id, 1, 1, error_message);
-                io::file(pending.src, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 0, error_message);
+                io::file(pending.src, std::ios::binary | std::ios::trunc, src_buffer.data(), src_buffer.size(), 0, error_message);
 
                 dest_paths.move_pending({.type = PendingType::create_directories_conditional, .dest = pending.dest.parent_path()});
                 dest_paths.move_pending(pending);
