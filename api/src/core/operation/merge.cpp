@@ -1,5 +1,51 @@
 #include <core.hpp>
 
+static void copy_tree_objects(Paths& dest_paths, Paths& src_paths, const std::string& tree_id, char** error_message) {
+    const Pending pending_tree = {.type = PendingType::rename, .src = dest_paths.get_tmp_file(), .dest = dest_paths.object / tree_id};
+
+    const std::filesystem::path tree = src_paths.object / tree_id;
+    const Lines content = io::content_lines(tree, 1, 1, error_message);
+
+    for (const std::string& line : content) {
+        const size_t id_pos   = line.find(' ');
+        const std::string type = line.substr(0, id_pos);
+        const std::string id = line.substr(id_pos + 1, 64);
+        if (type == TYPE_BLOB) {
+            const Pending pending = {.type = PendingType::rename, .src = dest_paths.get_tmp_file(), .dest = dest_paths.object / id};
+            if (std::filesystem::is_regular_file(pending.dest))
+                continue;
+            const std::string buffer = io::content(src_paths.object / id, 0, 0, error_message);
+            io::file(pending.src, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 0, error_message);
+            dest_paths.move_pending(pending);
+        } else if (type == TYPE_TREE) {
+            copy_tree_objects(dest_paths, src_paths, id, error_message);
+        }
+    }
+
+    const std::string buffer = io::content(tree, 0, 0, error_message);
+    io::file(pending_tree.src, std::ios::binary | std::ios::trunc, buffer.data(), buffer.size(), 0, error_message);
+    dest_paths.move_pending(pending_tree);
+}
+
+static void copy_version_objects(Paths& dest_paths, Paths& src_paths, const std::string& id, char** error_message) {
+    const Pending pending = {.type = PendingType::rename, .src = dest_paths.get_tmp_file(), .dest = dest_paths.object / id};
+
+    const std::filesystem::path src_path = src_paths.object / id;
+    const std::string version = io::content(src_path, 1, 0, error_message);
+    if (version.empty()) {
+        error_message_creator("Couldn't read object from src: " + src_path.generic_string(), error_message);
+        return;
+    }
+
+    const size_t tree_start = version.find('\n');
+    const std::string tree  = version.substr(tree_start+1, 64);
+
+    copy_tree_objects(dest_paths, src_paths, tree, error_message);
+
+    io::file(pending.src, std::ios::binary | std::ios::trunc, version.data(), version.size(), 1, error_message);
+    dest_paths.move_pending(pending);
+}
+
 static bool is_binary(const std::string& buffer) {
     size_t index = 0;
     while (index <= 100 && index < buffer.size())
@@ -85,12 +131,6 @@ LvcConflictArray* operation::merge(
             common_id = src_version;
             break;
         }
-        if (remote_src) {
-            const Pending pending = {
-                .type = PendingType::rename, .src = dest_paths.get_tmp_file(), .dest = dest_paths.object / src_version};
-            std::filesystem::copy(src_paths.object / src_version, pending.src, ec);
-            dest_paths.move_pending(pending);
-        }
     }
 
     const std::string merge_buffer = src_workspace_name + '\n' + src_id + '\n' + common_id;
@@ -126,6 +166,10 @@ LvcConflictArray* operation::merge(
         }
     }
     CHECKERROR(error_message, out);
+
+    if (remote_src)
+        for (const std::string& id : src_versions)
+            copy_version_objects(dest_paths, src_paths, id, error_message);
 
     for (const std::filesystem::path& path : all_paths) {
         const auto dest_it   = dest_map.find(path);
@@ -174,14 +218,6 @@ LvcConflictArray* operation::merge(
             }
         }
 
-        if (remote_src && src) {
-            const Pending pending = {.type = PendingType::rename, .src = dest_paths.get_tmp_file(), .dest = dest_paths.object / src->id};
-            if (!std::filesystem::is_regular_file(pending.dest)) {
-                std::filesystem::copy(src_paths.object / src->id, pending.src, ec);
-                dest_paths.move_pending(pending);
-            }
-        }
-
         if (dest && src && !dest_tree && !src_tree) {
             if (dest->id == src->id)
                 continue;
@@ -192,7 +228,7 @@ LvcConflictArray* operation::merge(
                 continue;
 
             if (dest->id == common->id) {
-                io::file(pending.src, std::ios::binary | std::ios::trunc, src_buffer.c_str(), src_buffer.size(), 0, error_message);
+                io::file(pending.src, std::ios::binary | std::ios::trunc, src_buffer.data(), src_buffer.size(), 0, error_message);
                 dest_paths.move_pending(pending);
                 continue;
             }
