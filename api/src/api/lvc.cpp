@@ -102,7 +102,9 @@ extern "C" LVC_API LvcCategoryList* lvc_category_list(const char* lvc, char** er
     return category::list(paths, error_message);
 }
 
-extern "C" LVC_API void lvc_category_list_free(LvcCategoryList* list) noexcept { category::free_category_list(list); }
+extern "C" LVC_API void lvc_category_list_free(LvcCategoryList* list) noexcept {
+    category::free_category_list(list);
+}
 
 extern "C" LVC_API LvcVersion* lvc_history(const char* lvc, const char* workspace, char** error_message) noexcept {
     Paths paths(lvc, false, error_message);
@@ -114,7 +116,9 @@ extern "C" LVC_API LvcVersion* lvc_history(const char* lvc, const char* workspac
     return version::history(paths, workspace, error_message);
 }
 
-extern "C" LVC_API void lvc_history_free(LvcVersion* version) noexcept { version::history_free(version); }
+extern "C" LVC_API void lvc_history_free(LvcVersion* version) noexcept {
+    version::history_free(version);
+}
 
 extern "C" LVC_API void lvc_terminal_conflict_solver(const char* lvc, char** error_message) noexcept {
     // TODO
@@ -200,7 +204,9 @@ extern "C" LVC_API LVC_BOOL lvc_workspace_exists(const char* lvc, const char* na
     return std::filesystem::is_regular_file(paths.workspace / name);
 }
 
-extern "C" LVC_API void lvc_free_charpp(char** arr) noexcept { free_charpp(arr); }
+extern "C" LVC_API void lvc_free_charpp(char** arr) noexcept {
+    free_charpp(arr);
+}
 
 extern "C" LVC_API void lvc_run_tests(char** error_message) noexcept {
     if (!test::diff())

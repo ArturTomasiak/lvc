@@ -42,14 +42,15 @@ static void process_chunk(const uint8_t* chunk, uint32_t state[8]) {
         const uint32_t S0    = std::rotr(a, 2) ^ std::rotr(a, 13) ^ std::rotr(a, 22);
         const uint32_t maj   = (a & b) ^ (c & (a ^ b));
         const uint32_t temp2 = S0 + maj;
-        h                    = g;
-        g                    = f;
-        f                    = e;
-        e                    = d + temp1;
-        d                    = c;
-        c                    = b;
-        b                    = a;
-        a                    = temp1 + temp2;
+
+        h = g;
+        g = f;
+        f = e;
+        e = d + temp1;
+        d = c;
+        c = b;
+        b = a;
+        a = temp1 + temp2;
     }
 
     state[0] += a;

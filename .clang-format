@@ -1,5 +1,6 @@
 ---
 Language: Cpp
+AllowShortFunctionsOnASingleLine: None
 AlignAfterOpenBracket: AlwaysBreak
 AlignConsecutiveAssignments: Consecutive
 AlignConsecutiveDeclarations: Consecutive
