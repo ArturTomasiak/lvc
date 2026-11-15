@@ -33,7 +33,7 @@ namespace object {
         std::filesystem::path path;
     };
 
-    void create(const std::filesystem::path& object, std::string& type, std::string& content, std::string& out_id, char** error_message);
+    void create(const std::filesystem::path& object, std::string type, std::string& content, std::string& out_id, char** error_message);
     bool exists(Paths& paths, char id[65]);
 }
 

@@ -185,9 +185,13 @@ process_input(Paths& paths, const std::vector<std::string>& input_raw, const std
         version::map_all_objects(paths, version_id, ignore_entries, error_message);
     std::erase_if(input, [&version, &paths, &error_message](std::string& entry) {
         const auto it = version.find(entry);
-        if (it == version.end())
+        if (it == version.end() || it->second.type != object::type::blob)
             return false;
-        std::string buffer = io::content(paths.root / entry, 0, 0, error_message);
+
+        const std::filesystem::path path = paths.root / entry;
+        if (!std::filesystem::is_regular_file(path))
+            return false;
+        std::string buffer = io::content(path, 0, 0, error_message);
         insert_pattern(buffer, TYPE_BLOB, nullptr);
         char id[65];
         sha256(buffer.c_str(), buffer.size(), id);
