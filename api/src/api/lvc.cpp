@@ -142,8 +142,8 @@ extern "C" LVC_API void lvc_diff(const char* lvc, int argc, char* argv[], char**
     std::unordered_map<std::filesystem::path, object::info> version = version::map_all_objects(paths, version_id, {}, error_message);
 
     for (std::string& path : input) {
-        bool                                                              deleted = path.starts_with(PREFIX_DELETED);
-        std::unordered_map<std::filesystem::path, object::info>::iterator it      = version.find(path);
+        const bool deleted = path.starts_with(PREFIX_DELETED);
+        const auto it      = version.find(path);
         if (deleted) {
             path.erase(0, strlen(PREFIX_DELETED));
             std::cout << "Deleted " + path + "\n";
@@ -152,7 +152,7 @@ extern "C" LVC_API void lvc_diff(const char* lvc, int argc, char* argv[], char**
         } else {
             object::info&                  info = it->second;
             const std::vector<std::string> base = io::content_lines(paths.object / info.id, 1, 1, error_message);
-            const std::vector<std::string> side = io::content_lines(path, 0, 0, error_message);
+            const std::vector<std::string> side = io::content_lines(paths.root / path, 0, 0, error_message);
             print_diff(base, side, path);
         }
     }
