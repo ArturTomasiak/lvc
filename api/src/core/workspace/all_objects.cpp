@@ -8,7 +8,8 @@ std::vector<object::info> workspace::all_objects(Paths& paths, char** error_mess
         std::filesystem::recursive_directory_iterator iterator(paths.root);
         std::filesystem::recursive_directory_iterator end;
 
-        for (const std::filesystem::directory_entry& entry = *iterator; iterator != end; iterator++) {
+        for (; iterator != end; ++iterator) {
+            const auto& entry = *iterator;
             if (entry.is_directory() && entry.path().filename() == ".lvc") {
                 iterator.disable_recursion_pending();
                 continue;
