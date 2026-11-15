@@ -201,7 +201,7 @@ static std::vector<std::string> process_input(
     return input;
 }
 
-static void confirm_input(const std::vector<std::string>& input) {
+static bool confirm_input(const std::vector<std::string>& input) {
     std::cout << "Snapshot contents:\n";
     for (const std::string path : input)
         if (std::filesystem::is_regular_file(path))
@@ -212,9 +212,9 @@ static void confirm_input(const std::vector<std::string>& input) {
         std::getline(std::cin, answer);
         const char charanswer = std::tolower(answer[0]);
         if (charanswer == 'y')
-            break;
+            return true;
         else if (charanswer == 'n')
-            return;
+            return false;
         std::cout << "Invalid answer.\n";
     }
 }
@@ -234,7 +234,8 @@ void version::create(
     const std::string              merge_buffer =
         std::filesystem::is_regular_file(merge) ? io::content(merge, 0, 0, error_message) : std::string{};
 
-    confirm_input(input);
+    if (!confirm_input(input))
+        return;
 
     if (!operation::conflicts_handled(paths.root, conflict, error_message)) {
         error_message_creator("Unhandled conflicts. Use lvc conflict for the list of conflicts.", error_message);
