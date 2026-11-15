@@ -52,7 +52,7 @@ void workspace::_goto(Paths& paths, std::string dest_name, char** error_message)
                     continue;
                 }
                 std::filesystem::path relative = entry.path().lexically_relative(paths.root);
-                if (ignore_set.contains(relative.string())) {
+                if (ignore_set.contains(relative.generic_string())) {
                     if (entry.is_directory())
                         iterator.disable_recursion_pending();
                     continue;
@@ -73,6 +73,8 @@ void workspace::_goto(Paths& paths, std::string dest_name, char** error_message)
 
     CHECKERROR(error_message);
     for (object::info& object : dest_objects) {
+        if (ignore_set.contains(object.path.generic_string()))
+            continue;
         const std::filesystem::path path = paths.root / object.path;
 
         paths.move_pending({.type = PendingType::create_directories_conditional, .dest = path.parent_path()});
