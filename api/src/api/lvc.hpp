@@ -18,7 +18,7 @@
 
 #if defined(LVC_STATIC)
 #define LVC_API
-#elif (LVC_WINDOWS)
+#elif defined(LVC_WINDOWS)
 #if defined(LVC_MAKE_DLL)
 #define LVC_API __declspec(dllexport) lvc
 #else
