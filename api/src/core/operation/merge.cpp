@@ -3,13 +3,13 @@
 static void copy_tree_objects(Paths& dest_paths, Paths& src_paths, const std::string& tree_id, char** error_message) {
     const Pending pending_tree = {.type = PendingType::rename, .src = dest_paths.get_tmp_file(), .dest = dest_paths.object / tree_id};
 
-    const std::filesystem::path tree = src_paths.object / tree_id;
-    const Lines content = io::content_lines(tree, 1, 1, error_message);
+    const std::filesystem::path tree    = src_paths.object / tree_id;
+    const Lines                 content = io::content_lines(tree, 1, 1, error_message);
 
     for (const std::string& line : content) {
-        const size_t id_pos   = line.find(' ');
-        const std::string type = line.substr(0, id_pos);
-        const std::string id = line.substr(id_pos + 1, 64);
+        const size_t      id_pos = line.find(' ');
+        const std::string type   = line.substr(0, id_pos);
+        const std::string id     = line.substr(id_pos + 1, 64);
         if (type == TYPE_BLOB) {
             const Pending pending = {.type = PendingType::rename, .src = dest_paths.get_tmp_file(), .dest = dest_paths.object / id};
             if (std::filesystem::is_regular_file(pending.dest))
@@ -31,14 +31,14 @@ static void copy_version_objects(Paths& dest_paths, Paths& src_paths, const std:
     const Pending pending = {.type = PendingType::rename, .src = dest_paths.get_tmp_file(), .dest = dest_paths.object / id};
 
     const std::filesystem::path src_path = src_paths.object / id;
-    const std::string version = io::content(src_path, 1, 0, error_message);
+    const std::string           version  = io::content(src_path, 1, 0, error_message);
     if (version.empty()) {
         error_message_creator("Couldn't read object from src: " + src_path.generic_string(), error_message);
         return;
     }
 
-    const size_t tree_start = version.find('\n');
-    const std::string tree  = version.substr(tree_start+1, 64);
+    const size_t      tree_start = version.find('\n');
+    const std::string tree       = version.substr(tree_start + 1, 64);
 
     copy_tree_objects(dest_paths, src_paths, tree, error_message);
 

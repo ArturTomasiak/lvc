@@ -170,8 +170,9 @@ static std::string build(
     return tree_builder(tree_relation, object_dir, error_message);
 }
 
-static std::vector<std::string>
-process_input(Paths& paths, const std::vector<std::string>& input_raw, const std::string& version_id, char** error_message) {
+static std::vector<std::string> process_input(
+    Paths& paths, const std::vector<std::string>& input_raw, const std::string& version_id, char** error_message,
+    std::unordered_map<std::filesystem::path, object::info>& version) {
     std::vector<std::string>       input  = paths.resolve(input_raw, version_id, 0, 1);
     const std::vector<std::string> ignore = paths.resolve(io::content_lines(paths.ignore, 0, 0, error_message), version_id, 1, 1);
 
@@ -181,8 +182,7 @@ process_input(Paths& paths, const std::vector<std::string>& input_raw, const std
         ignore_entries.insert(entry);
     std::erase_if(input, [&ignore_entries](const std::string& entry) { return ignore_entries.contains(entry); });
 
-    std::unordered_map<std::filesystem::path, object::info> version =
-        version::map_all_objects(paths, version_id, ignore_entries, error_message);
+    version = version::map_all_objects(paths, version_id, ignore_entries, error_message);
     std::erase_if(input, [&version, &paths, &error_message](std::string& entry) {
         const auto it = version.find(entry);
         if (it == version.end() || it->second.type != object::type::blob)
@@ -201,11 +201,17 @@ process_input(Paths& paths, const std::vector<std::string>& input_raw, const std
     return input;
 }
 
-static bool confirm_input(const std::vector<std::string>& input) {
+static bool
+confirm_input(Paths& paths, const std::vector<std::string>& input, std::unordered_map<std::filesystem::path, object::info>& version_map) {
     std::cout << "Snapshot contents:\n";
-    for (const std::string path : input)
-        if (std::filesystem::is_regular_file(path))
+    for (const std::string path : input) {
+        const auto status = std::filesystem::status(paths.root / path);
+        const auto it     = version_map.find(path);
+        if (status.type() == std::filesystem::file_type::regular)
             std::cout << path << '\n';
+        else if (status.type() == std::filesystem::file_type::not_found && it != version_map.end() && it->second.type == object::type::blob)
+            std::cout << "DELETED " << path << '\n';
+    }
     while (true) {
         std::string answer;
         std::cout << "Confirm snapshot (Y/N): ";
@@ -221,18 +227,19 @@ static bool confirm_input(const std::vector<std::string>& input) {
 
 void version::create(
     Paths& paths, const std::vector<std::string>& input_raw, std::string message, std::string author, char** error_message) {
-    const std::string              workspace_name    = io::content(paths.current, 0, 0, error_message);
-    const std::filesystem::path    workspace         = paths.workspace / workspace_name;
-    const std::vector<std::string> workspace_content = io::content_lines(workspace, 1, 0, error_message);
-    const std::string              version_id        = workspace_content.size() <= 1 ? std::string{} : workspace_content[1];
-    const std::string              category          = category::get(workspace_content[0]);
-    const std::vector<std::string> input             = process_input(paths, input_raw, version_id, error_message);
-    const std::filesystem::path    local             = paths.local / workspace_name;
-    const std::filesystem::path    merge             = local / filename_merge;
-    const std::filesystem::path    conflict          = local / filename_conflict;
+    std::unordered_map<std::filesystem::path, object::info> version_map;
+    const std::string                                       workspace_name    = io::content(paths.current, 0, 0, error_message);
+    const std::filesystem::path                             workspace         = paths.workspace / workspace_name;
+    const std::vector<std::string>                          workspace_content = io::content_lines(workspace, 1, 0, error_message);
+    const std::string              version_id = workspace_content.size() <= 1 ? std::string{} : workspace_content[1];
+    const std::string              category   = category::get(workspace_content[0]);
+    const std::vector<std::string> input      = process_input(paths, input_raw, version_id, error_message, version_map);
+    const std::filesystem::path    local      = paths.local / workspace_name;
+    const std::filesystem::path    merge      = local / filename_merge;
+    const std::filesystem::path    conflict   = local / filename_conflict;
     const std::string merge_buffer = std::filesystem::is_regular_file(merge) ? io::content(merge, 0, 0, error_message) : std::string{};
 
-    if (!confirm_input(input))
+    if (!confirm_input(paths, input, version_map))
         return;
 
     if (!operation::conflicts_handled(paths.root, conflict, error_message)) {
