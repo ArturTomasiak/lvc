@@ -258,10 +258,12 @@ void version::create(
 
     const Pending pending = {.type = PendingType::rename, .src = paths.get_tmp_file(), .dest = workspace};
 
+    std::string new_version;
+    object::create(paths.object, TYPE_VERSION, buffer, new_version, error_message);
+
     std::string new_workspace;
     new_workspace.reserve(65 * (workspace_content.size() + 3));
-    object::create(paths.object, TYPE_VERSION, buffer, new_workspace, error_message);
-    new_workspace += '\n';
+    new_workspace = new_version + '\n';
     for (size_t i = 1; i < workspace_content.size(); i++)
         new_workspace += workspace_content[i] + '\n';
     insert_pattern(new_workspace, TYPE_WORKSPACE, category.empty() ? nullptr : category.c_str());
@@ -269,6 +271,8 @@ void version::create(
     io::file(pending.src, std::ios::binary | std::ios::trunc, new_workspace.data(), new_workspace.size(), 1, error_message);
 
     CHECKERROR(error_message);
+
+    std::cout << "Successfully created version " + new_version + '\n';
 
     paths.move_pending(pending);
     paths.move_pending({.type = PendingType::remove_conditional_exists, .dest = merge});
