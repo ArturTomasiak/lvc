@@ -18,10 +18,10 @@ static std::vector<ProcessedInput> process_input(const std::vector<std::string>&
         input.erase(0, input.find_first_not_of(' '));
         input.erase(input.find_last_not_of(' ') + 1);
 
-        if (input.empty() || input == "~")
+        if (input.empty() || input == "!")
             continue;
         ProcessedInput processed;
-        if (input.front() == '~') {
+        if (input.front() == '!') {
             processed.exclude = true;
             input.erase(0, 1);
         }
