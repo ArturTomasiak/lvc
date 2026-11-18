@@ -12,8 +12,8 @@ lvc version ...
       then approve the list of selected paths to record changes or cancel the operation.
       Required Arguments:
          desc "string"
-      Example: lvc version / ~*.launch desc "UI restart machine notification on error handler and hard fault"
-      Explanation: / selects all paths and ~*.launch unselects all .launch files
+      Example: lvc version / !*.launch desc "UI restart machine notification on error handler and hard fault"
+      Explanation: / selects all paths and !*.launch unselects all .launch files
       Example: lvc version -desc "clearing display at initialization" main.c
       Explanation: will work despite main.c not being in the root folder
 
