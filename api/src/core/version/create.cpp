@@ -202,7 +202,7 @@ static std::vector<std::string> process_input(
 }
 
 static bool
-confirm_input(Paths& paths, const std::vector<std::string>& input, std::unordered_map<std::filesystem::path, object::info>& version_map) {
+confirm_input(Paths& paths, const std::vector<std::string>& input, std::unordered_map<std::filesystem::path, object::info>& version_map, const std::string& workspace_name) {
     std::cout << "Snapshot contents:\n";
     for (const std::string path : input) {
         const auto status = std::filesystem::status(paths.root / path);
@@ -214,7 +214,7 @@ confirm_input(Paths& paths, const std::vector<std::string>& input, std::unordere
     }
     while (true) {
         std::string answer;
-        std::cout << "Confirm snapshot (Y/N): ";
+        std::cout << "{" << workspace_name << "} Confirm snapshot (Y/N): ";
         std::getline(std::cin, answer);
         const char charanswer = std::tolower(answer[0]);
         if (charanswer == 'y')
@@ -239,7 +239,7 @@ void version::create(
     const std::filesystem::path    conflict   = local / filename_conflict;
     const std::string merge_buffer = std::filesystem::is_regular_file(merge) ? io::content(merge, 0, 0, error_message) : std::string{};
 
-    if (!confirm_input(paths, input, version_map))
+    if (!confirm_input(paths, input, version_map, workspace_name))
         return;
 
     if (!operation::conflicts_handled(paths.root, conflict, error_message)) {
