@@ -18,8 +18,8 @@ bool lvc::list(int argc, char* argv[]) {
         LvcCategory* category = &list->category[i];
         if (list->len > 1)
             std::cout << category->name << '\n';
-        for (size_t i = 0; i < category->workspaces_len; i++) {
-            std::cout << "    " << category->workspaces[i] << '\n';
+        for (size_t i = 0; i < category->branches_len; i++) {
+            std::cout << "    " << category->branches[i] << '\n';
         }
     }
 

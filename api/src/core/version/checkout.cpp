@@ -1,13 +1,13 @@
 #include <core.hpp>
 
 std::vector<std::string> version::checkout(Paths& paths, char** error_message) {
-    const std::string              workspace_name    = io::content(paths.current, 0, 0, error_message);
-    const std::filesystem::path    workspace         = paths.workspace / workspace_name;
-    const std::vector<std::string> workspace_content = io::content_lines(workspace, 1, 1, error_message);
-    const std::string              version           = workspace_content.empty() ? "" : workspace_content[0];
+    const std::string              branch_name    = io::content(paths.current, 0, 0, error_message);
+    const std::filesystem::path    branch         = paths.branch / branch_name;
+    const std::vector<std::string> branch_content = io::content_lines(branch, 1, 1, error_message);
+    const std::string              version        = branch_content.empty() ? "" : branch_content[0];
 
     std::unordered_map<std::filesystem::path, object::info> version_map = version::map_all_objects(paths, version, {}, error_message);
-    std::vector<object::info>                               working_dir = workspace::all_objects(paths, error_message);
+    std::vector<object::info>                               working_dir = branch::all_objects(paths, error_message);
     const std::vector<std::string> ignore = paths.resolve(io::content_lines(paths.ignore, 0, 0, error_message), version, 0, 1);
 
     std::unordered_set<std::filesystem::path> ignore_entries;

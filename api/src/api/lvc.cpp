@@ -13,20 +13,16 @@ extern "C" LVC_API void lvc_create(LvcCreateInput input, char** error_message) n
         repository::clone(paths, input.clone_repository, input.clone_versioning, error_message);
     if (!input.clone_versioning) {
         paths.move_pending({.type = PendingType::create_directory, .dest = paths.lvc});
-        paths.move_pending({.type = PendingType::create_directory, .dest = paths.workspace});
+        paths.move_pending({.type = PendingType::create_directory, .dest = paths.branch});
         paths.move_pending({.type = PendingType::create_directory, .dest = paths.object});
         paths.move_pending({.type = PendingType::create_directory, .dest = paths.local});
         repository::rename(paths, input.repository_name, error_message);
-        workspace::create(paths, input.workspace_name, std::string{}, error_message);
-        const Pending pending_workspace = {.type = PendingType::rename, .src = paths.get_tmp_file(), .dest = paths.lvc / filename_default};
-        io::file(
-            pending_workspace.src, std::ios::binary | std::ios::trunc, input.workspace_name, charplen(input.workspace_name), 0,
-            error_message);
-        paths.move_pending(pending_workspace);
+        branch::create(paths, input.branch_name, std::string{}, error_message);
+        const Pending pending_branch = {.type = PendingType::rename, .src = paths.get_tmp_file(), .dest = paths.lvc / filename_default};
+        io::file(pending_branch.src, std::ios::binary | std::ios::trunc, input.branch_name, charplen(input.branch_name), 0, error_message);
+        paths.move_pending(pending_branch);
         const Pending pending_current = {.type = PendingType::rename, .src = paths.get_tmp_file(), .dest = paths.current};
-        io::file(
-            pending_current.src, std::ios::binary | std::ios::trunc, input.workspace_name, charplen(input.workspace_name), 0,
-            error_message);
+        io::file(pending_current.src, std::ios::binary | std::ios::trunc, input.branch_name, charplen(input.branch_name), 0, error_message);
         paths.move_pending(pending_current);
     }
 }
@@ -40,28 +36,28 @@ extern "C" LVC_API char* lvc_current(const char* lvc, char** error_message) noex
     return out;
 }
 
-extern "C" LVC_API void lvc_workspace(const char* lvc, const char* workspace_name, LVC_BOOL clean, char** error_message) noexcept {
+extern "C" LVC_API void lvc_branch(const char* lvc, const char* branch_name, LVC_BOOL clean, char** error_message) noexcept {
     Paths       paths(lvc, false, error_message);
     std::string cpy;
     if (!clean)
         cpy = io::content(paths.current, 0, 0, error_message);
-    workspace::create(paths, workspace_name, cpy, error_message);
+    branch::create(paths, branch_name, cpy, error_message);
 }
 
 extern "C" LVC_API void
-lvc_change_category(const char* lvc, const char* workspace_name, const char* category_name, char** error_message) noexcept {
+lvc_change_category(const char* lvc, const char* branch_name, const char* category_name, char** error_message) noexcept {
     Paths paths(lvc, false, error_message);
-    category::change(paths, workspace_name, category_name, error_message);
+    category::change(paths, branch_name, category_name, error_message);
 }
 
-extern "C" LVC_API void lvc_goto(const char* lvc, const char* workspace_name, char** error_message) noexcept {
+extern "C" LVC_API void lvc_goto(const char* lvc, const char* branch_name, char** error_message) noexcept {
     Paths paths(lvc, true, error_message);
-    workspace::_goto(paths, workspace_name, error_message);
+    branch::_goto(paths, branch_name, error_message);
 }
 
-extern "C" LVC_API void lvc_default(const char* lvc, const char* workspace_name, char** error_message) noexcept {
+extern "C" LVC_API void lvc_default(const char* lvc, const char* branch_name, char** error_message) noexcept {
     Paths paths(lvc, false, error_message);
-    workspace::_default(paths, workspace_name, error_message);
+    branch::_default(paths, branch_name, error_message);
 }
 
 extern "C" LVC_API char** lvc_checkout(const char* lvc, char** error_message) noexcept {
@@ -105,14 +101,14 @@ extern "C" LVC_API void lvc_category_list_free(LvcCategoryList* list) noexcept {
     category::free_category_list(list);
 }
 
-extern "C" LVC_API LvcVersion* lvc_history(const char* lvc, const char* workspace, char** error_message) noexcept {
+extern "C" LVC_API LvcVersion* lvc_history(const char* lvc, const char* branch, char** error_message) noexcept {
     Paths paths(lvc, false, error_message);
-    if (!std::filesystem::is_regular_file(paths.workspace / workspace)) {
-        error_message_creator("Workspace does not exist", error_message);
+    if (!std::filesystem::is_regular_file(paths.branch / branch)) {
+        error_message_creator("branch does not exist", error_message);
         return {};
     }
 
-    return version::history(paths, workspace, error_message);
+    return version::history(paths, branch, error_message);
 }
 
 extern "C" LVC_API void lvc_history_free(LvcVersion* version) noexcept {
@@ -127,10 +123,10 @@ extern "C" LVC_API void lvc_terminal_conflict_solver(const char* lvc, char** err
 extern "C" LVC_API void lvc_diff(const char* lvc, int argc, char* argv[], char** error_message) noexcept {
     Paths paths(lvc, false, error_message);
 
-    const std::string              workspace_name    = io::content(paths.current, 0, 0, error_message);
-    const std::filesystem::path    workspace         = paths.workspace / workspace_name;
-    const std::vector<std::string> workspace_content = io::content_lines(workspace, 1, 1, error_message);
-    const std::string              version_id        = workspace_content.empty() ? "" : workspace_content[0];
+    const std::string              branch_name    = io::content(paths.current, 0, 0, error_message);
+    const std::filesystem::path    branch         = paths.branch / branch_name;
+    const std::vector<std::string> branch_content = io::content_lines(branch, 1, 1, error_message);
+    const std::string              version_id     = branch_content.empty() ? "" : branch_content[0];
 
     std::vector<std::string> raw_input;
     raw_input.reserve(argc - 2);
@@ -159,11 +155,11 @@ extern "C" LVC_API void lvc_diff(const char* lvc, int argc, char* argv[], char**
 }
 
 extern "C" LVC_API LvcConflictArray*
-lvc_merge(const char* lvc, const char* src_workspace_name, const char* src_lvc, char** error_message) noexcept {
+lvc_merge(const char* lvc, const char* src_branch_name, const char* src_lvc, char** error_message) noexcept {
     Paths             paths(lvc, false, error_message);
-    const std::string dest_workspace_name       = io::content(paths.current, 0, 0, error_message);
-    const std::string src_workspace_name_string = src_workspace_name;
-    return operation::merge(paths, src_workspace_name_string, dest_workspace_name, src_lvc, error_message);
+    const std::string dest_branch_name       = io::content(paths.current, 0, 0, error_message);
+    const std::string src_branch_name_string = src_branch_name;
+    return operation::merge(paths, src_branch_name_string, dest_branch_name, src_lvc, error_message);
 }
 
 extern "C" LVC_API void lvc_revert(const char* lvc, char* version_id, size_t input_count, char** input, char** error_message) noexcept {
@@ -196,9 +192,9 @@ extern "C" LVC_API LVC_BOOL lvc_version_exists(const char* lvc, const char* id, 
     return false;
 }
 
-extern "C" LVC_API LVC_BOOL lvc_workspace_exists(const char* lvc, const char* name, char** error_message) noexcept {
+extern "C" LVC_API LVC_BOOL lvc_branch_exists(const char* lvc, const char* name, char** error_message) noexcept {
     Paths paths(lvc, false, error_message);
-    return std::filesystem::is_regular_file(paths.workspace / name);
+    return std::filesystem::is_regular_file(paths.branch / name);
 }
 
 extern "C" LVC_API void lvc_free_charpp(char** arr) noexcept {

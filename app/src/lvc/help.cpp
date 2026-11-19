@@ -14,7 +14,7 @@ lvc version ...
          desc "string"
       Example: lvc version / !*.launch desc "UI restart machine notification on error handler and hard fault"
       Explanation: / selects all paths and !*.launch unselects all .launch files
-      Example: lvc version -desc "clearing display at initialization" main.c
+      Example: lvc version desc "clearing display at initialization" main.c
       Explanation: will work despite main.c not being in the root folder
 
 lvc checkout
@@ -25,16 +25,15 @@ lvc diff ...
       Example: lvc diff src/main.cpp
 
 lvc history
-      Show the IDs, descriptions and which workspace does the version
-      come from.
+      Show each version's ID, description and source branch.
       Optional Arguments:
-         workspace <string>
-            specify a workspace (default current)
+         branch <string>
+            specify a branch (default current)
          depth <num>
             versions added as a result of a merge are treated as nested
             versions, where depth limits the max displayed nesting (default 1)
          length <num>
-            the limit of how many versions are printed in total (default 20)
+            the limit of how many versions are printed in total (default 50)
          all
             print every version
 
@@ -43,37 +42,37 @@ lvc revert <version-id> ...
       selected, the entire working directory is reverted, except ignored paths.
       Example: lvc revert threadx.c
 
-lvc workspace <name>
-      Create a workspace based on the current one.
+lvc branch <name>
+      Create a branch based on the current one.
       Optional Arguments:
          clean
-            Creates an empty workspace
+            Creates an empty branch
 
-lvc goto <workspace>
-      Switch to the named workspace and load its files.
+lvc goto <branch>
+      Switch to the named branch and load its files.
       Example: lvc goto feature
 
 lvc current
-      Print the name of the current workspace.
+      Print the name of the current branch.
 
-lvc default <workspace>
-      Set the repository's default workspace.
+lvc default <branch>
+      Set the repository's default branch.
 
-lvc category <workspace> <category>
-      Assign a workspace to a category.
+lvc category <branch> <category>
+      Assign a branch to a category.
       Example: lvc category feature development
 
 lvc list
-      List workspaces grouped by category.
+      List branches grouped by category.
 
-lvc merge <source-workspace>
-      Merge the source workspace into the current workspace. If the source
+lvc merge <source-branch>
+      Merge the source branch into the current branch. If the source
       is in another repository, provide its path as the second argument.
       Optional Arguments
          second argument
             A second argument is treated as the path to the repository
-            containing the source workspace, allowing for merging with
-            a workspace from a different repository.
+            containing the source branch, allowing for merging with
+            a branch from a different repository.
 )";
     return true;
 }

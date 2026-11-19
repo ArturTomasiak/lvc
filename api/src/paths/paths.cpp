@@ -21,11 +21,11 @@ Paths::Paths(const char* lvc_c_str, bool preallocate, char** error_message)
       lvc(lvc_c_str),
       root(lvc.parent_path()),
       object(lvc / foldername_object),
-      workspace(lvc / foldername_workspace),
+      branch(lvc / foldername_branch),
       current(lvc / filename_current),
       storage(root / filename_storage),
       ignore(root / filename_ignore),
-      local(workspace / foldername_local),
+      local(branch / foldername_local),
       name(lvc / filename_name),
       tmp(tmp_directory(root, lvc, local, error_message)) {
     if (preallocate)

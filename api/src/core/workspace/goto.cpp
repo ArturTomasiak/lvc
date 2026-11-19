@@ -1,20 +1,20 @@
 #include <core.hpp>
 
-void workspace::_goto(Paths& paths, std::string dest_name, char** error_message) {
+void branch::_goto(Paths& paths, std::string dest_name, char** error_message) {
     const std::string     src_name  = io::content(paths.current, 0, 0, error_message);
-    std::filesystem::path dest_path = paths.workspace / dest_name;
+    std::filesystem::path dest_path = paths.branch / dest_name;
     if (!std::filesystem::is_regular_file(dest_path))
-        error_message_creator("Workspace " + dest_name + " doesn't exist", error_message);
+        error_message_creator("branch " + dest_name + " doesn't exist", error_message);
     if (dest_name == src_name)
         error_message_creator("Already in " + dest_name, error_message);
     CHECKERROR(error_message);
     if (src_name == dest_name)
-        error_message_creator("Current workspace is already " + dest_name, error_message);
+        error_message_creator("Current branch is already " + dest_name, error_message);
     const std::filesystem::path          src_operation  = paths.local / src_name;
     const std::filesystem::path          dest_operation = paths.local / dest_name;
     const std::vector<std::string>       dest_versions  = io::content_lines(dest_path, 1, 1, error_message);
     std::string                          dest_id        = dest_versions.empty() ? "" : dest_versions[0];
-    const std::vector<std::string>       src_versions   = io::content_lines(paths.workspace / src_name, 1, 1, error_message);
+    const std::vector<std::string>       src_versions   = io::content_lines(paths.branch / src_name, 1, 1, error_message);
     const std::string                    src_id         = src_versions.empty() ? "" : src_versions[0];
     const std::filesystem::path          dest_tmp       = dest_operation / filename_tmp;
     const std::vector<std::string>       ignore_raw     = io::content_lines(paths.ignore, 0, 0, error_message);
@@ -27,7 +27,7 @@ void workspace::_goto(Paths& paths, std::string dest_name, char** error_message)
     for (const std::string& entry : ignore)
         ignore_set.insert(entry);
 
-    if (src_id.empty() || workspace::changed_since_ver(paths, src_objects, error_message))
+    if (src_id.empty() || branch::changed_since_ver(paths, src_objects, error_message))
         version::create_tmp(paths, src_operation, ignore_set, error_message);
 
     std::filesystem::path dest_object_dir;
