@@ -14,7 +14,7 @@ lvc version ...
          desc "string"
       Example: lvc version / !*.launch desc "UI restart machine notification on error handler and hard fault"
       Explanation: / selects all paths and !*.launch unselects all .launch files
-      Example: lvc version -desc "clearing display at initialization" main.c
+      Example: lvc version desc "clearing display at initialization" main.c
       Explanation: will work despite main.c not being in the root folder
 
 lvc checkout
@@ -25,8 +25,7 @@ lvc diff ...
       Example: lvc diff src/main.cpp
 
 lvc history
-      Show the IDs, descriptions and which branches does the version
-      come from.
+      Show each version's ID, description and source branch.
       Optional Arguments:
          branch <string>
             specify a branch (default current)
@@ -34,7 +33,7 @@ lvc history
             versions added as a result of a merge are treated as nested
             versions, where depth limits the max displayed nesting (default 1)
          length <num>
-            the limit of how many versions are printed in total (default 20)
+            the limit of how many versions are printed in total (default 50)
          all
             print every version
 
