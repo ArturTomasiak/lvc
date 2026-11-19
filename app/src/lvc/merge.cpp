@@ -8,7 +8,7 @@ bool lvc::merge(int argc, char* argv[]) {
     }
 
     if (argc < 3) {
-        helper::error("No src workspace given.");
+        helper::error("No src branch given.");
         return 0;
     }
 

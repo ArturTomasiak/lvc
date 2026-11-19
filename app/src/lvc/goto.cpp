@@ -8,7 +8,7 @@ bool lvc::_goto(int argc, char* argv[]) {
     }
 
     if (argc < 3) {
-        helper::error("No workspace name given");
+        helper::error("No branch name given");
         return 0;
     }
 

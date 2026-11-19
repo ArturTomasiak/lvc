@@ -1,6 +1,6 @@
 #include <core.hpp>
 
-std::vector<object::info> workspace::all_objects(Paths& paths, char** error_message) {
+std::vector<object::info> branch::all_objects(Paths& paths, char** error_message) {
     std::vector<object::info> out;
     out.reserve(PREALLOCATE);
 

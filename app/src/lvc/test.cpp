@@ -40,7 +40,7 @@ static void modify_line(const std::filesystem::path& path, size_t line_number, s
 
 bool lvc::test(int argc, char* argv[]) {
     const std::string           name              = "lvctest";
-    const std::string           main_workspace    = "main";
+    const std::string           main_branch       = "main";
     const std::string           feature_worksapce = "feature";
     const std::string           stamp             = std::to_string(std::chrono::system_clock::now().time_since_epoch().count());
     const std::filesystem::path tmp               = std::filesystem::temp_directory_path() / (name + stamp);
@@ -82,7 +82,7 @@ bool lvc::test(int argc, char* argv[]) {
     input.local            = 1;
     input.location         = tmp.c_str();
     input.repository_name  = name.c_str();
-    input.workspace_name   = main_workspace.c_str();
+    input.branch_name      = main_branch.c_str();
 
     TEST_MS_MEASURE(lvc_run_tests(&error_message), "DIFF, MERGE AND SHA256 TESTS", "DIFF, MERGE AND SHA256 SUCCESS IN: ");
     TEST_MS_MEASURE(lvc_create(input, &error_message), "LVC CREATE TEST", "LVC CREATE SUCCESS IN: ");
@@ -99,13 +99,12 @@ bool lvc::test(int argc, char* argv[]) {
     uint8_t _argc   = 5;
 
     TEST_MS_MEASURE(lvc_version(lvc.c_str(), _argc, _argv, "", &error_message), "LVC VERSION TEST", "LVC VERSION SUCCESS IN: ");
-    TEST_MS_MEASURE(
-        lvc_workspace(lvc.c_str(), feature_worksapce.c_str(), 0, &error_message), "LVC WORKSPACE TEST", "LVC WORKSPACE SUCCESS IN: ");
+    TEST_MS_MEASURE(lvc_branch(lvc.c_str(), feature_worksapce.c_str(), 0, &error_message), "LVC BRANCH TEST", "LVC BRANCH SUCCESS IN: ");
     TEST_MS_MEASURE(lvc_goto(lvc.c_str(), feature_worksapce.c_str(), &error_message), "LVC GOTO TEST", "LVC GOTO SUCCESS IN: ");
 
     modify_line(example_file_2_path, 2, "q");
     lvc_version(lvc.c_str(), _argc, _argv, "", &error_message);
-    lvc_goto(lvc.c_str(), main_workspace.c_str(), &error_message);
+    lvc_goto(lvc.c_str(), main_branch.c_str(), &error_message);
     modify_line(example_file_2_path, 3, "f");
     lvc_version(lvc.c_str(), _argc, _argv, "", &error_message);
 
@@ -114,9 +113,9 @@ bool lvc::test(int argc, char* argv[]) {
     TEST_MS_MEASURE(lvc_version(lvc.c_str(), _argc, _argv, "", &error_message), "LVC VERSION TEST", "LVC VERSION SUCCESS IN: ");
     ;
 
-    TEST_MS_MEASURE(lvc_history(lvc.c_str(), main_workspace.c_str(), &error_message), "LVC HISTORY TEST", "LVC HISTORY SUCCESS IN: ");
+    TEST_MS_MEASURE(lvc_history(lvc.c_str(), main_branch.c_str(), &error_message), "LVC HISTORY TEST", "LVC HISTORY SUCCESS IN: ");
     TEST_MS_MEASURE(
-        lvc_change_category(lvc.c_str(), main_workspace.c_str(), "main", &error_message), "LVC CATEGORY TEST",
+        lvc_change_category(lvc.c_str(), main_branch.c_str(), "main", &error_message), "LVC CATEGORY TEST",
         "LVC CHANGE CATEGORY SUCCESS IN: ");
     TEST_MS_MEASURE(lvc_category_list(lvc.c_str(), &error_message), "LVC LIST TEST", "LVC CATEGORY LIST SUCCESS IN: ");
 

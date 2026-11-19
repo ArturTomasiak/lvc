@@ -7,19 +7,19 @@
 #include <unistd.h>
 #include <vector>
 
-inline constexpr std::string foldername_workspace = "workspace";
-inline constexpr std::string foldername_local     = "local";
-inline constexpr std::string foldername_object    = "object";
-inline constexpr std::string foldername_tmp       = "tmp";
-inline constexpr std::string filename_default     = "default";
-inline constexpr std::string filename_current     = "current";
-inline constexpr std::string filename_prepare     = "prepare";
-inline constexpr std::string filename_name        = "name";
-inline constexpr std::string filename_ignore      = "lvc.ignore";
-inline constexpr std::string filename_storage     = "lvc.storage";
-inline constexpr std::string filename_tmp         = "tmp";
-inline constexpr std::string filename_merge       = "merge";
-inline constexpr std::string filename_conflict    = "conflict";
+inline constexpr std::string foldername_branch = "branch";
+inline constexpr std::string foldername_local  = "local";
+inline constexpr std::string foldername_object = "object";
+inline constexpr std::string foldername_tmp    = "tmp";
+inline constexpr std::string filename_default  = "default";
+inline constexpr std::string filename_current  = "current";
+inline constexpr std::string filename_prepare  = "prepare";
+inline constexpr std::string filename_name     = "name";
+inline constexpr std::string filename_ignore   = "lvc.ignore";
+inline constexpr std::string filename_storage  = "lvc.storage";
+inline constexpr std::string filename_tmp      = "tmp";
+inline constexpr std::string filename_merge    = "merge";
+inline constexpr std::string filename_conflict = "conflict";
 
 enum class PendingType : uint8_t {
     remove,
@@ -50,7 +50,7 @@ class Paths {
     const std::filesystem::path lvc;
     const std::filesystem::path root;
     const std::filesystem::path object;
-    const std::filesystem::path workspace;
+    const std::filesystem::path branch;
     const std::filesystem::path current;
     const std::filesystem::path storage;
     const std::filesystem::path ignore;

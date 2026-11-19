@@ -85,31 +85,30 @@ static void existance_conflict(
 }
 
 LvcConflictArray* operation::merge(
-    Paths& dest_paths, const std::string& src_workspace_name, const std::string& dest_workspace_name, const char* src_lvc,
-    char** error_message) {
+    Paths& dest_paths, const std::string& src_branch_name, const std::string& dest_branch_name, const char* src_lvc, char** error_message) {
     Paths             src_paths(src_lvc == 0 ? dest_paths.lvc.c_str() : src_lvc, false, error_message);
-    LvcConflictArray* out                      = NULL;
-    out                                        = static_cast<LvcConflictArray*>(malloc(sizeof(LvcConflictArray)));
-    out->len                                   = 0;
-    out->alloc                                 = 10;
-    out->paths                                 = static_cast<char**>(malloc(out->alloc * sizeof(char*)));
-    const std::filesystem::path src_workspace  = src_paths.workspace / src_workspace_name;
-    const std::filesystem::path dest_workspace = dest_paths.workspace / dest_workspace_name;
-    const std::filesystem::path conflict_path  = dest_paths.local / dest_workspace_name / filename_conflict;
-    const std::string           dest_category  = category::get(io::content(dest_workspace, 1, 0, error_message));
+    LvcConflictArray* out                     = NULL;
+    out                                       = static_cast<LvcConflictArray*>(malloc(sizeof(LvcConflictArray)));
+    out->len                                  = 0;
+    out->alloc                                = 10;
+    out->paths                                = static_cast<char**>(malloc(out->alloc * sizeof(char*)));
+    const std::filesystem::path src_branch    = src_paths.branch / src_branch_name;
+    const std::filesystem::path dest_branch   = dest_paths.branch / dest_branch_name;
+    const std::filesystem::path conflict_path = dest_paths.local / dest_branch_name / filename_conflict;
+    const std::string           dest_category = category::get(io::content(dest_branch, 1, 0, error_message));
 
     Lines src_versions;
     Lines dest_versions;
-    workspace::all_versions(src_paths, src_workspace, src_versions, error_message);
-    workspace::all_versions(dest_paths, dest_workspace, dest_versions, error_message);
+    branch::all_versions(src_paths, src_branch, src_versions, error_message);
+    branch::all_versions(dest_paths, dest_branch, dest_versions, error_message);
 
     if (src_versions.empty()) [[unlikely]] {
-        error_message_creator("Workspace " + src_workspace_name + " has no version history", error_message);
+        error_message_creator("Branch " + src_branch_name + " has no version history", error_message);
         return out;
     }
 
     if (dest_versions.empty()) [[unlikely]] {
-        error_message_creator("Workspace " + dest_workspace_name + " has no version history", error_message);
+        error_message_creator("Branch " + dest_branch_name + " has no version history", error_message);
         return out;
     }
 
@@ -133,7 +132,7 @@ LvcConflictArray* operation::merge(
         }
     }
 
-    const std::string merge_buffer = src_workspace_name + '\n' + src_id + '\n' + common_id;
+    const std::string merge_buffer = src_branch_name + '\n' + src_id + '\n' + common_id;
 
     std::unordered_map<std::filesystem::path, object::info> dest_map;
     std::unordered_map<std::filesystem::path, object::info> src_map;
@@ -146,7 +145,7 @@ LvcConflictArray* operation::merge(
         const std::vector<object::info> dest_objects = version::all_objects(dest_paths.object, dest_id, {}, error_message);
         const std::vector<object::info> src_objects  = version::all_objects(src_paths.object, src_id, {}, error_message);
 
-        if (workspace::changed_since_ver(dest_paths, dest_objects, error_message)) {
+        if (branch::changed_since_ver(dest_paths, dest_objects, error_message)) {
             error_message_creator("Unsaved changes. Create a new version before merging.", error_message);
             return out;
         }
@@ -282,11 +281,11 @@ LvcConflictArray* operation::merge(
     }
 
     if (up_to_date) {
-        std::cout << "Already up to date with " << src_workspace_name << '\n';
+        std::cout << "Already up to date with " << src_branch_name << '\n';
         return out;
     }
 
-    const Pending operation = {.type = PendingType::create_directory_conditional, .dest = dest_paths.local / dest_workspace_name};
+    const Pending operation = {.type = PendingType::create_directory_conditional, .dest = dest_paths.local / dest_branch_name};
     const Pending merge     = {.type = PendingType::rename, .src = dest_paths.get_tmp_file(), .dest = operation.dest / filename_merge};
     const Pending conflict  = {.type = PendingType::rename, .src = dest_paths.get_tmp_file(), .dest = operation.dest / filename_conflict};
     dest_paths.move_pending(operation);

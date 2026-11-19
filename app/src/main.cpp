@@ -7,7 +7,7 @@ struct Command {
 
 constexpr Command commands[] = {{"create", lvc::create},     {"version", lvc::version},   {"history", lvc::history},
                                 {"checkout", lvc::checkout}, {"default", lvc::_default},  {"goto", lvc::_goto},
-                                {"revert", lvc::revert},     {"category", lvc::category}, {"workspace", lvc::workspace},
+                                {"revert", lvc::revert},     {"category", lvc::category}, {"branch", lvc::branch},
                                 {"diff", lvc::diff},         {"current", lvc::current},   {"merge", lvc::merge},
                                 {"list", lvc::list},         {"test", lvc::test},         {"help", lvc::help}};
 

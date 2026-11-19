@@ -1,6 +1,6 @@
 #include "app.hpp"
 
-bool lvc::workspace(int argc, char* argv[]) {
+bool lvc::branch(int argc, char* argv[]) {
     std::filesystem::path lvc;
     if (!helper::find_repository(lvc, std::filesystem::current_path())) {
         helper::error("Couldn't find LVC repository");
@@ -9,7 +9,7 @@ bool lvc::workspace(int argc, char* argv[]) {
     bool clean = 0;
 
     if (argc < 3) {
-        helper::error("No workspace name given");
+        helper::error("No branch name given");
         return 0;
     }
 
@@ -20,10 +20,10 @@ bool lvc::workspace(int argc, char* argv[]) {
             helper::error("Invalid argument" + std::string(argv[4]));
     }
 
-    lvc_workspace(lvc.c_str(), argv[2], clean, &error_message);
+    lvc_branch(lvc.c_str(), argv[2], clean, &error_message);
     if (error_message)
         return 0;
 
-    std::cout << "Successfully created workspace " << argv[2] << '\n';
+    std::cout << "Successfully created branch " << argv[2] << '\n';
     return 1;
 }

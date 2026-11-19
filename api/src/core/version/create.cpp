@@ -201,8 +201,9 @@ static std::vector<std::string> process_input(
     return input;
 }
 
-static bool
-confirm_input(Paths& paths, const std::vector<std::string>& input, std::unordered_map<std::filesystem::path, object::info>& version_map, const std::string& workspace_name) {
+static bool confirm_input(
+    Paths& paths, const std::vector<std::string>& input, std::unordered_map<std::filesystem::path, object::info>& version_map,
+    const std::string& branch_name) {
     std::cout << "Snapshot contents:\n";
     for (const std::string path : input) {
         const auto status = std::filesystem::status(paths.root / path);
@@ -214,7 +215,7 @@ confirm_input(Paths& paths, const std::vector<std::string>& input, std::unordere
     }
     while (true) {
         std::string answer;
-        std::cout << "{" << workspace_name << "} Confirm snapshot (Y/N): ";
+        std::cout << "{" << branch_name << "} Confirm snapshot (Y/N): ";
         std::getline(std::cin, answer);
         const char charanswer = std::tolower(answer[0]);
         if (charanswer == 'y')
@@ -228,18 +229,18 @@ confirm_input(Paths& paths, const std::vector<std::string>& input, std::unordere
 void version::create(
     Paths& paths, const std::vector<std::string>& input_raw, std::string message, std::string author, char** error_message) {
     std::unordered_map<std::filesystem::path, object::info> version_map;
-    const std::string                                       workspace_name    = io::content(paths.current, 0, 0, error_message);
-    const std::filesystem::path                             workspace         = paths.workspace / workspace_name;
-    const std::vector<std::string>                          workspace_content = io::content_lines(workspace, 1, 0, error_message);
-    const std::string              version_id = workspace_content.size() <= 1 ? std::string{} : workspace_content[1];
-    const std::string              category   = category::get(workspace_content[0]);
-    const std::vector<std::string> input      = process_input(paths, input_raw, version_id, error_message, version_map);
-    const std::filesystem::path    local      = paths.local / workspace_name;
-    const std::filesystem::path    merge      = local / filename_merge;
-    const std::filesystem::path    conflict   = local / filename_conflict;
+    const std::string                                       branch_name    = io::content(paths.current, 0, 0, error_message);
+    const std::filesystem::path                             branch         = paths.branch / branch_name;
+    const std::vector<std::string>                          branch_content = io::content_lines(branch, 1, 0, error_message);
+    const std::string                                       version_id     = branch_content.size() <= 1 ? std::string{} : branch_content[1];
+    const std::string                                       category       = category::get(branch_content[0]);
+    const std::vector<std::string>                          input = process_input(paths, input_raw, version_id, error_message, version_map);
+    const std::filesystem::path                             local = paths.local / branch_name;
+    const std::filesystem::path                             merge = local / filename_merge;
+    const std::filesystem::path                             conflict = local / filename_conflict;
     const std::string merge_buffer = std::filesystem::is_regular_file(merge) ? io::content(merge, 0, 0, error_message) : std::string{};
 
-    if (!confirm_input(paths, input, version_map, workspace_name))
+    if (!confirm_input(paths, input, version_map, branch_name))
         return;
 
     if (!operation::conflicts_handled(paths.root, conflict, error_message)) {
@@ -263,19 +264,19 @@ void version::create(
         buffer += nl + merge_buffer;
     }
 
-    const Pending pending = {.type = PendingType::rename, .src = paths.get_tmp_file(), .dest = workspace};
+    const Pending pending = {.type = PendingType::rename, .src = paths.get_tmp_file(), .dest = branch};
 
     std::string new_version;
     object::create(paths.object, TYPE_VERSION, buffer, new_version, error_message);
 
-    std::string new_workspace;
-    new_workspace.reserve(65 * (workspace_content.size() + 3));
-    new_workspace = new_version + '\n';
-    for (size_t i = 1; i < workspace_content.size(); i++)
-        new_workspace += workspace_content[i] + '\n';
-    insert_pattern(new_workspace, TYPE_WORKSPACE, category.empty() ? nullptr : category.c_str());
+    std::string new_branch;
+    new_branch.reserve(65 * (branch_content.size() + 3));
+    new_branch = new_version + '\n';
+    for (size_t i = 1; i < branch_content.size(); i++)
+        new_branch += branch_content[i] + '\n';
+    insert_pattern(new_branch, TYPE_BRANCH, category.empty() ? nullptr : category.c_str());
 
-    io::file(pending.src, std::ios::binary | std::ios::trunc, new_workspace.data(), new_workspace.size(), 1, error_message);
+    io::file(pending.src, std::ios::binary | std::ios::trunc, new_branch.data(), new_branch.size(), 1, error_message);
 
     CHECKERROR(error_message);
 

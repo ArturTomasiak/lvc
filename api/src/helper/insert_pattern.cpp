@@ -3,7 +3,7 @@
 void insert_pattern(std::string& dest, const std::string& type, const char* category) {
     const size_t content_size = dest.size();
     std::string  header       = type + ' ' + std::to_string(content_size) + ' ';
-    if (category != nullptr && type == TYPE_WORKSPACE)
+    if (category != nullptr && type == TYPE_BRANCH)
         header += category;
     header += '\n';
     const size_t total_len = header.size() + content_size;

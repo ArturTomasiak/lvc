@@ -20,7 +20,7 @@ Creating a new snapshot is as simple as one command where user specifies the des
 
 ### Merging
 
-Workspaces can be merged both within the same repository and between local repositories. Versions created in the workspace are differentiated from the versions added as a result of a merge to support a more customizable display of history.
+Branches can be merged both within the same repository and between local repositories. Versions created in the branch are differentiated from the versions added as a result of a merge to support a more customizable display of history.
 
 For a comprehensive list of arguments, run `lvc help`
 

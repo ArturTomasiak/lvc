@@ -12,29 +12,29 @@ LvcCategory* find_category(LvcCategoryList* list, const std::string& name) {
 LvcCategory* add_category(LvcCategoryList* list, const std::string& name, char** error_message) {
     list->category = static_cast<LvcCategory*>(realloc(list->category, (list->len + 1) * sizeof(LvcCategory)));
     CHECKALLOC(list->category, error_message, {});
-    LvcCategory* out      = &list->category[list->len];
-    out->workspaces_len   = 0;
-    out->workspaces_alloc = 8;
-    out->workspaces       = static_cast<char**>(malloc(out->workspaces_alloc * sizeof(char*)));
-    out->name             = static_cast<char*>(malloc(name.size() + 1));
-    CHECKALLOC(out->workspaces, error_message, {});
+    LvcCategory* out    = &list->category[list->len];
+    out->branches_len   = 0;
+    out->branches_alloc = 8;
+    out->branches       = static_cast<char**>(malloc(out->branches_alloc * sizeof(char*)));
+    out->name           = static_cast<char*>(malloc(name.size() + 1));
+    CHECKALLOC(out->branches, error_message, {});
     CHECKALLOC(out->name, error_message, {});
     memcpy(out->name, name.data(), name.size() + 1);
     list->len++;
     return out;
 }
 
-void add_workspace(LvcCategory* category, const std::string& name, char** error_message) {
-    if (category->workspaces_len == category->workspaces_alloc) {
-        category->workspaces_alloc *= 2;
-        category->workspaces = static_cast<char**>(realloc(category->workspaces, category->workspaces_alloc * sizeof(char*)));
-        CHECKALLOC(category->workspaces, error_message);
+void add_branch(LvcCategory* category, const std::string& name, char** error_message) {
+    if (category->branches_len == category->branches_alloc) {
+        category->branches_alloc *= 2;
+        category->branches = static_cast<char**>(realloc(category->branches, category->branches_alloc * sizeof(char*)));
+        CHECKALLOC(category->branches, error_message);
     }
-    char* workspace = static_cast<char*>(malloc(name.size() + 1));
-    CHECKALLOC(workspace, error_message);
-    memcpy(workspace, name.data(), name.size() + 1);
-    category->workspaces[category->workspaces_len] = workspace;
-    category->workspaces_len++;
+    char* branch = static_cast<char*>(malloc(name.size() + 1));
+    CHECKALLOC(branch, error_message);
+    memcpy(branch, name.data(), name.size() + 1);
+    category->branches[category->branches_len] = branch;
+    category->branches_len++;
 }
 
 LvcCategoryList* category::list(Paths& paths, char** error_message) {
@@ -43,7 +43,7 @@ LvcCategoryList* category::list(Paths& paths, char** error_message) {
     out->len                   = 0;
     bool uncategorized_created = 0;
 
-    for (const auto& entry : std::filesystem::directory_iterator(paths.workspace)) {
+    for (const auto& entry : std::filesystem::directory_iterator(paths.branch)) {
         if (!entry.is_regular_file())
             continue;
         const std::filesystem::path path = entry.path();
@@ -64,7 +64,7 @@ LvcCategoryList* category::list(Paths& paths, char** error_message) {
                 CHECKERROR(error_message, out);
             }
         }
-        add_workspace(current, name, error_message);
+        add_branch(current, name, error_message);
         CHECKERROR(error_message, out);
     }
 
@@ -75,10 +75,10 @@ void category::free_category_list(LvcCategoryList* list) {
     for (size_t i = 0; i < list->len; ++i) {
         LvcCategory& category = list->category[i];
 
-        for (size_t j = 0; j < category.workspaces_len; ++j)
-            free(category.workspaces[j]);
+        for (size_t j = 0; j < category.branches_len; ++j)
+            free(category.branches[j]);
 
-        free(category.workspaces);
+        free(category.branches);
         free(category.name);
     }
 

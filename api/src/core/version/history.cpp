@@ -1,12 +1,12 @@
 #include "core.hpp"
 
-static LvcVersion* create_version(const std::string& workspace_name, char** error_message) {
+static LvcVersion* create_version(const std::string& branch_name, char** error_message) {
     LvcVersion* out = reinterpret_cast<LvcVersion*>(malloc(sizeof(LvcVersion)));
     CHECKALLOC(out, error_message, {});
 
-    out->workspace = reinterpret_cast<char*>(malloc(workspace_name.size() + 1));
-    CHECKALLOC(out->workspace, error_message, {});
-    memcpy(out->workspace, workspace_name.c_str(), workspace_name.size() + 1);
+    out->branch = reinterpret_cast<char*>(malloc(branch_name.size() + 1));
+    CHECKALLOC(out->branch, error_message, {});
+    memcpy(out->branch, branch_name.c_str(), branch_name.size() + 1);
 
     out->len   = 0;
     out->alloc = 10;
@@ -30,14 +30,14 @@ static void add_entry(LvcVersion* version, const std::string& id, const std::str
     entry->nested = nullptr;
 }
 
-LvcVersion* version::history(Paths& paths, const std::string& workspace_name, char** error_message, std::string from, std::string to) {
-    const std::filesystem::path workspace = paths.workspace / workspace_name;
-    if (!std::filesystem::exists(workspace))
+LvcVersion* version::history(Paths& paths, const std::string& branch_name, char** error_message, std::string from, std::string to) {
+    const std::filesystem::path branch = paths.branch / branch_name;
+    if (!std::filesystem::exists(branch))
         return {};
 
-    LvcVersion* out = create_version(workspace_name, error_message);
+    LvcVersion* out = create_version(branch_name, error_message);
 
-    std::vector<std::string> buffer = io::content_lines(workspace, 1, 1, error_message);
+    std::vector<std::string> buffer = io::content_lines(branch, 1, 1, error_message);
 
     if (!from.empty())
         while (!buffer.empty() && buffer[0] != from)
@@ -53,10 +53,10 @@ LvcVersion* version::history(Paths& paths, const std::string& workspace_name, ch
             return out;
         }
         add_entry(out, version, content[VERSION_MESSAGE], error_message);
-        if (content.size() > VERSION_WORKSPACE_FROM) {
-            const std::string merge_to = content.size() > VERSION_WORKSPACE_TO ? content[VERSION_WORKSPACE_TO] : "";
+        if (content.size() > VERSION_BRANCH_FROM) {
+            const std::string merge_to = content.size() > VERSION_BRANCH_TO ? content[VERSION_BRANCH_TO] : "";
             out->entry[out->len - 1].nested =
-                version::history(paths, content[VERSION_WORKSPACE], error_message, content[VERSION_WORKSPACE_FROM], merge_to);
+                version::history(paths, content[VERSION_BRANCH], error_message, content[VERSION_BRANCH_FROM], merge_to);
         }
     }
 
@@ -73,6 +73,6 @@ void version::history_free(LvcVersion* version) {
     }
 
     free(version->entry);
-    free(version->workspace);
+    free(version->branch);
     free(version);
 }
