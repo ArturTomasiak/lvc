@@ -3,7 +3,7 @@ import subprocess
 from time import perf_counter
 
 subprocess.run(["git", "init"], check=True)
-subprocess.run(["lvc", "create"], input="L\n\benchmark\nmain\n", check=True)
+subprocess.run(["lvc", "create"], input="L\n\nbenchmark\nmain\n", text=True, check=True)
 
 start = perf_counter()
 subprocess.run(["git", "add", "."], check=True)
