@@ -240,8 +240,10 @@ void version::create(
     const std::filesystem::path                             conflict = local / filename_conflict;
     const std::string merge_buffer = std::filesystem::is_regular_file(merge) ? io::content(merge, 0, 0, error_message) : std::string{};
 
+#if CONFIRM_VERSION_INPUT == true
     if (!confirm_input(paths, input, version_map, branch_name))
         return;
+#endif
 
     if (!operation::conflicts_handled(paths.root, conflict, error_message)) {
         error_message_creator("Unhandled conflicts. Use lvc conflict for the list of conflicts.", error_message);

@@ -4,6 +4,8 @@
 #define PREALLOCATE_SMALL 10 // minimize vector allocations
 #define PREALLOCATE       30
 
+#define CONFIRM_VERSION_INPUT true
+
 // DO NOT TOUCH
 
 #include <stddef.h>
