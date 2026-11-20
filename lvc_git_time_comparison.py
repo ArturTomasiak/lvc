@@ -11,5 +11,5 @@ subprocess.run(["git", "commit", "-m", "time measure test"], check=True)
 print(f"git: {(perf_counter() - start) * 1000:.3f} ms")
 
 start = perf_counter()
-subprocess.run(["lvc", "version", "desc", "time measure test", "*"], check=True)
+subprocess.run(["lvc", "version", "desc", "time measure test", "*", "!/.git"], check=True)
 print(f"lvc: {(perf_counter() - start) * 1000:.3f} ms")
