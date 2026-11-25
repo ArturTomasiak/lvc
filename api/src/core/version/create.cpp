@@ -10,8 +10,9 @@ struct VersionObject {
 };
 
 struct Tree {
-    std::filesystem::path      relative;
-    std::vector<VersionObject> objects;
+    std::filesystem::path                             relative;
+    std::vector<VersionObject>                        objects;
+    std::unordered_map<std::filesystem::path, size_t> objects_map;
 };
 
 struct TreeRelation {
@@ -20,20 +21,40 @@ struct TreeRelation {
     std::vector<TreeRelation> children;
 };
 
-static void add_object(
-    const std::filesystem::path& path, const std::filesystem::path& object_dir, std::vector<VersionObject>& objects, char** error_message) {
-    std::string filename = path.filename();
-    std::erase_if(objects, [&](const VersionObject& object) { return object.name == filename; });
-    VersionObject object;
-    object.name        = filename;
-    object.type        = TYPE_BLOB;
-    std::string buffer = io::content(path, 0, 0, error_message);
-    object::create(object_dir, TYPE_BLOB, buffer, object.id, error_message);
-    objects.emplace_back(std::move(object));
+static TreeRelation tree_relation_create(const std::string& name, const std::filesystem::path& relative) {
+    TreeRelation tree_relation{.name = name, .tree = {.relative = relative}};
+    tree_relation.children.reserve(PREALLOCATE_SMALL);
+    tree_relation.tree.objects.reserve(PREALLOCATE_SMALL);
+    tree_relation.tree.objects_map.reserve(PREALLOCATE_SMALL);
+    return tree_relation;
 }
 
-static void rem_object(const std::filesystem::path& path, std::vector<VersionObject>& objects) {
-    std::erase_if(objects, [&](const VersionObject& object) { return object.name == path.filename(); });
+static void add_object(const std::filesystem::path& path, const std::filesystem::path& object_dir, Tree& tree, char** error_message) {
+    std::string    filename = path.filename();
+    VersionObject* object;
+    const auto     it = tree.objects_map.find(filename);
+    if (it != tree.objects_map.end())
+        object = &tree.objects[it->second];
+    else {
+        tree.objects_map.insert({filename, tree.objects.size()});
+        object = &tree.objects.emplace_back();
+    }
+    object->name       = filename;
+    object->type       = TYPE_BLOB;
+    std::string buffer = io::content(path, 0, 0, error_message);
+    object::create(object_dir, TYPE_BLOB, buffer, object->id, error_message);
+}
+
+static void rem_object(const std::filesystem::path& filename, Tree& tree) {
+    const auto it = tree.objects_map.find(filename);
+    if (it != tree.objects_map.end()) {
+        size_t i = it->second;
+        tree.objects_map.erase(it);
+        tree.objects.erase(tree.objects.begin() + i);
+        for (auto& [name, index] : tree.objects_map)
+            if (index > i)
+                index--;
+    }
 }
 
 static std::string tree_builder(TreeRelation& relation, const std::filesystem::path& object_dir, char** error_message) {
@@ -93,11 +114,12 @@ static void tree_from_version(
         object.name = line.substr(pos + 1);
 
         if (object.type == TYPE_TREE) { // tree objects are inserted in tree_builder
-            TreeRelation new_relation{.name = object.name, .tree = {.relative = current}};
             tree_from_version(
-                object_dir, tree_relation.children.emplace_back(new_relation), object.id, current / object.name, error_message);
-        } else
+                object_dir, tree_relation.children.emplace_back(tree_relation_create(object.name, current)), object.id, current / object.name, error_message);
+        } else {
+            tree_relation.tree.objects_map.insert({object.name, tree_relation.tree.objects.size()});
             tree_relation.tree.objects.push_back(object);
+        }
     }
 }
 
@@ -110,9 +132,8 @@ static TreeRelation& ensure_tree(TreeRelation& root, const std::filesystem::path
         auto child = std::find_if(children.begin(), children.end(), [&](const TreeRelation& entry) { return entry.name == name; });
 
         if (child == children.end()) {
-            std::erase_if(parent->tree.objects, [&](const VersionObject& object) { return object.name == name; });
-            TreeRelation new_relation{.name = name, .tree = {.relative = parent->tree.relative / *it}};
-            parent = &children.emplace_back(std::move(new_relation));
+            rem_object(name, parent->tree);
+            parent = &children.emplace_back(tree_relation_create(name, parent->tree.relative / *it));
         } else {
             parent = &*child;
         }
@@ -126,12 +147,7 @@ remove_subtree(TreeRelation& tree_relation, const std::filesystem::path& relativ
     const std::filesystem::path name   = relative.filename();
 
     if (tree_relation.tree.relative == parent) {
-        for (auto it = tree_relation.tree.objects.begin(); it != tree_relation.tree.objects.end(); it++) {
-            if (it->name == name) {
-                tree_relation.tree.objects.erase(it);
-                return;
-            }
-        }
+        rem_object(name, tree_relation.tree);
     }
 
     for (auto it = tree_relation.children.begin(); it != tree_relation.children.end(); it++) {
@@ -148,7 +164,7 @@ remove_subtree(TreeRelation& tree_relation, const std::filesystem::path& relativ
 static std::string build(
     const std::filesystem::path& object_dir, const std::filesystem::path& working_dir, const std::string& tree_id,
     const std::vector<std::string>& status, char** error_message) {
-    TreeRelation tree_relation = {.name = ""};
+    TreeRelation tree_relation = tree_relation_create({}, {});
 
     if (!tree_id.empty())
         tree_from_version(object_dir, tree_relation, tree_id, {}, error_message);
@@ -170,7 +186,7 @@ static std::string build(
                 const std::string name = relative.filename().string();
                 std::erase_if(parent.children, [&](const TreeRelation& child) { return child.name == name; });
             }
-            add_object(path, object_dir, parent.tree.objects, error_message);
+            add_object(path, object_dir, parent.tree, error_message);
         } else if (file_status.type() == std::filesystem::file_type::not_found) {
             remove_subtree(tree_relation, relative, relative.begin());
         }
