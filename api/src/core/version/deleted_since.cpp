@@ -9,8 +9,14 @@ std::vector<std::filesystem::path> version::deleted_since(Paths& paths, std::str
 
     try {
         std::filesystem::recursive_directory_iterator iterator(paths.root);
-        for (const std::filesystem::directory_entry& entry : iterator)
-            working_files.insert(entry.path().lexically_relative(paths.root));
+        for (const std::filesystem::directory_entry& entry : iterator) {
+            const std::filesystem::path relative = entry.path().lexically_relative(paths.root);
+            if (entry.is_directory() && relative == ".lvc") {
+                iterator.disable_recursion_pending();
+                continue;
+            }
+            working_files.insert(relative);
+        }
     } catch (const std::filesystem::filesystem_error& error) {
         error_message_creator("Directory iteration failure", error_message);
         return {};
