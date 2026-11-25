@@ -146,6 +146,10 @@ static std::vector<std::string> resolve_processed(
         std::filesystem::recursive_directory_iterator iterator(paths.root);
         for (const std::filesystem::directory_entry& entry : iterator) {
             const std::filesystem::path relative_path = entry.path().lexically_relative(paths.root);
+            if (entry.is_directory() && relative_path == ".lvc") {
+                iterator.disable_recursion_pending();
+                continue;
+            }
             if (!include_folders)
                 if (std::filesystem::is_directory(entry))
                     continue;
@@ -180,8 +184,6 @@ Paths::resolve(const std::vector<std::string>& inputs, const std::string version
     excluded.reserve(processed.size());
     for (ProcessedInput& item : processed)
         (item.exclude ? excluded : included).push_back(std::move(item));
-
-    excluded.push_back({1, 1, 1, {".lvc"}});
 
     std::vector<std::string> result =
         resolve_processed(*this, included, excluded, version_id, prefix_deleted, include_folders, error_message);
