@@ -10,7 +10,7 @@ char* deflate(const char* in, size_t in_len, size_t& out_len) {
     char* out = static_cast<char*>(malloc(out_len));
     if (!out)
         return 0;
-    size_t result = compress2_z((Bytef*)out, &out_len, (const Bytef*)in, in_len, Z_DEFAULT_COMPRESSION);
+    size_t result = compress2_z((Bytef*)out, &out_len, (const Bytef*)in, in_len, Z_BEST_SPEED);
     if (result != Z_OK) {
         free(out);
         return 0;

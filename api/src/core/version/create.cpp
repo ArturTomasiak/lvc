@@ -21,6 +21,14 @@ struct TreeRelation {
     std::vector<TreeRelation> children;
 };
 
+static TreeRelation tree_relation_create(const std::string& name, const std::filesystem::path& relative) {
+    TreeRelation tree_relation{.name = name, .tree = {.relative = relative}};
+    tree_relation.children.reserve(PREALLOCATE_SMALL);
+    tree_relation.tree.objects.reserve(PREALLOCATE_SMALL);
+    tree_relation.tree.objects_map.reserve(PREALLOCATE_SMALL);
+    return tree_relation;
+}
+
 static void add_object(const std::filesystem::path& path, const std::filesystem::path& object_dir, Tree& tree, char** error_message) {
     std::string    filename = path.filename();
     VersionObject* object;
@@ -106,9 +114,8 @@ static void tree_from_version(
         object.name = line.substr(pos + 1);
 
         if (object.type == TYPE_TREE) { // tree objects are inserted in tree_builder
-            TreeRelation new_relation{.name = object.name, .tree = {.relative = current}};
             tree_from_version(
-                object_dir, tree_relation.children.emplace_back(new_relation), object.id, current / object.name, error_message);
+                object_dir, tree_relation.children.emplace_back(tree_relation_create(object.name, current)), object.id, current / object.name, error_message);
         } else {
             tree_relation.tree.objects_map.insert({object.name, tree_relation.tree.objects.size()});
             tree_relation.tree.objects.push_back(object);
@@ -126,8 +133,7 @@ static TreeRelation& ensure_tree(TreeRelation& root, const std::filesystem::path
 
         if (child == children.end()) {
             rem_object(name, parent->tree);
-            TreeRelation new_relation{.name = name, .tree = {.relative = parent->tree.relative / *it}};
-            parent = &children.emplace_back(std::move(new_relation));
+            parent = &children.emplace_back(tree_relation_create(name, parent->tree.relative / *it));
         } else {
             parent = &*child;
         }
@@ -158,7 +164,7 @@ remove_subtree(TreeRelation& tree_relation, const std::filesystem::path& relativ
 static std::string build(
     const std::filesystem::path& object_dir, const std::filesystem::path& working_dir, const std::string& tree_id,
     const std::vector<std::string>& status, char** error_message) {
-    TreeRelation tree_relation = {.name = ""};
+    TreeRelation tree_relation = tree_relation_create({}, {});
 
     if (!tree_id.empty())
         tree_from_version(object_dir, tree_relation, tree_id, {}, error_message);
