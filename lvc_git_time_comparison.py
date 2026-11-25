@@ -4,10 +4,16 @@ import subprocess
 import shutil
 from time import perf_counter
 
+def remove_if_present(path):
+    try:
+        shutil.rmtree(path)
+    except FileNotFoundError:
+        pass
+
 quiet = {"stdout": subprocess.DEVNULL, "stderr": subprocess.DEVNULL}
 
-shutil.rmtree(".git")
-shutil.rmtree(".lvc")
+remove_if_present(".git")
+remove_if_present(".lvc")
 
 subprocess.run(["git", "init"], check=True, **quiet)
 subprocess.run(["lvc", "create"], input="L\n\nbenchmark\nmain\n", text=True, check=True, **quiet)
