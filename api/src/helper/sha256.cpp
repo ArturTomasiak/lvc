@@ -10,18 +10,11 @@ static constexpr uint32_t k[64] = {
     0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2};
 
 static void process_chunk(const uint8_t* chunk, uint32_t state[8]) {
-    uint32_t w[64];
+    uint32_t w[16];
     for (uint8_t i = 0; i < 16; i++) {
         uint8_t offset = i * 4;
         w[i]           = (static_cast<uint32_t>(chunk[offset]) << 24) | (static_cast<uint32_t>(chunk[offset + 1]) << 16) |
                (static_cast<uint32_t>(chunk[offset + 2]) << 8) | (static_cast<uint32_t>(chunk[offset + 3]));
-    }
-    for (uint8_t i = 16; i < 64; i++) {
-        uint32_t s0 = std::rotr(w[i - 15], 7) ^ std::rotr(w[i - 15], 18) ^ (w[i - 15] >> 3);
-
-        uint32_t s1 = std::rotr(w[i - 2], 17) ^ std::rotr(w[i - 2], 19) ^ (w[i - 2] >> 10);
-
-        w[i] = w[i - 16] + s0 + w[i - 7] + s1;
     }
 
     uint32_t a = state[0];
@@ -33,10 +26,21 @@ static void process_chunk(const uint8_t* chunk, uint32_t state[8]) {
     uint32_t g = state[6];
     uint32_t h = state[7];
 
+#ifdef LVC_LINUX
+#pragma GCC unroll 64
+#endif
     for (uint8_t i = 0; i < 64; i++) {
+        const uint32_t slot = i & 15;
+        if (i >= 16) {
+            const uint32_t x  = w[(i - 15) & 15];
+            const uint32_t y  = w[(i - 2) & 15];
+            const uint32_t s0 = std::rotr(x, 7) ^ std::rotr(x, 18) ^ (x >> 3);
+            const uint32_t s1 = std::rotr(y, 17) ^ std::rotr(y, 19) ^ (y >> 10);
+            w[slot] += s0 + w[(i - 7) & 15] + s1;
+        }
         const uint32_t S1    = std::rotr(e, 6) ^ std::rotr(e, 11) ^ std::rotr(e, 25);
         const uint32_t ch    = g ^ (e & (f ^ g));
-        const uint32_t temp1 = h + S1 + ch + k[i] + w[i];
+        const uint32_t temp1 = h + S1 + ch + k[i] + w[slot];
         const uint32_t S0    = std::rotr(a, 2) ^ std::rotr(a, 13) ^ std::rotr(a, 22);
         const uint32_t maj   = (a & b) ^ (c & (a ^ b));
         const uint32_t temp2 = S0 + maj;
@@ -61,12 +65,12 @@ static void process_chunk(const uint8_t* chunk, uint32_t state[8]) {
     state[7] += h;
 }
 
-void sha256(const char* in, size_t in_len, char out[65]) {
+void sha256(const char* in, uint64_t in_len, char out[65]) {
     if (!out || (!in && in_len))
         return;
-    size_t  bit_len   = in_len << 3;
-    size_t  remainder = in_len % 64;
-    uint8_t padding[128];
+    uint64_t bit_len   = in_len << 3;
+    size_t   remainder = in_len % 64;
+    uint8_t  padding[128];
     if (remainder)
         memcpy(padding, in + in_len - remainder, remainder);
     padding[remainder] = 0x80;
