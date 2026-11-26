@@ -45,8 +45,8 @@ namespace repository {
 
 namespace version {
     void create(Paths& paths, const std::vector<std::string>& input_raw, std::string message, std::string author, char** error_message);
-    void
-    create_tmp(Paths& paths, const std::filesystem::path& operation, std::unordered_set<std::string_view>& ignore, char** error_message);
+    void create_tmp(
+        Paths& paths, const std::filesystem::path& operation, const std::unordered_set<std::string_view>& ignore, char** error_message);
 
     std::vector<std::string> checkout(Paths& paths, char** error_message);
 
@@ -56,10 +56,12 @@ namespace version {
     std::unordered_set<std::string>
     all_ids(Paths& paths, const std::string& id, std::unordered_set<std::string_view> ignore, char** error_message);
     std::vector<object::info> all_objects(
-        const std::filesystem::path& object, const std::string& id, std::unordered_set<std::string_view> ignore, char** error_message);
+        const std::filesystem::path& object, const std::string& id, const std::unordered_set<std::string_view>& ignore,
+        char** error_message);
     std::unordered_map<std::filesystem::path, object::info>
-    map_all_objects(Paths& paths, const std::string& id, std::unordered_set<std::string_view> ignore, char** error_message);
-    std::vector<std::filesystem::path> deleted_since(Paths& paths, std::string id, char** error_message);
+    map_all_objects(Paths& paths, const std::string& id, const std::unordered_set<std::string_view>& ignore, char** error_message);
+    std::vector<std::filesystem::path> deleted_since(
+        Paths& paths, std::string id, const std::unordered_map<std::filesystem::path, object::info>& version_map, char** error_message);
 }
 
 namespace branch {

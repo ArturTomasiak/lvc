@@ -2,7 +2,7 @@
 
 static void get_all_paths(
     const std::filesystem::path& object_folder, std::vector<object::info>& out, const std::string tree_id,
-    const std::filesystem::path current, std::unordered_set<std::string_view>& ignore, char** error_message) {
+    const std::filesystem::path current, const std::unordered_set<std::string_view>& ignore, char** error_message) {
     std::vector<std::string> content = io::content_lines(object_folder / tree_id, 1, 0, error_message);
     for (size_t i = 1; i < content.size(); i++) {
         object::info       object;
@@ -30,7 +30,7 @@ static void get_all_paths(
 }
 
 std::vector<object::info> version::all_objects(
-    const std::filesystem::path& object, const std::string& id, std::unordered_set<std::string_view> ignore, char** error_message) {
+    const std::filesystem::path& object, const std::string& id, const std::unordered_set<std::string_view>& ignore, char** error_message) {
     if (id.empty())
         return {};
     std::vector<std::string> version_content = io::content_lines(object / id, 1, 0, error_message);
@@ -44,7 +44,7 @@ std::vector<object::info> version::all_objects(
 
 static void map_get_all_paths(
     const std::filesystem::path& object_folder, std::unordered_map<std::filesystem::path, object::info>& out, const std::string tree_id,
-    const std::filesystem::path current, std::unordered_set<std::string_view>& ignore, char** error_message) {
+    const std::filesystem::path current, const std::unordered_set<std::string_view>& ignore, char** error_message) {
     std::vector<std::string> content = io::content_lines(object_folder / tree_id, 1, 0, error_message);
     for (size_t i = 1; i < content.size(); i++) {
         object::info       object;
@@ -72,7 +72,7 @@ static void map_get_all_paths(
 }
 
 std::unordered_map<std::filesystem::path, object::info>
-version::map_all_objects(Paths& paths, const std::string& id, std::unordered_set<std::string_view> ignore, char** error_message) {
+version::map_all_objects(Paths& paths, const std::string& id, const std::unordered_set<std::string_view>& ignore, char** error_message) {
     if (id.empty())
         return {};
     std::vector<std::string> version_content = io::content_lines(paths.object / id, 1, 0, error_message);

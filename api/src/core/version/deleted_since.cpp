@@ -1,11 +1,9 @@
 #include <core.hpp>
 
-std::vector<std::filesystem::path> version::deleted_since(Paths& paths, std::string id, char** error_message) {
+std::vector<std::filesystem::path> version::deleted_since(
+    Paths& paths, std::string id, const std::unordered_map<std::filesystem::path, object::info>& version_map, char** error_message) {
     std::vector<std::filesystem::path> out;
     out.reserve(PREALLOCATE);
-
-    std::vector<object::info>                 version = version::all_objects(paths.object, id, {}, error_message);
-    std::unordered_set<std::filesystem::path> working_files;
 
     try {
         std::filesystem::recursive_directory_iterator iterator(paths.root);
@@ -15,16 +13,13 @@ std::vector<std::filesystem::path> version::deleted_since(Paths& paths, std::str
                 iterator.disable_recursion_pending();
                 continue;
             }
-            working_files.insert(relative);
+            if (!version_map.contains(relative))
+                out.push_back(relative);
         }
     } catch (const std::filesystem::filesystem_error& error) {
         error_message_creator("Directory iteration failure", error_message);
         return {};
     }
-
-    for (const object::info& object : version)
-        if (!object.path.empty() && !working_files.contains(object.path))
-            out.push_back(object.path);
 
     return out;
 }

@@ -3,6 +3,9 @@
 // TREE PATTERN
 // <type> <id> <name>
 
+using ObjectMap  = std::unordered_map<std::filesystem::path, std::string>;
+using VersionMap = std::unordered_map<std::filesystem::path, object::info>;
+
 struct VersionObject {
     std::string type;
     std::string id;
@@ -29,7 +32,8 @@ static TreeRelation tree_relation_create(const std::string& name, const std::fil
     return tree_relation;
 }
 
-static void add_object(const std::filesystem::path& path, const std::filesystem::path& object_dir, Tree& tree, char** error_message) {
+static void add_object(
+    const std::filesystem::path& path, const std::filesystem::path& object_dir, Tree& tree, ObjectMap& object_map, char** error_message) {
     std::string    filename = path.filename();
     VersionObject* object;
     const auto     it = tree.objects_map.find(filename);
@@ -39,10 +43,16 @@ static void add_object(const std::filesystem::path& path, const std::filesystem:
         tree.objects_map.insert({filename, tree.objects.size()});
         object = &tree.objects.emplace_back();
     }
-    object->name       = filename;
-    object->type       = TYPE_BLOB;
-    std::string buffer = io::content(path, 0, 0, error_message);
-    object::create(object_dir, TYPE_BLOB, buffer, object->id, error_message);
+    object->name = filename;
+    object->type = TYPE_BLOB;
+
+    const auto object_it = object_map.find(path);
+    if (object_it == object_map.end()) {
+        std::string buffer = io::content(path, 0, 0, error_message);
+        object::create(object_dir, TYPE_BLOB, buffer, object->id, error_message);
+    } else {
+        object->id = object_it->second;
+    }
 }
 
 static void rem_object(const std::filesystem::path& filename, Tree& tree) {
@@ -115,7 +125,8 @@ static void tree_from_version(
 
         if (object.type == TYPE_TREE) { // tree objects are inserted in tree_builder
             tree_from_version(
-                object_dir, tree_relation.children.emplace_back(tree_relation_create(object.name, current)), object.id, current / object.name, error_message);
+                object_dir, tree_relation.children.emplace_back(tree_relation_create(object.name, current)), object.id,
+                current / object.name, error_message);
         } else {
             tree_relation.tree.objects_map.insert({object.name, tree_relation.tree.objects.size()});
             tree_relation.tree.objects.push_back(object);
@@ -163,7 +174,7 @@ remove_subtree(TreeRelation& tree_relation, const std::filesystem::path& relativ
 
 static std::string build(
     const std::filesystem::path& object_dir, const std::filesystem::path& working_dir, const std::string& tree_id,
-    const std::vector<std::string>& status, char** error_message) {
+    const std::vector<std::string>& status, ObjectMap& object_map, char** error_message) {
     TreeRelation tree_relation = tree_relation_create({}, {});
 
     if (!tree_id.empty())
@@ -186,7 +197,7 @@ static std::string build(
                 const std::string name = relative.filename().string();
                 std::erase_if(parent.children, [&](const TreeRelation& child) { return child.name == name; });
             }
-            add_object(path, object_dir, parent.tree, error_message);
+            add_object(path, object_dir, parent.tree, object_map, error_message);
         } else if (file_status.type() == std::filesystem::file_type::not_found) {
             remove_subtree(tree_relation, relative, relative.begin());
         }
@@ -196,10 +207,11 @@ static std::string build(
 }
 
 static std::vector<std::string> process_input(
-    Paths& paths, const std::vector<std::string>& input_raw, const std::string& version_id, char** error_message,
-    std::unordered_map<std::filesystem::path, object::info>& version) {
-    std::vector<std::string>       input  = paths.resolve(input_raw, version_id, 0, 1);
-    const std::vector<std::string> ignore = paths.resolve(io::content_lines(paths.ignore, 0, 0, error_message), version_id, 1, 1);
+    Paths& paths, const std::vector<std::string>& input_raw, const std::string& version_id, char** error_message, ObjectMap& object,
+    VersionMap& version) {
+    version = version::map_all_objects(paths, version_id, {}, error_message);
+    std::vector<std::string>       input  = paths.resolve(input_raw, version_id, 1, 1, (void*)&version);
+    const std::vector<std::string> ignore = paths.resolve(io::content_lines(paths.ignore, 0, 0, error_message), version_id, 0, 1, (void*)&version);
 
     std::unordered_set<std::string_view> ignore_entries;
     ignore_entries.reserve(ignore.size());
@@ -207,8 +219,7 @@ static std::vector<std::string> process_input(
         ignore_entries.insert(entry);
     std::erase_if(input, [&ignore_entries](const std::string& entry) { return ignore_entries.contains(entry); });
 
-    version = version::map_all_objects(paths, version_id, ignore_entries, error_message);
-    std::erase_if(input, [&version, &paths, &error_message](std::string& entry) {
+    std::erase_if(input, [&object, &version, &paths, &error_message](std::string& entry) {
         const auto it = version.find(entry);
         if (it == version.end() || it->second.type != object::type::blob)
             return false;
@@ -217,18 +228,16 @@ static std::vector<std::string> process_input(
         if (!std::filesystem::is_regular_file(path))
             return false;
         std::string buffer = io::content(path, 0, 0, error_message);
-        insert_pattern(buffer, TYPE_BLOB, nullptr);
-        char id[65];
-        sha256(buffer.c_str(), buffer.size(), id);
+        std::string id;
+        object::create(paths.object, TYPE_BLOB, buffer, id, error_message);
+        object.insert({entry, id});
         return id == it->second.id;
     });
 
     return input;
 }
 
-static bool confirm_input(
-    Paths& paths, const std::vector<std::string>& input, std::unordered_map<std::filesystem::path, object::info>& version_map,
-    const std::string& branch_name) {
+static bool confirm_input(Paths& paths, const std::vector<std::string>& input, VersionMap& version_map, const std::string& branch_name) {
     std::cout << "Snapshot contents:\n";
     for (const std::string path : input) {
         const auto status = std::filesystem::status(paths.root / path);
@@ -253,16 +262,17 @@ static bool confirm_input(
 
 void version::create(
     Paths& paths, const std::vector<std::string>& input_raw, std::string message, std::string author, char** error_message) {
-    std::unordered_map<std::filesystem::path, object::info> version_map;
-    const std::string                                       branch_name    = io::content(paths.current, 0, 0, error_message);
-    const std::filesystem::path                             branch         = paths.branch / branch_name;
-    const std::vector<std::string>                          branch_content = io::content_lines(branch, 1, 0, error_message);
-    const std::string                                       version_id     = branch_content.size() <= 1 ? std::string{} : branch_content[1];
-    const std::string                                       category       = category::get(branch_content[0]);
-    const std::vector<std::string>                          input = process_input(paths, input_raw, version_id, error_message, version_map);
-    const std::filesystem::path                             local = paths.local / branch_name;
-    const std::filesystem::path                             merge = local / filename_merge;
-    const std::filesystem::path                             conflict = local / filename_conflict;
+    ObjectMap                      object_map;
+    VersionMap                     version_map;
+    const std::string              branch_name    = io::content(paths.current, 0, 0, error_message);
+    const std::filesystem::path    branch         = paths.branch / branch_name;
+    const std::vector<std::string> branch_content = io::content_lines(branch, 1, 0, error_message);
+    const std::string              version_id     = branch_content.size() <= 1 ? std::string{} : branch_content[1];
+    const std::string              category       = category::get(branch_content[0]);
+    const std::vector<std::string> input          = process_input(paths, input_raw, version_id, error_message, object_map, version_map);
+    const std::filesystem::path    local          = paths.local / branch_name;
+    const std::filesystem::path    merge          = local / filename_merge;
+    const std::filesystem::path    conflict       = local / filename_conflict;
     const std::string merge_buffer = std::filesystem::is_regular_file(merge) ? io::content(merge, 0, 0, error_message) : std::string{};
 
 #if CONFIRM_VERSION_INPUT == true
@@ -284,7 +294,7 @@ void version::create(
         root_id = version_content[VERSION_ROOT_TREE];
     }
 
-    std::string       buffer = build(paths.object, paths.root, root_id, input, error_message);
+    std::string       buffer = build(paths.object, paths.root, root_id, input, object_map, error_message);
     const std::string nl     = "\n";
     buffer += nl + message + nl + author;
     if (!merge_buffer.empty()) {
@@ -315,9 +325,11 @@ void version::create(
 }
 
 void version::create_tmp(
-    Paths& paths, const std::filesystem::path& operation, std::unordered_set<std::string_view>& ignore, char** error_message) {
+    Paths& paths, const std::filesystem::path& operation, const std::unordered_set<std::string_view>& ignore, char** error_message) {
     const Pending               pending    = {.type = PendingType::rename, .src = paths.get_tmp_file(), .dest = operation / filename_tmp};
     const std::filesystem::path object_dir = operation / foldername_object;
+    ObjectMap                   object_map;
+    object_map.reserve(PREALLOCATE);
 
     if (!std::filesystem::is_directory(object_dir))
         std::filesystem::create_directories(object_dir);
@@ -345,7 +357,7 @@ void version::create_tmp(
     }
 
     std::string root_id;
-    std::string new_root_id = build(object_dir, paths.root, root_id, status, error_message);
+    std::string new_root_id = build(object_dir, paths.root, root_id, status, object_map, error_message);
 
     const std::string nl     = "\n";
     std::string       buffer = new_root_id + nl + "tmp snapshot" + nl + "lvc";
