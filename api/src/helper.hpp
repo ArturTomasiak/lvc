@@ -19,7 +19,7 @@ struct Paths;
     if (*error_message) [[unlikely]]                                                                                                       \
     return __VA_ARGS__
 
-void  sha256(const char* in, size_t in_len, char out[65]);
+void  sha256(const char* in, uint64_t in_len, char out[65]);
 char* deflate(const char* in, size_t in_len, size_t& out_len);
 char* inflate(const std::string& in, size_t& out_len);
 
