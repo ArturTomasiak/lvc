@@ -92,8 +92,8 @@ static std::string tree_builder(TreeRelation& relation, const std::filesystem::p
 }
 
 static void tree_from_version(
-    const std::filesystem::path root, const std::filesystem::path& object_dir, TreeRelation& tree_relation, const std::string& tree_id,
-    const std::filesystem::path& current, char** error_message) {
+    const std::filesystem::path& object_dir, TreeRelation& tree_relation, const std::string& tree_id, std::filesystem::path current,
+    char** error_message) {
     std::vector<std::string> tree_content = io::content_lines(object_dir / tree_id, 1, 0, error_message);
     size_t                   pos;
     tree_relation.tree.relative = current;
@@ -111,9 +111,9 @@ static void tree_from_version(
 
         if (object.type == TYPE_TREE) { // tree objects are inserted in tree_builder
             tree_from_version(
-                root, object_dir, tree_relation.children.emplace_back(tree_relation_create(object.name, current)), object.id,
+                object_dir, tree_relation.children.emplace_back(tree_relation_create(object.name, current)), object.id,
                 current / object.name, error_message);
-        } else if (std::filesystem::is_regular_file(root / current / object.name)) {
+        } else {
             tree_relation.tree.objects_map.insert({object.name, tree_relation.tree.objects.size()});
             tree_relation.tree.objects.push_back(object);
         }
@@ -164,9 +164,12 @@ static std::string build(
     TreeRelation tree_relation = tree_relation_create({}, {});
 
     if (!tree_id.empty())
-        tree_from_version(working_dir, object_dir, tree_relation, tree_id, {}, error_message);
+        tree_from_version(object_dir, tree_relation, tree_id, {}, error_message);
 
     for (std::string relative_str : status) {
+        if (relative_str.starts_with(PREFIX_DELETED))
+            relative_str.erase(0, strlen(PREFIX_DELETED));
+
         const std::filesystem::path relative{relative_str};
         const std::filesystem::path path = working_dir / relative;
 
@@ -176,7 +179,13 @@ static std::string build(
         } else if (file_status.type() == std::filesystem::file_type::regular) {
             const std::filesystem::path parent_path = relative.parent_path();
             TreeRelation&               parent      = ensure_tree(tree_relation, parent_path, parent_path.begin());
+            if (!tree_id.empty()) {
+                const std::string name = relative.filename().string();
+                std::erase_if(parent.children, [&](const TreeRelation& child) { return child.name == name; });
+            }
             add_object(path, object_dir, parent.tree, object_map, error_message);
+        } else if (file_status.type() == std::filesystem::file_type::not_found) {
+            remove_subtree(tree_relation, relative, relative.begin());
         }
     }
 
@@ -186,9 +195,9 @@ static std::string build(
 static std::vector<std::string> process_input(
     Paths& paths, const std::vector<std::string>& input_raw, const std::string& version_id, char** error_message, ObjectMap& object,
     VersionMap& version) {
-    version                               = version::map_all_objects(paths, version_id, {}, error_message);
-    std::vector<std::string>       input  = paths.resolve(input_raw, 1);
-    const std::vector<std::string> ignore = paths.resolve(io::content_lines(paths.ignore, 0, 0, error_message), 1);
+    version = version::map_all_objects(paths, version_id, {}, error_message);
+    std::vector<std::string>       input  = paths.resolve(input_raw, version_id, 1, 1, (void*)&version);
+    const std::vector<std::string> ignore = paths.resolve(io::content_lines(paths.ignore, 0, 0, error_message), version_id, 0, 1, (void*)&version);
 
     std::unordered_set<std::string_view> ignore_entries;
     ignore_entries.reserve(ignore.size());

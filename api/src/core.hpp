@@ -60,6 +60,8 @@ namespace version {
         char** error_message);
     std::unordered_map<std::filesystem::path, object::info>
     map_all_objects(Paths& paths, const std::string& id, const std::unordered_set<std::string_view>& ignore, char** error_message);
+    std::vector<std::filesystem::path> deleted_since(
+        Paths& paths, std::string id, const std::unordered_map<std::filesystem::path, object::info>& version_map, char** error_message);
 }
 
 namespace branch {
