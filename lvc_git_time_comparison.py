@@ -12,7 +12,7 @@ def prefix_hello_world(paths):
         original = path.read_bytes()
         path.write_bytes(b"Hello world\n" + original)
 
-def pick_random_files(directory=".", count=40, limit=100):
+def pick_random_files(directory=".", count=40, limit=1000):
     files = []
     for root, dirs, names in os.walk(directory):
         dirs[:] = [name for name in dirs]
