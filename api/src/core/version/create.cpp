@@ -91,20 +91,6 @@ static std::string tree_builder(TreeRelation& relation, const std::filesystem::p
     return id;
 }
 
-static void tree_relation_builder(std::vector<Tree>& trees, TreeRelation& tree_relation, std::filesystem::path current) {
-    std::vector<Tree>::iterator iterator = trees.begin();
-    while (iterator != trees.end()) {
-        std::filesystem::path tree_parent = iterator->relative.parent_path();
-        if (tree_parent == current) {
-            tree_relation.children.push_back({.tree = std::move(*iterator)});
-            iterator = trees.erase(iterator);
-            tree_relation_builder(trees, tree_relation.children.back(), tree_relation.children.back().tree.relative);
-            iterator = trees.begin();
-        } else
-            iterator++;
-    }
-}
-
 static void tree_from_version(
     const std::filesystem::path& object_dir, TreeRelation& tree_relation, const std::string& tree_id, std::filesystem::path current,
     char** error_message) {
