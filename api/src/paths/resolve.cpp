@@ -1,5 +1,4 @@
 #include <algorithm>
-#include <core.hpp>
 #include <paths.hpp>
 
 struct ProcessedInput {
@@ -133,8 +132,8 @@ static void iterate(
 }
 
 static std::vector<std::string> resolve_processed(
-    Paths& paths, const std::vector<ProcessedInput>& included, const std::vector<ProcessedInput>& excluded, const std::string& version_id,
-    bool prefix_deleted, bool include_folders, const std::unordered_map<std::filesystem::path, object::info>& version_map, char** error_message) {
+    Paths& paths, const std::vector<ProcessedInput>& included, const std::vector<ProcessedInput>& excluded, bool include_folders,
+    char** error_message) {
     std::vector<std::string> result;
 
     if (included.empty())
@@ -160,28 +159,10 @@ static std::vector<std::string> resolve_processed(
         return {};
     }
 
-    if (!version_id.empty()) {
-        std::vector<std::filesystem::path> deleted = version::deleted_since(paths, version_id, version_map, error_message);
-        CHECKERROR(error_message, {});
-        for (const std::filesystem::path& path : deleted) {
-            if (!include_folders)
-                if (std::filesystem::is_directory(path))
-                    continue;
-            iterate(path, result, included, excluded, prefix_deleted);
-        }
-    }
-
     return result;
 }
 
-std::vector<std::string>
-    Paths::resolve(const std::vector<std::string>& inputs, const std::string version_id, bool prefix_deleted, bool include_folders) {
-    std::unordered_map<std::filesystem::path, object::info> version_map = version::map_all_objects(*this, version_id, {}, error_message);
-    return resolve(inputs, version_id, prefix_deleted, include_folders, (void*)&version_map);
-}
-
-std::vector<std::string>
-Paths::resolve(const std::vector<std::string>& inputs, const std::string version_id, bool prefix_deleted, bool include_folders, void* version_map) {
+std::vector<std::string> Paths::resolve(const std::vector<std::string>& inputs, bool include_folders) {
     std::vector<ProcessedInput> processed = process_input(inputs);
 
     std::vector<ProcessedInput> included;
@@ -191,8 +172,7 @@ Paths::resolve(const std::vector<std::string>& inputs, const std::string version
     for (ProcessedInput& item : processed)
         (item.exclude ? excluded : included).push_back(std::move(item));
 
-    std::vector<std::string> result =
-        resolve_processed(*this, included, excluded, version_id, prefix_deleted, include_folders, *((const std::unordered_map<std::filesystem::path, object::info>*)version_map), error_message);
+    std::vector<std::string> result = resolve_processed(*this, included, excluded, include_folders, error_message);
 
     return result;
 }

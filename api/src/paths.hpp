@@ -60,10 +60,7 @@ class Paths {
 
     Paths(const char* lvc_c_str, bool preallocate, char** error_message);
     ~Paths();
-    void                  move_pending(const Pending& entry);
-    std::filesystem::path get_tmp_file();
-    std::vector<std::string>
-    resolve(const std::vector<std::string>& inputs, const std::string version_id, bool prefix_deleted, bool include_folders);
-    std::vector<std::string>
-    resolve(const std::vector<std::string>& inputs, const std::string version_id, bool prefix_deleted, bool include_folders, void* version_map);
+    void                     move_pending(const Pending& entry);
+    std::filesystem::path    get_tmp_file();
+    std::vector<std::string> resolve(const std::vector<std::string>& inputs, bool include_folders);
 };

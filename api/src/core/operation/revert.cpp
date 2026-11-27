@@ -11,7 +11,7 @@ void operation::revert(Paths& paths, std::string version_id, std::vector<std::st
     }
 
     std::vector<std::string> ignore_raw = io::content_lines(paths.ignore, 0, 0, error_message);
-    std::vector<std::string> ignore     = paths.resolve(ignore_raw, version_id, 0, 1);
+    std::vector<std::string> ignore     = paths.resolve(ignore_raw, 1);
     CHECKERROR(error_message);
 
     std::unordered_set<std::string_view> ignore_set;
@@ -24,7 +24,7 @@ void operation::revert(Paths& paths, std::string version_id, std::vector<std::st
     if (input_raw.empty())
         input_raw.push_back("/");
 
-    std::vector<std::string> input = paths.resolve(input_raw, version_id, 0, 1);
+    std::vector<std::string> input = paths.resolve(input_raw, 1);
     CHECKERROR(error_message);
 
     std::unordered_set<std::string_view> input_set;
