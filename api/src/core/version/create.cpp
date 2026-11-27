@@ -195,7 +195,7 @@ static std::string build(
 static std::vector<std::string> process_input(
     Paths& paths, const std::vector<std::string>& input_raw, const std::string& version_id, char** error_message, ObjectMap& object,
     VersionMap& version) {
-    version = version::map_all_objects(paths, version_id, {}, error_message);
+    version                               = version::map_all_objects(paths, version_id, {}, error_message);
     std::vector<std::string>       input  = paths.resolve(input_raw, version_id, 1, 1);
     const std::vector<std::string> ignore = paths.resolve(io::content_lines(paths.ignore, 0, 0, error_message), version_id, 0, 1);
 

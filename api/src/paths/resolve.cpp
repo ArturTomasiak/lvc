@@ -26,12 +26,12 @@ static std::vector<ProcessedInput> process_input(const std::vector<std::string>&
             input.erase(0, 1);
         }
         processed.root      = input.front() == '/';
-        processed.directory = input.back() == '/';
+        processed.directory = std::filesystem::is_directory(input);
         processed.path_components.reserve(PREALLOCATE_SMALL);
         stream.clear();
         stream.str(input);
         while (std::getline(stream, component, '/')) {
-            if (component.empty() || component == ".")
+            if (component.empty())
                 continue;
             if (component == "..")
                 goto invalid;
@@ -106,9 +106,9 @@ static bool rule_selects_file(const ProcessedInput& rule, const std::vector<std:
     return false;
 }
 
-static void iterate(
-    const std::filesystem::path& relative_path, std::vector<std::string>& result, const std::vector<ProcessedInput>& included,
-    const std::vector<ProcessedInput>& excluded, bool prefix_deleted) {
+static bool match(
+    const std::filesystem::path& relative_path, const std::vector<ProcessedInput>& included, const std::vector<ProcessedInput>& excluded,
+    bool& excluded_match) {
     std::vector<std::string> components;
     components.reserve(PREALLOCATE_SMALL);
 
@@ -119,29 +119,25 @@ static void iterate(
         std::any_of(included.begin(), included.end(), [&](const ProcessedInput& rule) { return rule_selects_file(rule, components); });
 
     if (included_match) {
-        bool excluded_match =
+        excluded_match =
             std::any_of(excluded.begin(), excluded.end(), [&](const ProcessedInput& rule) { return rule_selects_file(rule, components); });
-
-        if (!excluded_match) {
-            std::string out;
-            if (prefix_deleted)
-                out += PREFIX_DELETED;
-            out += relative_path.generic_string();
-            result.push_back(std::move(out));
-        }
+        return !excluded_match;
     }
+    return false;
 }
 
 static std::vector<std::string> resolve_processed(
     Paths& paths, const std::vector<ProcessedInput>& included, const std::vector<ProcessedInput>& excluded, const std::string& version_id,
     bool prefix_deleted, bool include_folders, char** error_message) {
-    std::vector<std::string> result;
+    std::vector<std::string>                  result;
     std::unordered_set<std::filesystem::path> working_dir;
+    bool excluded_match;
 
     if (included.empty())
         return result;
 
     result.reserve(PREALLOCATE);
+    working_dir.reserve(PREALLOCATE);
 
     try {
         std::filesystem::recursive_directory_iterator iterator(paths.root);
@@ -151,16 +147,24 @@ static std::vector<std::string> resolve_processed(
                 iterator.disable_recursion_pending();
                 continue;
             }
-            if (!include_folders)
-                if (std::filesystem::is_directory(entry))
-                    continue;
-            iterate(relative_path, result, included, excluded, 0);
+            if (!include_folders && entry.is_directory())
+                continue;
             working_dir.insert(std::move(relative_path));
+            if (!match(relative_path, included, excluded, excluded_match)) {
+                if (excluded_match) {
+                    iterator.disable_recursion_pending();
+                }
+                continue;
+            }
+            result.push_back(std::move(relative_path.generic_string()));
         }
     } catch (const std::filesystem::filesystem_error& error) {
         error_message_creator("Directory iteration failure", error_message);
         return {};
     }
+
+    if (version_id.empty())
+        return result;
 
     std::vector<object::info> version = version::all_objects(paths.object, version_id, {}, error_message);
     for (const object::info& object : version) {
@@ -168,7 +172,8 @@ static std::vector<std::string> resolve_processed(
             if (object.type == object::type::tree)
                 continue;
         if (!working_dir.contains(object.path)) {
-            iterate(object.path, result, included, excluded, prefix_deleted);
+            if (match(object.path, included, excluded, excluded_match))
+                result.push_back(std::move(prefix_deleted ? PREFIX_DELETED + object.path.generic_string() : object.path.generic_string()));
         }
     }
 
